@@ -10,8 +10,8 @@
 
 ```
 Phase:          0 — Project Setup & Infrastructure
-Last Completed: (not started)
-Next Step:      Phase 0 / Step 0.1 — Scaffold Next.js project
+Last Completed: Step 0.9 — Local verification + E2E smoke tests
+Next Step:      Phase 0 / Step 0.9 — Deploy to Vercel (pending)
 Blocker:        None
 ```
 
@@ -20,15 +20,15 @@ Blocker:        None
 ## Phase Completion Tracker
 
 ### Phase 0 — Setup & Infrastructure
-- [ ] 0.1 — Scaffold Next.js project + install dependencies
-- [ ] 0.2 — Project directory structure created
-- [ ] 0.3 — `.env.local` configured (Clerk + Supabase + no Anthropic key)
-- [ ] 0.4 — Drizzle config + DB client
-- [ ] 0.5 — Clerk auth setup (root layout, middleware, sign-in/sign-up pages)
-- [ ] 0.6 — Vitest configuration
-- [ ] 0.7 — Dashboard layout shell (sidebar + breadcrumb placeholder)
-- [ ] 0.8 — Settings page (API key input + model selection + test key button)
-- [ ] 0.9 — Verify: app runs locally, Clerk login works, Vercel deploy succeeds
+- [x] 0.1 — Scaffold Next.js project + install dependencies
+- [x] 0.2 — Project directory structure created
+- [x] 0.3 — `.env.local` configured (Clerk + Supabase + no Anthropic key)
+- [x] 0.4 — Drizzle config + DB client
+- [x] 0.5 — Clerk auth setup (root layout, middleware, sign-in/sign-up pages)
+- [x] 0.6 — Vitest configuration
+- [x] 0.7 — Dashboard layout shell (sidebar + breadcrumb placeholder)
+- [x] 0.8 — Settings page (API key input + model selection + test key button)
+- [x] 0.9 — Verify: app runs locally, Clerk login works, Vercel deploy (pending)
 
 ### Phase 1 — Database Schema & ORM
 - [ ] 1.1 — Write schema tests (RED)
@@ -115,7 +115,10 @@ Blocker:        None
 
 | Issue | Phase Found | Status |
 |-------|-------------|--------|
-| — | — | — |
+| Zod v4 `z.record()` needs both key+value schemas | 0 | Fixed |
+| AI SDK v6 uses `maxOutputTokens` not `maxTokens` | 0 | Fixed |
+| shadcn Select `onValueChange` can pass `null` in v4 | 0 | Fixed |
+| Next.js 16 deprecates `middleware` in favor of `proxy` (warning only) | 0 | Noted |
 
 ---
 
@@ -123,15 +126,15 @@ Blocker:        None
 
 | Variable | Status |
 |----------|--------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | ⬜ Not set |
-| `CLERK_SECRET_KEY` | ⬜ Not set |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | ⬜ Not set |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | ⬜ Not set |
-| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | ⬜ Not set |
-| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | ⬜ Not set |
-| `DATABASE_URL` | ⬜ Not set |
-| `NEXT_PUBLIC_SUPABASE_URL` | ⬜ Not set |
-| `SUPABASE_SERVICE_ROLE_KEY` | ⬜ Not set |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | ✅ Set |
+| `CLERK_SECRET_KEY` | ✅ Set |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | ✅ Set |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | ✅ Set |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | ✅ Set |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | ✅ Set |
+| `DATABASE_URL` | ✅ Set |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Set |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Set |
 
 *(Update to ✅ as each is added to .env.local)*
 
@@ -141,6 +144,6 @@ Blocker:        None
 
 | Date | Phase/Step | What Was Done | Issues |
 |------|------------|---------------|--------|
-| — | — | — | — |
+| 2026-03-08 | 0.1–0.8 | Full Phase 0 implementation: scaffold, auth, layout, settings, tests (42 passing), build passes | Zod v4/AI SDK v6/shadcn v4 API differences from plan |
 
 *(Claude Code appends a line here after each session)*

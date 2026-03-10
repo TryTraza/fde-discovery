@@ -9,9 +9,9 @@
 ## Current State
 
 ```
-Phase:          1 — Database Schema & ORM (COMPLETE)
-Last Completed: Step 1.6 — Seed script
-Next Step:      Phase 2 / Step 2.1 — Write API tests (RED)
+Phase:          2 — Client CRUD + Company Research (COMPLETE)
+Last Completed: Step 2.6 — Client overview page
+Next Step:      Phase 3 / Step 3.1 — L1 domain JSON files
 Blocker:        None
 ```
 
@@ -39,14 +39,14 @@ Blocker:        None
 - [x] 1.6 — Seed script — 2 clients, 3 contacts, 1 process with model, 3 open questions
 
 ### Phase 2 — Client CRUD + Company Research
-- [ ] 2.1 — Write API tests (RED)
-- [ ] 2.2 — Client API routes (GET list, POST create, GET by ID, PATCH, DELETE)
-- [ ] 2.3 — Company research AI (uses user's key, NO_API_KEY handled)
-- [ ] 2.4 — Client list page
-- [ ] 2.5 — Client creation form
-- [ ] 2.6 — Client overview (inline edit, contacts, processes)
-- [ ] 2.7 — Contacts CRUD
-- [ ] 2.8 — SWR hooks
+- [x] 2.1 — Write API tests (RED) — 20 client tests + stub
+- [x] 2.2 — Client API routes (GET list, POST create, GET by ID, PATCH, DELETE) — 20 tests GREEN
+- [x] 2.3 — Company research AI (uses user's key, NO_API_KEY handled) — 8 tests (3 AI + 5 research route)
+- [x] 2.8 — SWR hooks (moved before UI) — SWRProvider, useClients, useContacts
+- [x] 2.4 — Client list page — search, status filter, cards, skeleton/empty states
+- [x] 2.5 — Client creation form — dialog with validation, toast, navigate on success
+- [x] 2.7 — Contacts CRUD (moved before overview) — 16 tests, routes + UI
+- [x] 2.6 — Client overview — inline edit, AI summary, contacts, processes placeholder
 
 ### Phase 3 — Process CRUD + Hypothesis
 - [ ] 3.1 — L1 domain JSON files (procurement + unknown minimum)
@@ -106,6 +106,11 @@ Blocker:        None
 | prepare: false | Required for Supabase connection pooler (Transaction mode) | 2026-03-08 |
 | await params | Next.js 15 — params is a Promise in dynamic routes | 2026-03-08 |
 | Suggestions fail silently | NO_API_KEY during capture returns empty suggestions, never crashes UI | 2026-03-08 |
+| AI SDK v6 stopWhen | `maxSteps` removed; use `stopWhen: stepCountIs(n)` for tool loops | 2026-03-11 |
+| SWR v2 mutate | `globalMutate` from `swr` only accepts string keys; use `useSWRConfig().mutate` for function matchers | 2026-03-11 |
+| shadcn v4 no asChild | Button has no `asChild`/`render` prop; use `buttonVariants()` with Link directly | 2026-03-11 |
+| parseJSON shared util | `request.json()` throws on malformed input; all POST/PATCH routes use `parseJSON` from `lib/api/utils.ts` | 2026-03-11 |
+| Contact POST validation order | Client existence checked before body parsing — nonexistent client always returns 404 regardless of body | 2026-03-11 |
 
 ---
 
@@ -122,6 +127,8 @@ Blocker:        None
 | Research notes lack `deletedAt` — orphaned after client soft-delete | 1 | Tech debt (Phase 2) |
 | `getProcessWithFullContext` does NOT filter soft-deleted children | 1 | Tech debt — UI must filter |
 | Supabase `information_schema.sessions` mixes auth.sessions columns | 1 | Noted — no impact |
+| AI research polling uses 5s setTimeout | No real-time channel; acceptable for Phase 2, consider SSE in later phases | 2 | Tech debt |
+| `listClients` filter wraps single string in array | Route wraps `searchParams.get('status')` in `[status]` to match query layer's `string[]` type | 2 | Works — may want multi-select later |
 
 ---
 
@@ -149,5 +156,6 @@ Blocker:        None
 |------|------------|---------------|--------|
 | 2026-03-08 | 0.1–0.8 | Full Phase 0 implementation: scaffold, auth, layout, settings, tests (42 passing), build passes | Zod v4/AI SDK v6/shadcn v4 API differences from plan |
 | 2026-03-10 | 1.1–1.6 | Full Phase 1: schema (11 tables, 9 enums), JSONB types, query layer (8 files), migration pushed to Supabase, seed data verified. 63 tests passing, build clean. | Supabase MCP not available — verified via direct SQL connection |
+| 2026-03-11 | 2.1–2.8 | Full Phase 2: client CRUD API (5 routes), contacts CRUD API (5 routes), company research AI, SWR hooks, client list page, create dialog, overview page with inline edit + AI summary + contacts. 107 tests passing, build clean. | AI SDK v6 `maxSteps` → `stopWhen`, shadcn v4 no `asChild`, SWR v2 `globalMutate` limitation |
 
 *(Claude Code appends a line here after each session)*

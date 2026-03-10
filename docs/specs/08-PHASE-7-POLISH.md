@@ -104,7 +104,7 @@ Stay focused on FDE research. Be specific and actionable. Flag information that 
 
 ### Client Component
 
-Uses AI Elements for the chat UI (same as v1) with one addition — an error state for missing API key:
+Uses AI Elements for the chat UI with an error state for missing API key:
 
 ```tsx
 // In AIResearchPanel component
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest, { params }) {
   try {
     await requireAdmin();
     const { model } = await getAIConfig('research');  // Use research model for email
-    // ... same prompt as v1
+    // Full prompt defined in 09-TECH-REFERENCE.md
   } catch (error) {
     return handleAPIError(error);
   }
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest, { params }) {
 
 ## Step 7.3 — Artifact Upload
 
-Unchanged from v1. Supabase Storage for files. No AI interaction, so no API key needed.
+Uses Supabase Storage for files. No AI interaction needed, so no API key required.
 
 ---
 
@@ -228,7 +228,7 @@ export async function POST() {
 
 ## Step 7.6 — Breadcrumb, Polish, Mobile
 
-Same as v1:
+Polish items:
 - [ ] Dynamic breadcrumb resolving UUIDs to entity names
 - [ ] Loading skeletons everywhere
 - [ ] Error boundaries with `error.tsx`

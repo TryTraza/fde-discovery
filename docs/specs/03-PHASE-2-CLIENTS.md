@@ -6,17 +6,17 @@
 
 ---
 
-## Key Change from v1: Per-User API Key on Every AI Call
+## Core Pattern: Per-User API Key on Every AI Call
 
 Every AI call now uses `getAIConfig(feature)` instead of a hardcoded `anthropic()` import. This reads the user's API key and model preference from Clerk metadata.
 
-### Before (v1):
+### Without per-user keys (wrong):
 ```typescript
 import { anthropic } from '@ai-sdk/anthropic';
 const { text } = await generateText({ model: anthropic('claude-sonnet-4-20250514'), ... });
 ```
 
-### After (v2):
+### With per-user keys (correct):
 ```typescript
 import { getAIConfig } from '@/lib/ai/get-ai-config';
 const { model, anthropic } = await getAIConfig('research');
@@ -89,7 +89,7 @@ Keep it factual and concise. Flag what you couldn't find.`,
 
 ## Step 2.2 — Client API Routes
 
-Same structure as v1. The only difference is that the POST handler wraps the async research call with proper NO_API_KEY handling:
+The POST handler wraps the async research call with proper NO_API_KEY handling:
 
 ```typescript
 // In POST /api/clients
@@ -109,7 +109,7 @@ return NextResponse.json(client, { status: 201 });
 
 ## Steps 2.3–2.6 — Client List, Creation Form, Overview, SWR Hooks
 
-Same as v1. The client creation form and overview page are unchanged. The AI summary on the overview shows appropriate messages based on state:
+The client creation form and overview page display the AI summary with appropriate messages based on state:
 
 - Loading skeleton while research runs
 - Research result when complete

@@ -6,7 +6,7 @@
 
 ---
 
-## Key Changes from v1
+## Overview
 
 1. **SYSTEM button → pick system → optional detail notes**: After selecting a system (e.g., "Excel"), a text field appears asking "Any details? (columns, sheets, mappings)". This is where the FDE captures things like "Column A = Supplier, Sheet: Quotes2024". The notes are stored on the event AND flow into the SystemEntry's `detailNotes` during synthesis.
 2. **Post-capture screen**: After "End Session", before debrief, user sees a screen to paste transcript + write notes. This is critical because the FDE often records audio during shadowing and pastes the transcript after.
@@ -16,7 +16,7 @@
 
 ## Step 5.1 — Capture Page
 
-Same structure as v1: full-screen, 65/35 split, 5 buttons. Changes highlighted below.
+Full-screen layout, 65/35 split between event log and capture buttons. Five capture buttons stacked vertically.
 
 ### SYSTEM Button — Enhanced Flow
 
@@ -76,7 +76,7 @@ export function SystemPicker({ onSelect, onDismiss }) {
     );
   }
 
-  // System grid (same as v1)
+  // System grid (8 buttons in 2x4 layout)
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg p-4">
       <div className="fixed inset-0 -z-10" onClick={onDismiss} />
@@ -324,7 +324,7 @@ async function handleEndSession() {
 
 ## Steps 5.4–5.5 — Event Log, Offline, Buttons
 
-Same as v1. All five buttons work. Offline queuing. Page unload warning.
+Event log panel, offline indicator, and page unload warning are described in the capture page component above.
 
 ---
 

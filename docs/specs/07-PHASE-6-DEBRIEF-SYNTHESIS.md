@@ -8,9 +8,9 @@
 
 ## Step 6.1 — Debrief Page
 
-Same as v1. Sequential cards for QUESTION events and unlabeled IMPLICIT events. User resolves each as asked_answered / described / open_question / skip.
+Sequential cards for QUESTION events and unlabeled IMPLICIT events. User resolves each as asked_answered / described / open_question / skip. Full debrief UI code is in Phase 6 of the product spec.
 
-No changes from v1 except the debrief API route uses proper error handling for NO_API_KEY (debrief itself doesn't call AI, so no impact).
+The debrief API route uses `handleAPIError` for consistency, though the debrief itself does not call AI.
 
 ---
 

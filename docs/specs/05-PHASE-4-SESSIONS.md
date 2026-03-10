@@ -6,7 +6,7 @@
 
 ---
 
-## Key Changes from v1
+## Overview
 
 1. **Transcript + Notes:** Session Detail shows TWO textareas — one for pasted transcript, one for personal notes. Both feed into synthesis. Both auto-save on blur.
 2. **Per-user AI:** Interview questions and prep brief use `getAIConfig('interview')`. Synthesis uses `getAIConfig('synthesis')`.
@@ -16,7 +16,7 @@
 
 ## Step 4.1 — Session Creation (Type Selector + Fields + Interview)
 
-Same multi-step flow as v1. The interview API route now uses the user's config:
+The session creation is a multi-step flow: type selector → structured fields → AI interview. The interview API route uses the user.s AI config:
 
 ### Interview API Route: `src/app/api/sessions/interview/route.ts`
 
@@ -32,13 +32,13 @@ export async function POST(req: NextRequest) {
     const { model } = await getAIConfig('interview');
     const { sessionType, fieldData, processId, previousQA } = await req.json();
 
-    // Build context (same as v1)...
+    // Build context from process, model, open questions, L1...
 
     const { text } = await generateText({
       model,  // User's preferred interview model
       maxTokens: 300,
       system: `You are helping a Forward Deployed Engineer prepare for a ${sessionType} session...`,
-      prompt: `...`, // Same prompt as v1
+      prompt: `...`, // Full prompt in 09-TECH-REFERENCE.md Section 4
     });
 
     return NextResponse.json({ question: text.trim(), isLast, questionNumber });
@@ -194,7 +194,7 @@ Notes: ${session.notes ?? 'No notes provided'}
 
 ## Step 4.6 — Synthesis Display
 
-Same as v1 — collapsible panels showing suggested updates, new questions, discovered entities. Each with "Apply" actions.
+Collapsible panels showing suggested updates, new questions, discovered entities. Each panel has an "Apply" action button.
 
 ---
 

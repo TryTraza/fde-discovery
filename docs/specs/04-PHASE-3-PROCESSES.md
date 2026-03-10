@@ -8,7 +8,7 @@
 
 ## Step 3.1 — L1 Domain Library
 
-Unchanged from v1. JSON files in `src/lib/domain/l1/` for procurement, freight-forwarding, rebate-processing, unknown. Alberto seeds these before launch.
+JSON files in `src/lib/domain/l1/` for procurement, freight-forwarding, rebate-processing, unknown. Alberto seeds these before launch.
 
 ---
 
@@ -126,7 +126,7 @@ Systems: Excel
 
 ## Steps 3.4–3.5 — Process Flow, Creation Form
 
-Same as v1 but with the `detailNotes` tooltip on systems. The creation form is unchanged.
+The process flow component includes detailNotes tooltips on system badges. The creation form follows the field list defined in Step 3.4.
 
 ---
 

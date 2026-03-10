@@ -1,8 +1,8 @@
 # Phase 0 — Project Setup & Infrastructure
 
-**Goal:** Running Next.js app with auth, database connection, Settings page for API keys + model config, deployment pipeline.
+**Goal:** Running Next.js app with Clerk auth, database connection, Settings page for API keys and model config, deployment to Vercel.
 **Duration:** 2 days
-**Gate:** App deploys, Clerk login works, Settings page saves API key and model preferences.
+**Gate:** App deploys, Clerk login works, Settings page saves API key and model preferences, Drizzle connects to Supabase.
 
 ---
 
@@ -14,18 +14,25 @@ npx create-next-app@latest fde-discovery-tool \
 cd fde-discovery-tool
 ```
 
-### Install Core Dependencies
+### Install All Dependencies
 
 ```bash
-# UI
-npx shadcn@latest init  # New York style, Zinc color, CSS variables: yes
+# UI framework
+npx shadcn@latest init
+# When prompted: New York style, Zinc color, CSS variables: yes
+
+# shadcn components (install all needed upfront)
+npx shadcn@latest add button card input textarea label select badge \
+  dialog sheet dropdown-menu command combobox \
+  table tabs separator skeleton toast sonner \
+  form calendar popover avatar breadcrumb \
+  scroll-area tooltip alert radio-group switch accordion
 
 # AI SDK
 npm install ai @ai-sdk/anthropic @ai-sdk/react
 
-# AI Elements (chat components for research panel)
+# AI Elements (pre-built chat components)
 npx ai-elements@latest
-# Installs: conversation, message, prompt-input, reasoning, sources, suggestion, shimmer
 
 # Database
 npm install drizzle-orm postgres
@@ -34,7 +41,7 @@ npm install -D drizzle-kit
 # Auth
 npm install @clerk/nextjs
 
-# Supabase (ONLY for file storage — not for data queries)
+# Supabase (ONLY for file storage, not data queries)
 npm install @supabase/supabase-js
 
 # Utilities
@@ -46,19 +53,22 @@ npm install -D vitest @vitejs/plugin-react @testing-library/react @testing-libra
 npm install -D playwright @playwright/test
 ```
 
-### Install shadcn Components
-
-```bash
-npx shadcn@latest add button card input textarea label select badge \
-  dialog sheet dropdown-menu command combobox \
-  table tabs separator skeleton toast sonner \
-  form calendar popover avatar breadcrumb \
-  scroll-area tooltip alert radio-group switch
-```
-
 ---
 
 ## Step 0.2 — Project Structure
+
+Create all directories:
+
+```bash
+mkdir -p src/app/{(auth)/sign-in/[[...sign-in]],(auth)/sign-up/[[...sign-up]]}
+mkdir -p src/app/(dashboard)/{clients/{new,[clientId]/processes/{new,[processId]/sessions/{new,[sessionId]/{capture,debrief}}}},settings}
+mkdir -p src/app/api/{clients/[clientId]/{contacts,processes},processes/[processId]/{model/apply,sessions,questions,artifacts,email-draft},sessions/[sessionId]/{interview,events,debrief,synthesize},contacts/[contactId],questions/[questionId],artifacts/[artifactId],ai/{company-research,suggestions,research},settings/test-key,webhooks/clerk}
+mkdir -p src/components/{layout,clients,processes,sessions,shared}
+mkdir -p src/lib/{db/{queries,migrations},ai/{prompts,schemas},domain/l1,auth,supabase}
+mkdir -p src/__tests__/{unit/{db,ai,lib},integration/api,e2e}
+```
+
+Full structure:
 
 ```
 src/
@@ -67,41 +77,59 @@ src/
 │   │   ├── sign-in/[[...sign-in]]/page.tsx
 │   │   └── sign-up/[[...sign-up]]/page.tsx
 │   ├── (dashboard)/
-│   │   ├── layout.tsx
+│   │   ├── layout.tsx              # Sidebar + breadcrumb + research button
 │   │   ├── clients/
-│   │   │   ├── page.tsx
-│   │   │   ├── new/page.tsx
+│   │   │   ├── page.tsx            # Client list
+│   │   │   ├── new/page.tsx        # Client creation
 │   │   │   └── [clientId]/
-│   │   │       ├── page.tsx
+│   │   │       ├── page.tsx        # Client overview
 │   │   │       └── processes/
 │   │   │           ├── new/page.tsx
 │   │   │           └── [processId]/
-│   │   │               ├── page.tsx
+│   │   │               ├── page.tsx        # Process overview
 │   │   │               └── sessions/
 │   │   │                   ├── new/page.tsx
 │   │   │                   └── [sessionId]/
-│   │   │                       ├── page.tsx
+│   │   │                       ├── page.tsx        # Session detail
 │   │   │                       ├── capture/page.tsx
 │   │   │                       └── debrief/page.tsx
 │   │   └── settings/
 │   │       └── page.tsx            # API key + model config
 │   ├── api/
-│   │   ├── clients/ ...
-│   │   ├── processes/ ...
-│   │   ├── sessions/ ...
-│   │   ├── contacts/ ...
-│   │   ├── questions/ ...
-│   │   ├── artifacts/ ...
+│   │   ├── clients/
+│   │   │   ├── route.ts
+│   │   │   └── [clientId]/
+│   │   │       ├── route.ts
+│   │   │       ├── contacts/route.ts
+│   │   │       └── processes/route.ts
+│   │   ├── processes/[processId]/
+│   │   │   ├── route.ts
+│   │   │   ├── model/
+│   │   │   │   ├── route.ts
+│   │   │   │   └── apply/route.ts
+│   │   │   ├── sessions/route.ts
+│   │   │   ├── questions/route.ts
+│   │   │   ├── artifacts/route.ts
+│   │   │   └── email-draft/route.ts
+│   │   ├── sessions/[sessionId]/
+│   │   │   ├── route.ts
+│   │   │   ├── interview/route.ts
+│   │   │   ├── events/route.ts
+│   │   │   ├── debrief/route.ts
+│   │   │   └── synthesize/route.ts
+│   │   ├── contacts/[contactId]/route.ts
+│   │   ├── questions/[questionId]/route.ts
+│   │   ├── artifacts/[artifactId]/route.ts
 │   │   ├── ai/
 │   │   │   ├── company-research/route.ts
 │   │   │   ├── suggestions/route.ts
 │   │   │   └── research/route.ts
 │   │   ├── settings/
-│   │   │   └── route.ts            # GET/PATCH user settings via Clerk
+│   │   │   ├── route.ts
+│   │   │   └── test-key/route.ts
 │   │   └── webhooks/clerk/route.ts
-│   ├── layout.tsx
+│   ├── layout.tsx                  # Root layout (ClerkProvider)
 │   └── page.tsx                    # Redirect to /clients
-│
 ├── components/
 │   ├── ui/                         # shadcn (auto-generated)
 │   ├── ai-elements/                # AI Elements (auto-generated)
@@ -109,32 +137,66 @@ src/
 │   │   ├── sidebar.tsx
 │   │   ├── breadcrumb-nav.tsx
 │   │   └── ai-research-panel.tsx
-│   ├── clients/ ...
-│   ├── processes/ ...
-│   ├── sessions/ ...
+│   ├── clients/
+│   ├── processes/
+│   ├── sessions/
 │   └── shared/
 │       ├── loading-skeleton.tsx
 │       ├── status-badge.tsx
 │       ├── confirm-dialog.tsx
-│       └── api-key-guard.tsx       # Wraps AI features, shows "Set API key" if missing
-│
+│       └── api-key-guard.tsx
 ├── lib/
 │   ├── db/
-│   │   ├── index.ts
-│   │   ├── schema.ts
-│   │   ├── migrations/
-│   │   └── queries/ ...
+│   │   ├── index.ts                # Drizzle client connection
+│   │   ├── schema.ts               # All table definitions
+│   │   ├── types.ts                # JSONB field TypeScript interfaces
+│   │   ├── migrations/             # Generated by drizzle-kit
+│   │   └── queries/
+│   │       ├── clients.ts
+│   │       ├── contacts.ts
+│   │       ├── processes.ts
+│   │       ├── sessions.ts
+│   │       ├── events.ts
+│   │       ├── artifacts.ts
+│   │       ├── questions.ts
+│   │       └── research-notes.ts
 │   ├── ai/
-│   │   ├── get-ai-config.ts        # NEW: reads user's API key + model prefs from Clerk
-│   │   ├── create-model.ts          # NEW: creates anthropic model instance per-request
-│   │   ├── prompts/ ...
-│   │   └── schemas/ ...
-│   ├── domain/l1/ ...
-│   ├── auth/utils.ts
-│   ├── supabase/storage.ts
+│   │   ├── get-ai-config.ts        # Reads user's API key + model prefs from Clerk
+│   │   ├── prompts/
+│   │   │   ├── company-research.ts
+│   │   │   ├── process-hypothesis.ts
+│   │   │   ├── session-interview.ts
+│   │   │   ├── prep-brief.ts
+│   │   │   ├── capture-suggestions.ts
+│   │   │   ├── synthesis-shadowing.ts
+│   │   │   ├── synthesis-general.ts
+│   │   │   ├── follow-up-email.ts
+│   │   │   └── research-panel.ts
+│   │   └── schemas/
+│   │       ├── hypothesis.ts
+│   │       ├── prep-brief.ts
+│   │       ├── suggestions.ts
+│   │       └── synthesis.ts
+│   ├── domain/l1/
+│   │   ├── procurement.json
+│   │   ├── freight-forwarding.json
+│   │   ├── rebate-processing.json
+│   │   ├── unknown.json
+│   │   └── index.ts
+│   ├── auth/
+│   │   └── utils.ts
+│   ├── supabase/
+│   │   └── storage.ts
+│   ├── hooks/
+│   │   ├── use-clients.ts
+│   │   ├── use-role.ts
+│   │   └── ... (one per entity)
 │   └── utils.ts
-│
-├── __tests__/ ...
+├── __tests__/
+│   ├── unit/db/
+│   ├── unit/ai/
+│   ├── integration/api/
+│   └── e2e/
 ├── drizzle.config.ts
 └── vitest.config.ts
 ```
@@ -161,36 +223,226 @@ DATABASE_URL=postgresql://postgres.[ref]:[pw]@aws-0-[region].pooler.supabase.com
 NEXT_PUBLIC_SUPABASE_URL=https://[ref].supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-# NO ANTHROPIC_API_KEY HERE — each user provides their own via Settings
+# NO ANTHROPIC_API_KEY — each user provides their own via Settings
 ```
 
-> **IMPORTANT:** There is no server-side `ANTHROPIC_API_KEY`. Each user enters their own key in the Settings page, stored in Clerk `privateMetadata`.
+Create `.env.example` with placeholder values. Add `.env.local` to `.gitignore`.
 
 ---
 
-## Step 0.4 — Per-User AI Configuration
+## Step 0.4 — Drizzle Configuration
 
-This is the most important new pattern. Every AI call reads the API key and model preferences from the current user's Clerk profile.
+Create `drizzle.config.ts`:
+
+```typescript
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  schema: './src/lib/db/schema.ts',
+  out: './src/lib/db/migrations',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+});
+```
+
+Create `src/lib/db/index.ts`:
+
+```typescript
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
+
+const connectionString = process.env.DATABASE_URL!;
+
+// prepare: false is REQUIRED for Supabase connection pooler (Transaction mode)
+const client = postgres(connectionString, { prepare: false });
+
+export const db = drizzle(client, { schema });
+```
+
+Add scripts to `package.json`:
+
+```json
+{
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "npx tsx src/lib/db/seed.ts",
+    "test": "vitest",
+    "test:e2e": "playwright test"
+  }
+}
+```
+
+---
+
+## Step 0.5 — Clerk Auth
+
+### Root Layout: `src/app/layout.tsx`
+
+```tsx
+import { ClerkProvider } from '@clerk/nextjs';
+import { Inter } from 'next/font/google';
+import { Toaster } from '@/components/ui/sonner';
+import './globals.css';
+
+const inter = Inter({ subsets: ['latin'] });
+
+export const metadata = {
+  title: 'FDE Discovery Tool',
+  description: 'AI-powered process discovery for Forward Deployed Engineers',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
+          {children}
+          <Toaster />
+        </body>
+      </html>
+    </ClerkProvider>
+  );
+}
+```
+
+### Middleware: `src/middleware.ts`
+
+```typescript
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+
+const isPublicRoute = createRouteMatcher([
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/api/webhooks(.*)',
+]);
+
+export default clerkMiddleware(async (auth, request) => {
+  if (!isPublicRoute(request)) {
+    await auth.protect();
+  }
+});
+
+export const config = {
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
+};
+```
+
+### Auth Utilities: `src/lib/auth/utils.ts`
+
+```typescript
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+
+export type UserRole = 'admin' | 'viewer';
+
+export async function getAuthRole(): Promise<{ userId: string; role: UserRole }> {
+  const { userId } = await auth();
+  if (!userId) throw new Error('Unauthorized');
+  const user = await currentUser();
+  const role = (user?.publicMetadata?.role as UserRole) || 'viewer';
+  return { userId, role };
+}
+
+export async function requireAdmin() {
+  const { userId, role } = await getAuthRole();
+  if (role !== 'admin') throw new Error('Forbidden: admin role required');
+  return { userId, role };
+}
+
+export async function requireAuth() {
+  return getAuthRole();
+}
+
+export function handleAPIError(error: unknown): NextResponse {
+  if (error instanceof Error) {
+    switch (error.message) {
+      case 'NO_API_KEY':
+        return NextResponse.json(
+          { error: 'No Anthropic API key configured. Go to Settings to add your key.', code: 'NO_API_KEY' },
+          { status: 422 }
+        );
+      case 'Unauthorized':
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      case 'Forbidden: admin role required':
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      default:
+        if (error.message.includes('invalid_api_key') || error.message.includes('authentication_error')) {
+          return NextResponse.json(
+            { error: 'Your Anthropic API key is invalid. Update it in Settings.', code: 'INVALID_API_KEY' },
+            { status: 422 }
+          );
+        }
+        if (error.message.includes('rate_limit')) {
+          return NextResponse.json(
+            { error: 'Rate limit exceeded. Wait a moment and try again.', code: 'RATE_LIMIT' },
+            { status: 429 }
+          );
+        }
+    }
+  }
+  console.error('Unhandled API error:', error);
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+}
+```
+
+### Sign-In Page: `src/app/(auth)/sign-in/[[...sign-in]]/page.tsx`
+
+```tsx
+import { SignIn } from '@clerk/nextjs';
+
+export default function SignInPage() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <SignIn />
+    </div>
+  );
+}
+```
+
+### Sign-Up Page: `src/app/(auth)/sign-up/[[...sign-up]]/page.tsx`
+
+```tsx
+import { SignUp } from '@clerk/nextjs';
+
+export default function SignUpPage() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <SignUp />
+    </div>
+  );
+}
+```
+
+---
+
+## Step 0.6 — Per-User AI Configuration
+
+There is no server-side `ANTHROPIC_API_KEY`. Each user stores their key in Clerk and picks which Claude model to use per feature.
 
 ### Clerk Metadata Schema
 
-```typescript
-// User privateMetadata (server-only, never sent to client)
-{
-  "anthropicApiKey": "sk-ant-api03-..."    // encrypted by Clerk at rest
-}
+```
+privateMetadata (server-only, never sent to browser):
+  anthropicApiKey: "sk-ant-api03-..."
 
-// User publicMetadata (readable by client for UI)
-{
-  "role": "admin",               // "admin" | "viewer"
-  "aiModels": {
-    "research":    "claude-sonnet-4-20250514",     // Research panel + company research
-    "hypothesis":  "claude-sonnet-4-20250514",     // Process hypothesis generation
-    "suggestions": "claude-haiku-3-5-20241022",    // Capture suggestion chips (fast + cheap)
-    "synthesis":   "claude-sonnet-4-20250514",     // Post-session synthesis
-    "interview":   "claude-sonnet-4-20250514"      // Session interview questions
-  }
-}
+publicMetadata (readable by client for UI):
+  role: "admin" | "viewer"
+  hasApiKey: true | false
+  aiModels:
+    research:    "claude-sonnet-4-20250514"
+    hypothesis:  "claude-sonnet-4-20250514"
+    suggestions: "claude-haiku-3-5-20241022"
+    synthesis:   "claude-sonnet-4-20250514"
+    interview:   "claude-sonnet-4-20250514"
 ```
 
 ### AI Config Helper: `src/lib/ai/get-ai-config.ts`
@@ -202,11 +454,11 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 export type AIFeature = 'research' | 'hypothesis' | 'suggestions' | 'synthesis' | 'interview';
 
 const DEFAULT_MODELS: Record<AIFeature, string> = {
-  research: 'claude-sonnet-4-20250514',
-  hypothesis: 'claude-sonnet-4-20250514',
+  research:    'claude-sonnet-4-20250514',
+  hypothesis:  'claude-sonnet-4-20250514',
   suggestions: 'claude-haiku-3-5-20241022',
-  synthesis: 'claude-sonnet-4-20250514',
-  interview: 'claude-sonnet-4-20250514',
+  synthesis:   'claude-sonnet-4-20250514',
+  interview:   'claude-sonnet-4-20250514',
 };
 
 export async function getAIConfig(feature: AIFeature) {
@@ -214,35 +466,18 @@ export async function getAIConfig(feature: AIFeature) {
   if (!user) throw new Error('Unauthorized');
 
   const apiKey = (user.privateMetadata as any)?.anthropicApiKey;
-  if (!apiKey) {
-    throw new Error('NO_API_KEY');
-  }
+  if (!apiKey) throw new Error('NO_API_KEY');
 
   const modelPrefs = (user.publicMetadata as any)?.aiModels ?? {};
   const modelId = modelPrefs[feature] || DEFAULT_MODELS[feature];
 
-  // Create a per-request Anthropic provider with the user's key
   const anthropic = createAnthropic({ apiKey });
 
   return {
     model: anthropic(modelId),
     modelId,
-    anthropic, // For tool access (e.g., anthropic.tools.webSearch)
+    anthropic,  // Needed for: anthropic.tools.webSearch_20250305()
   };
-}
-```
-
-### Model Factory: `src/lib/ai/create-model.ts`
-
-```typescript
-import { createAnthropic } from '@ai-sdk/anthropic';
-
-/**
- * Create an Anthropic provider instance with a specific API key.
- * Used in streaming routes where we need the provider for tools.
- */
-export function createUserAnthropic(apiKey: string) {
-  return createAnthropic({ apiKey });
 }
 ```
 
@@ -280,11 +515,9 @@ export function APIKeyGuard({ children }: { children: React.ReactNode }) {
 }
 ```
 
-> **Note:** We store a `hasApiKey: true` flag in `publicMetadata` (readable client-side) so the UI can show the guard. The actual key stays in `privateMetadata` (server-only).
-
 ---
 
-## Step 0.5 — Settings Page
+## Step 0.7 — Settings Page
 
 ### `src/app/(dashboard)/settings/page.tsx`
 
@@ -299,7 +532,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Key, Cpu, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Key, Cpu, CheckCircle, Loader2 } from 'lucide-react';
 
 const AVAILABLE_MODELS = [
   { id: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4 (balanced)' },
@@ -321,6 +554,7 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [models, setModels] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [hasExistingKey, setHasExistingKey] = useState(false);
 
   useEffect(() => {
@@ -350,6 +584,23 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleTestKey() {
+    setTesting(true);
+    try {
+      const res = await fetch('/api/settings/test-key', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Key works! Tested with ${data.model}`);
+      } else {
+        toast.error(`Key failed: ${data.error}`);
+      }
+    } catch {
+      toast.error('Network error testing key');
+    } finally {
+      setTesting(false);
+    }
+  }
+
   async function handleSaveModels() {
     setSaving(true);
     try {
@@ -371,26 +622,22 @@ export default function SettingsPage() {
     <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl font-semibold">Settings</h1>
 
-      {/* API Key Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            Anthropic API Key
-          </CardTitle>
+          <CardTitle className="flex items-center gap-2"><Key className="h-5 w-5" />Anthropic API Key</CardTitle>
           <CardDescription>
-            Your API key is stored securely and used for all AI features. Each user manages their own key and costs.
-            Get yours at{' '}
-            <a href="https://console.anthropic.com/settings/keys" target="_blank" className="underline">
-              console.anthropic.com
-            </a>
+            Your key is stored securely and used for all AI features. Get one at{' '}
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" className="underline">console.anthropic.com</a>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {hasExistingKey && (
             <div className="flex items-center gap-2 text-sm text-green-600">
               <CheckCircle className="h-4 w-4" />
-              API key configured
+              <span>API key configured</span>
+              <Button variant="ghost" size="sm" onClick={handleTestKey} disabled={testing}>
+                {testing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Test'}
+              </Button>
             </div>
           )}
           <div className="flex gap-2">
@@ -401,11 +648,7 @@ export default function SettingsPage() {
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder={hasExistingKey ? 'Enter new key to replace...' : 'sk-ant-api03-...'}
               />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-              >
+              <button type="button" onClick={() => setShowKey(!showKey)} className="absolute right-3 top-1/2 -translate-y-1/2">
                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
@@ -416,15 +659,11 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Model Selection Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Cpu className="h-5 w-5" />
-            AI Model Preferences
-          </CardTitle>
+          <CardTitle className="flex items-center gap-2"><Cpu className="h-5 w-5" />AI Model Preferences</CardTitle>
           <CardDescription>
-            Choose which Claude model to use for each feature. Haiku is faster and cheaper for real-time suggestions. Sonnet is better for analysis and research.
+            Choose which Claude model per feature. Haiku is faster/cheaper for real-time suggestions. Sonnet is better for analysis.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -436,12 +675,10 @@ export default function SettingsPage() {
                 value={models[feature.key] || ''}
                 onValueChange={(val) => setModels((prev) => ({ ...prev, [feature.key]: val }))}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Use default" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Use default" /></SelectTrigger>
                 <SelectContent>
-                  {AVAILABLE_MODELS.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>{model.label}</SelectItem>
+                  {AVAILABLE_MODELS.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -455,7 +692,7 @@ export default function SettingsPage() {
 }
 ```
 
-### Settings API Route: `src/app/api/settings/route.ts`
+### Settings API: `src/app/api/settings/route.ts`
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
@@ -464,7 +701,6 @@ import { auth, clerkClient } from '@clerk/nextjs/server';
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   return NextResponse.json({
@@ -477,26 +713,20 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   const body = await req.json();
   const client = await clerkClient();
 
-  // Update API key (private metadata — never exposed to client)
   if (body.anthropicApiKey) {
     await client.users.updateUserMetadata(userId, {
       privateMetadata: { anthropicApiKey: body.anthropicApiKey },
-      publicMetadata: { hasApiKey: true }, // Flag for UI
+      publicMetadata: { hasApiKey: true },
     });
   }
 
-  // Update model preferences (public metadata — readable by client)
   if (body.aiModels) {
     const user = await client.users.getUser(userId);
     await client.users.updateUserMetadata(userId, {
-      publicMetadata: {
-        ...(user.publicMetadata as any),
-        aiModels: body.aiModels,
-      },
+      publicMetadata: { ...(user.publicMetadata as any), aiModels: body.aiModels },
     });
   }
 
@@ -504,57 +734,220 @@ export async function PATCH(req: NextRequest) {
 }
 ```
 
----
-
-## Step 0.6 — Drizzle, Clerk Auth, Vitest, Layout
-
-These are unchanged from v1. See:
-- Drizzle config: `drizzle.config.ts` pointing at `src/lib/db/schema.ts`
-- DB client: `src/lib/db/index.ts` with `prepare: false` for Supabase pooler
-- Auth utils: `src/lib/auth/utils.ts` with `requireAdmin()`, `requireAuth()`, `getAuthRole()`
-- Middleware: `src/middleware.ts` protecting all routes except sign-in/sign-up/webhooks
-- Root layout: `src/app/layout.tsx` with `ClerkProvider`
-- Dashboard layout: `src/app/(dashboard)/layout.tsx` with Sidebar + Breadcrumb + UserButton
-- Vitest config: `vitest.config.ts`
-- Sign-in/Sign-up pages: Clerk components
-
-### Auth Utils — Updated for API Key Errors
+### Test Key API: `src/app/api/settings/test-key/route.ts`
 
 ```typescript
-// src/lib/auth/utils.ts — add this helper
 import { NextResponse } from 'next/server';
+import { generateText } from 'ai';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { currentUser } from '@clerk/nextjs/server';
 
-export function handleAPIError(error: unknown): NextResponse {
-  if (error instanceof Error) {
-    if (error.message === 'NO_API_KEY') {
-      return NextResponse.json(
-        { error: 'No API key configured. Go to Settings to add your Anthropic API key.' },
-        { status: 422 }
-      );
-    }
-    if (error.message.includes('Forbidden')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-    if (error.message.includes('Unauthorized')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export async function POST() {
+  const user = await currentUser();
+  const apiKey = (user?.privateMetadata as any)?.anthropicApiKey;
+  if (!apiKey) return NextResponse.json({ success: false, error: 'No key stored' });
+
+  try {
+    const anthropic = createAnthropic({ apiKey });
+    await generateText({
+      model: anthropic('claude-haiku-3-5-20241022'),
+      maxTokens: 10,
+      prompt: 'Say "ok"',
+    });
+    return NextResponse.json({ success: true, model: 'claude-haiku-3.5' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message });
   }
-  console.error('API error:', error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 ```
 
 ---
 
-## Step 0.7 — Verify & Deploy
+## Step 0.8 — Dashboard Layout
+
+### `src/app/(dashboard)/layout.tsx`
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { UserButton } from '@clerk/nextjs';
+import { Sidebar } from '@/components/layout/sidebar';
+import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
+import { AIResearchPanel } from '@/components/layout/ai-research-panel';
+import { Button } from '@/components/ui/button';
+import { Brain } from 'lucide-react';
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [researchOpen, setResearchOpen] = useState(false);
+
+  return (
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="border-b px-6 py-3 flex items-center justify-between">
+          <BreadcrumbNav />
+          <UserButton />
+        </header>
+        <main className="flex-1 overflow-auto p-6">{children}</main>
+      </div>
+      <Button
+        onClick={() => setResearchOpen(true)}
+        className="fixed bottom-6 right-6 rounded-full w-12 h-12 shadow-lg z-40"
+        size="icon"
+      >
+        <Brain className="h-5 w-5" />
+      </Button>
+      <AIResearchPanel open={researchOpen} onOpenChange={setResearchOpen} />
+    </div>
+  );
+}
+```
+
+### `src/components/layout/sidebar.tsx`
+
+```tsx
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { Users, Settings } from 'lucide-react';
+
+const navItems = [
+  { href: '/clients', label: 'Clients', icon: Users },
+  { href: '/settings', label: 'Settings', icon: Settings },
+];
+
+export function Sidebar() {
+  const pathname = usePathname();
+  return (
+    <aside className="w-60 border-r bg-muted/30 p-4 flex flex-col">
+      <div className="mb-8 px-2">
+        <h2 className="text-lg font-bold">FDE Discovery</h2>
+      </div>
+      <nav className="space-y-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+              pathname.startsWith(item.href)
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'text-muted-foreground hover:bg-muted'
+            )}
+          >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+```
+
+### `src/components/layout/breadcrumb-nav.tsx` (placeholder)
+
+```tsx
+'use client';
+
+import { usePathname } from 'next/navigation';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+
+export function BreadcrumbNav() {
+  const pathname = usePathname();
+  // Placeholder — will resolve UUIDs to names via SWR in Phase 7
+  const segments = pathname.split('/').filter(Boolean);
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        {segments.slice(0, 1).map((seg, i) => (
+          <BreadcrumbItem key={i}>
+            <BreadcrumbLink href={`/${seg}`} className="capitalize">{seg}</BreadcrumbLink>
+          </BreadcrumbItem>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+```
+
+### `src/components/layout/ai-research-panel.tsx` (placeholder)
+
+```tsx
+'use client';
+
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Brain } from 'lucide-react';
+
+interface AIResearchPanelProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function AIResearchPanel({ open, onOpenChange }: AIResearchPanelProps) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-[400px] p-4">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />AI Research
+          </SheetTitle>
+        </SheetHeader>
+        <p className="text-sm text-muted-foreground mt-4">Research panel will be built in Phase 7.</p>
+      </SheetContent>
+    </Sheet>
+  );
+}
+```
+
+---
+
+## Step 0.9 — Vitest Configuration
+
+Create `vitest.config.ts`:
+
+```typescript
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/__tests__/setup.ts'],
+    include: ['src/__tests__/**/*.test.{ts,tsx}'],
+    globals: true,
+  },
+  resolve: {
+    alias: { '@': path.resolve(__dirname, './src') },
+  },
+});
+```
+
+Create `src/__tests__/setup.ts`:
+
+```typescript
+import '@testing-library/jest-dom';
+```
+
+---
+
+## Step 0.10 — Verify & Deploy
 
 ```bash
 npm run dev
-# 1. Sign in via Clerk
-# 2. Go to /settings
-# 3. Enter Anthropic API key → Save
-# 4. Select model preferences → Save
-# 5. Verify key is stored (check Clerk dashboard → Users → your user → metadata)
+# 1. Visit localhost:3000 → should redirect to Clerk sign-in
+# 2. Sign in → should see dashboard with sidebar
+# 3. Go to /settings → enter API key → save → see green checkmark
+# 4. Click "Test" → should show "Key works!"
+# 5. Set model preferences → save
+
+npx vercel
+# Set all env vars in Vercel dashboard (NOT ANTHROPIC_API_KEY)
 ```
 
 ### Phase 0 Gate Checklist
@@ -562,10 +955,12 @@ npm run dev
 - [ ] `npm run dev` starts without errors
 - [ ] Clerk sign-in/sign-up works
 - [ ] Dashboard layout renders (sidebar, breadcrumb, user button)
-- [ ] Settings page renders with API key input + model selectors
-- [ ] API key saves to Clerk `privateMetadata`
-- [ ] Model prefs save to Clerk `publicMetadata`
-- [ ] `hasApiKey` flag appears in `publicMetadata`
-- [ ] `vitest` runs (even with 0 tests)
-- [ ] Deployed to Vercel
-- [ ] Supabase project created, DATABASE_URL connects
+- [ ] Settings page: API key input + show/hide + save
+- [ ] Settings page: "Test" button verifies key with a Haiku call
+- [ ] Settings page: 5 model selectors with save
+- [ ] API key stored in Clerk `privateMetadata`
+- [ ] Model prefs stored in Clerk `publicMetadata`
+- [ ] `hasApiKey` flag in `publicMetadata`
+- [ ] `vitest` runs (0 tests OK)
+- [ ] Deployed to Vercel and accessible
+- [ ] Supabase project created with DATABASE_URL working

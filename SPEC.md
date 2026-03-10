@@ -9,9 +9,9 @@
 ## Current State
 
 ```
-Phase:          0 — Project Setup & Infrastructure
-Last Completed: Step 0.9 — Local verification + E2E smoke tests
-Next Step:      Phase 0 / Step 0.9 — Deploy to Vercel (pending)
+Phase:          1 — Database Schema & ORM (COMPLETE)
+Last Completed: Step 1.6 — Seed script
+Next Step:      Phase 2 / Step 2.1 — Write API tests (RED)
 Blocker:        None
 ```
 
@@ -31,12 +31,12 @@ Blocker:        None
 - [x] 0.9 — Verify: app runs locally, Clerk login works, Vercel deploy (pending)
 
 ### Phase 1 — Database Schema & ORM
-- [ ] 1.1 — Write schema tests (RED)
-- [ ] 1.2 — Define full schema (`schema.ts`)
-- [ ] 1.3 — JSONB type definitions (`types.ts`)
-- [ ] 1.4 — Generate & apply migration to Supabase
-- [ ] 1.5 — Query layer (all entities)
-- [ ] 1.6 — Seed script
+- [x] 1.1 — Write schema tests (RED) — 21 tests, all RED then GREEN
+- [x] 1.2 — Define full schema (`schema.ts`) — 11 tables, 9 enums, relations, Zod schemas, TS types
+- [x] 1.3 — JSONB type definitions (`types.ts`) — ProcessStep, EdgeCase, SystemEntry, session configs
+- [x] 1.4 — Generate & apply migration to Supabase — drizzle-kit generate + push verified
+- [x] 1.5 — Query layer (all entities) — 8 query files with v4 fixes (#22, #27)
+- [x] 1.6 — Seed script — 2 clients, 3 contacts, 1 process with model, 3 open questions
 
 ### Phase 2 — Client CRUD + Company Research
 - [ ] 2.1 — Write API tests (RED)
@@ -119,6 +119,9 @@ Blocker:        None
 | AI SDK v6 uses `maxOutputTokens` not `maxTokens` | 0 | Fixed |
 | shadcn Select `onValueChange` can pass `null` in v4 | 0 | Fixed |
 | Next.js 16 deprecates `middleware` in favor of `proxy` (warning only) | 0 | Noted |
+| Research notes lack `deletedAt` — orphaned after client soft-delete | 1 | Tech debt (Phase 2) |
+| `getProcessWithFullContext` does NOT filter soft-deleted children | 1 | Tech debt — UI must filter |
+| Supabase `information_schema.sessions` mixes auth.sessions columns | 1 | Noted — no impact |
 
 ---
 
@@ -145,5 +148,6 @@ Blocker:        None
 | Date | Phase/Step | What Was Done | Issues |
 |------|------------|---------------|--------|
 | 2026-03-08 | 0.1–0.8 | Full Phase 0 implementation: scaffold, auth, layout, settings, tests (42 passing), build passes | Zod v4/AI SDK v6/shadcn v4 API differences from plan |
+| 2026-03-10 | 1.1–1.6 | Full Phase 1: schema (11 tables, 9 enums), JSONB types, query layer (8 files), migration pushed to Supabase, seed data verified. 63 tests passing, build clean. | Supabase MCP not available — verified via direct SQL connection |
 
 *(Claude Code appends a line here after each session)*

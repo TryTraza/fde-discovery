@@ -3,6 +3,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { SWRProvider } from '@/components/providers/swr-provider';
 
 export default async function DashboardLayout({
   children,
@@ -21,7 +22,9 @@ export default async function DashboardLayout({
             <SidebarTrigger className="md:hidden" />
             <BreadcrumbNav />
           </header>
-          <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
+          <SWRProvider>
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
+          </SWRProvider>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

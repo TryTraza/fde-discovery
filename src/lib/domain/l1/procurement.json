@@ -1,0 +1,53 @@
+{
+  "type": "procurement",
+  "label": "Procurement / Purchasing",
+  "typicalSteps": [
+    {
+      "name": "Purchase Request Received",
+      "description": "An internal request for goods/services is submitted",
+      "typicalSystems": ["ERP", "Email", "Internal Portal"]
+    },
+    {
+      "name": "Vendor Selection",
+      "description": "Appropriate vendor is identified or RFQ is sent",
+      "typicalSystems": ["ERP", "Vendor Portal"]
+    },
+    {
+      "name": "Purchase Order Creation",
+      "description": "Formal PO is created and sent to vendor",
+      "typicalSystems": ["ERP"]
+    },
+    {
+      "name": "Order Confirmation",
+      "description": "Vendor confirms PO and provides delivery timeline",
+      "typicalSystems": ["Email", "Vendor Portal"]
+    },
+    {
+      "name": "Goods Receipt",
+      "description": "Physical or digital delivery is received and verified",
+      "typicalSystems": ["ERP", "Warehouse System"]
+    },
+    {
+      "name": "Invoice Matching",
+      "description": "Invoice matched against PO and receipt (3-way match)",
+      "typicalSystems": ["ERP", "Accounts Payable"]
+    },
+    {
+      "name": "Payment Processing",
+      "description": "Payment is authorized and executed",
+      "typicalSystems": ["ERP", "Banking Portal"]
+    }
+  ],
+  "commonEdgeCases": [
+    { "description": "PO amount exceeds approval threshold", "frequency": "common" },
+    { "description": "Vendor delivers wrong quantity", "frequency": "occasional" },
+    { "description": "Invoice doesn't match PO", "frequency": "common" },
+    { "description": "Urgent purchase bypasses normal flow", "frequency": "occasional" }
+  ],
+  "commonSystems": ["SAP", "Oracle", "NetSuite", "Coupa", "Ariba"],
+  "industryVariations": {
+    "manufacturing": "Often includes quality inspection step before goods receipt",
+    "services": "May skip goods receipt, uses service entry sheet instead",
+    "retail": "High volume, often automated reorder points"
+  }
+}

@@ -9,9 +9,9 @@
 ## Current State
 
 ```
-Phase:          2 — Client CRUD + Company Research (COMPLETE)
-Last Completed: Step 2.6 — Client overview page
-Next Step:      Phase 3 / Step 3.1 — L1 domain JSON files
+Phase:          3 — Process CRUD + Hypothesis (COMPLETE)
+Last Completed: Step 3.6 — System badges with detailNotes tooltip
+Next Step:      Phase 4 / Step 4.1 — Session creation: type selector
 Blocker:        None
 ```
 
@@ -49,12 +49,12 @@ Blocker:        None
 - [x] 2.6 — Client overview — inline edit, AI summary, contacts, processes placeholder
 
 ### Phase 3 — Process CRUD + Hypothesis
-- [ ] 3.1 — L1 domain JSON files (procurement + unknown minimum)
-- [ ] 3.2 — Hypothesis AI (user's key + model)
-- [ ] 3.3 — Process API routes
-- [ ] 3.4 — Process creation form
-- [ ] 3.5 — Process overview + ProcessModel flow component
-- [ ] 3.6 — System badges with detailNotes tooltip
+- [x] 3.1 — L1 domain JSON files (procurement + unknown minimum)
+- [x] 3.2 — Hypothesis AI (user's key + model)
+- [x] 3.3 — Process API routes
+- [x] 3.4 — Process creation form
+- [x] 3.5 — Process overview + ProcessModel flow component
+- [x] 3.6 — System badges with detailNotes tooltip
 
 ### Phase 4 — Session Lifecycle (Non-Shadowing)
 - [ ] 4.1 — Session creation: type selector
@@ -111,6 +111,12 @@ Blocker:        None
 | shadcn v4 no asChild | Button has no `asChild`/`render` prop; use `buttonVariants()` with Link directly | 2026-03-11 |
 | parseJSON shared util | `request.json()` throws on malformed input; all POST/PATCH routes use `parseJSON` from `lib/api/utils.ts` | 2026-03-11 |
 | Contact POST validation order | Client existence checked before body parsing — nonexistent client always returns 404 regardless of body | 2026-03-11 |
+| Fire-and-forget write order | `triggerProcessHypothesis` writes steps BEFORE hypothesisText — UI polls for hypothesisText, so steps must be in DB first | 2026-03-11 |
+| processModels lacks deletedAt | Soft-delete cascade from process to processModel skipped; TODO add column in future migration | 2026-03-11 |
+| requireAuthWithUser for API key check | Hypothesis route uses `requireAuthWithUser()` + manual role check instead of `requireAdmin()` to access `user.privateMetadata` | 2026-03-11 |
+| Fire-and-forget needs pre-resolved model | `getAIConfig` uses `auth()` which requires request context; fire-and-forget runs after response, so model must be resolved eagerly in the route handler and passed as parameter | 2026-03-11 |
+| processStepSchema accepts string systems | Seed data stores `systems: ["Email"]` (strings), hypothesis generates `systems: [{name,confirmed,detailNotes}]` (objects); `parseProcessSteps` now handles both via `z.union` | 2026-03-11 |
+| Clerk testing + proxy.ts incompatible | `@clerk/testing@2.0.1` `clerk.signIn()` doesn't work with Next.js 16 `proxy.ts`; Playwright E2E auth needs manual approach or future Clerk fix | 2026-03-11 |
 
 ---
 
@@ -129,6 +135,8 @@ Blocker:        None
 | Supabase `information_schema.sessions` mixes auth.sessions columns | 1 | Noted — no impact |
 | AI research polling uses 5s setTimeout | No real-time channel; acceptable for Phase 2, consider SSE in later phases | 2 | Tech debt |
 | `listClients` filter wraps single string in array | Route wraps `searchParams.get('status')` in `[status]` to match query layer's `string[]` type | 2 | Works — may want multi-select later |
+| `client-detail-card.tsx` mutateClient type error | `mutateClient` called with 2 args but typed for 0 — pre-existing from Phase 2 | 3 | Tech debt |
+| Clerk testing Playwright auth broken with proxy.ts | `clerk.signIn()` doesn't work with Next.js 16 `proxy.ts` — E2E tests can't authenticate programmatically | 3 | Tech debt — wait for Clerk update |
 
 ---
 
@@ -157,5 +165,6 @@ Blocker:        None
 | 2026-03-08 | 0.1–0.8 | Full Phase 0 implementation: scaffold, auth, layout, settings, tests (42 passing), build passes | Zod v4/AI SDK v6/shadcn v4 API differences from plan |
 | 2026-03-10 | 1.1–1.6 | Full Phase 1: schema (11 tables, 9 enums), JSONB types, query layer (8 files), migration pushed to Supabase, seed data verified. 63 tests passing, build clean. | Supabase MCP not available — verified via direct SQL connection |
 | 2026-03-11 | 2.1–2.8 | Full Phase 2: client CRUD API (5 routes), contacts CRUD API (5 routes), company research AI, SWR hooks, client list page, create dialog, overview page with inline edit + AI summary + contacts. 107 tests passing, build clean. | AI SDK v6 `maxSteps` → `stopWhen`, shadcn v4 no `asChild`, SWR v2 `globalMutate` limitation |
+| 2026-03-11 | 3.1–3.6 | Full Phase 3: L1 domain JSON (procurement + unknown), hypothesis AI with fire-and-forget, process CRUD API (3 routes: list/create, detail/patch/delete, hypothesis regenerate), creation dialog, process overview (detail card + hypothesis card + process flow + step cards + system badges), breadcrumb UUID resolution for processes. 157 tests passing (50 new), build clean. | Race condition in hypothesis write order (steps after hypothesisText), requireAuthWithUser needed for API key access, Zod v4 no SafeParseSuccess export |
 
 *(Claude Code appends a line here after each session)*

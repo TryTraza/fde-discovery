@@ -1,0 +1,15 @@
+{
+  "type": "unknown",
+  "label": "General / Unclassified",
+  "typicalSteps": [
+    { "name": "Input Received", "description": "Process trigger or input arrives", "typicalSystems": [] },
+    { "name": "Processing", "description": "Core work is performed", "typicalSystems": [] },
+    { "name": "Output Delivered", "description": "Result or deliverable is produced", "typicalSystems": [] }
+  ],
+  "commonEdgeCases": [
+    { "description": "Input is incomplete or malformed", "frequency": "common" },
+    { "description": "Manual override required", "frequency": "occasional" }
+  ],
+  "commonSystems": [],
+  "industryVariations": {}
+}

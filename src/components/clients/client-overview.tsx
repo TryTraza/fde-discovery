@@ -121,7 +121,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
         </div>
         <div className="space-y-6">
           <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
-          <ProcessesSection processes={client.processes ?? []} />
+          <ProcessesSection clientId={clientId} />
         </div>
       </div>
     </div>

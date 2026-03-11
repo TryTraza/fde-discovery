@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { StatusBadge } from './status-badge';
+import { CollapsibleCard } from '@/components/shared/collapsible-card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { StatusBadge } from './status-badge';
 import {
   Select,
   SelectContent,
@@ -42,26 +42,21 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
       if (!res.ok) {
         const err = await res.json();
         toast.error(err.error || 'Failed to save');
-        // Revert optimistic update
         mutateClient();
         return;
       }
-      // Optimistic: update SWR cache immediately with the new value
-      mutateClient({ ...client, [field]: value }, { revalidate: true });
+      mutateClient();
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Details</CardTitle>
-          {saving && <span className="text-xs text-muted-foreground">Saving...</span>}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <CollapsibleCard
+      title="Details"
+      actions={saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined}
+    >
+      <div className="space-y-4">
         <InlineField
           label="Name"
           value={client.name}
@@ -112,8 +107,8 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
             onBlur={(val) => patchField('notes', val, client.notes ?? '')}
           />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </CollapsibleCard>
   );
 }
 

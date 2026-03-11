@@ -58,7 +58,7 @@ If an operation can be done via MCP, do it via MCP. Don't instruct Alberto to ru
 ## 🏗️ ARCHITECTURE (Never Violate)
 
 ### Stack
-- **Framework:** Next.js 15 (App Router, `src/` dir, TypeScript)
+- **Framework:** Next.js 16 (App Router, `src/` dir, TypeScript)
 - **UI:** shadcn/ui (New York style, Zinc color) + AI Elements
 - **ORM:** Drizzle ORM — ALL DB access via query functions in `lib/db/queries/*`
 - **Auth:** Clerk — middleware-only, no Supabase RLS
@@ -72,7 +72,7 @@ If an operation can be done via MCP, do it via MCP. Don't instruct Alberto to ru
 - **No raw SQL** — use Drizzle query functions only
 - **No Supabase client for data** — storage only (`lib/supabase/storage.ts`)
 - **No server-side `ANTHROPIC_API_KEY`** — every AI call uses the user's key from Clerk `privateMetadata`
-- **`await params`** — Next.js 15: `params` is a Promise in dynamic routes, always `const { id } = await params`
+- **`await params`** — Next.js 16: `params` is a Promise in dynamic routes, always `const { id } = await params`
 - **`requireAdmin()`** on all write API routes, **`requireAuth()`** on all read routes
 - **`handleAPIError(error)`** in every API route catch block — never return raw error messages
 - **`generateObject()`** for structured AI output (guaranteed JSON), **`generateText()`** for prose
@@ -260,7 +260,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils';
 
-// Dynamic routes — ALWAYS await params (Next.js 15)
+// Dynamic routes — ALWAYS await params (Next.js 16)
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -407,7 +407,7 @@ The Settings page must be built in Phase 0. It's a dependency for all AI feature
 ## 🚨 CRITICAL GOTCHAS
 
 1. **`prepare: false`** on postgres client — required for Supabase connection pooler (Transaction mode)
-2. **`await params`** in every dynamic API route — Next.js 15 breaking change
+2. **`await params`** in every dynamic API route — Next.js 16 breaking change
 3. **`useChat` uses `sendMessage`** not `append` — AI SDK v4 API change
 4. **Supabase new API keys** — use `publishable` key as `NEXT_PUBLIC_SUPABASE_URL` companion, `secret` key as `SUPABASE_SERVICE_ROLE_KEY`; no anon key needed since we're server-side only for storage
 5. **Capture page bypasses layout** — uses `fixed inset-0`, not inside `(dashboard)` layout

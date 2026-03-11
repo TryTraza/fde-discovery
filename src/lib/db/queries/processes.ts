@@ -75,6 +75,17 @@ export async function updateProcessModel(processId: string, data: { steps?: any;
   return updated ?? null;
 }
 
+export async function softDeleteProcess(id: string) {
+  const now = new Date();
+  const [deleted] = await db.update(processes)
+    .set({ deletedAt: now, updatedAt: now })
+    .where(and(eq(processes.id, id), notDeleted))
+    .returning();
+  // NOTE: processModels table lacks deletedAt column — skip cascade.
+  // TODO: add deletedAt to process_models in next migration, then cascade here.
+  return deleted ?? null;
+}
+
 export async function createSnapshot(data: { processModelId: string; trigger: 'synthesis_apply' | 'validation_merge'; sessionId?: string; state: any }) {
   const [snapshot] = await db.insert(processModelSnapshots).values(data).returning();
   return snapshot;

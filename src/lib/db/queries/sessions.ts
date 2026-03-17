@@ -1,6 +1,6 @@
-import { eq, and, isNull, desc } from 'drizzle-orm';
+import { eq, and, isNull, desc, inArray } from 'drizzle-orm';
 import { db } from '../index';
-import { sessions, sessionContacts, contacts, eventLogs, type NewSession, type Contact } from '../schema';
+import { sessions, sessionContacts, contacts, eventLogs, type SessionStatus, type NewSession, type Contact } from '../schema';
 import { getProcessWithFullContext } from './processes';
 
 const notDeleted = isNull(sessions.deletedAt);
@@ -72,4 +72,46 @@ export async function updateSession(id: string, data: Partial<NewSession>) {
     .where(and(eq(sessions.id, id), notDeleted))
     .returning();
   return updated ?? null;
+}
+
+export async function softDeleteSession(id: string) {
+  const [deleted] = await db
+    .update(sessions)
+    .set({ deletedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(sessions.id, id), notDeleted))
+    .returning();
+  return deleted ?? null;
+}
+
+export async function getSessionWithContacts(id: string) {
+  const session = await getSessionById(id);
+  if (!session) return null;
+
+  const contactRows = await db
+    .select({ contact: contacts })
+    .from(sessionContacts)
+    .innerJoin(contacts, eq(sessionContacts.contactId, contacts.id))
+    .where(and(
+      eq(sessionContacts.sessionId, id),
+      isNull(contacts.deletedAt),
+    ));
+
+  return {
+    ...session,
+    contacts: contactRows.map((r) => r.contact),
+  };
+}
+
+export async function getCompletedSessionsByProcess(processId: string) {
+  return db
+    .select()
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.processId, processId),
+        inArray(sessions.status, ['completed', 'synthesis_done'] satisfies SessionStatus[]),
+        notDeleted,
+      )
+    )
+    .orderBy(sessions.date);
 }

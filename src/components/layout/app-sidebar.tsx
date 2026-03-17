@@ -6,8 +6,7 @@ import { useUser, UserButton } from '@clerk/nextjs';
 import useSWR from 'swr';
 import {
   Users, Settings, Compass, LifeBuoy,
-  ArrowLeft, LayoutDashboard, FolderKanban, Contact,
-  GitBranch,
+  ArrowLeft, LayoutDashboard, FolderKanban, FileText,
 } from 'lucide-react';
 
 import {
@@ -32,7 +31,7 @@ const secondaryNavItems = [
   { href: 'https://docs.anthropic.com', label: 'Support', icon: LifeBuoy, external: true },
 ];
 
-/** Parse the pathname to extract client/process context */
+/** Parse the pathname to extract client/process/session context */
 function useRouteContext(pathname: string) {
   const segments = pathname.split('/').filter(Boolean);
 
@@ -46,23 +45,24 @@ function useRouteContext(pathname: string) {
       ? segments[3]
       : null;
 
-  // Determine the deepest context level
-  let level: 'root' | 'client' | 'process' = 'root';
-  if (processId) level = 'process';
-  else if (clientId) level = 'client';
+  const sessionId =
+    processId && segments[4] === 'sessions' && segments[5] && UUID_RE.test(segments[5])
+      ? segments[5]
+      : null;
 
-  return { clientId, processId, level };
+  return { clientId, processId, sessionId };
 }
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
-  const { clientId, processId, level } = useRouteContext(pathname);
+  const { clientId, processId, sessionId } = useRouteContext(pathname);
 
   const { data: clientData } = useSWR(clientId ? `/api/clients/${clientId}` : null);
   const { data: processData } = useSWR(
     clientId && processId ? `/api/clients/${clientId}/processes/${processId}` : null
   );
+  const { data: sessionData } = useSWR(sessionId ? `/api/sessions/${sessionId}` : null);
 
   return (
     <Sidebar collapsible="icon">
@@ -175,14 +175,59 @@ export function AppSidebar() {
                       <span>Overview</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link href={`/clients/${clientId}/processes/${processId}/sessions`} />}
+                      isActive={pathname === `/clients/${clientId}/processes/${processId}/sessions`}
+                      tooltip="Sessions"
+                    >
+                      <FileText />
+                      <span>Sessions</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </>
         )}
 
-        {/* Spacer pushes Account to the bottom when sidebar content is short */}
-        <div className="flex-1" />
+        {/* Session context */}
+        {sessionId && processId && clientId && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel className="truncate">
+                {sessionData?.title ?? 'Session'}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link href={`/clients/${clientId}/processes/${processId}/sessions`} />}
+                      tooltip="All Sessions"
+                    >
+                      <ArrowLeft />
+                      <span>All Sessions</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link href={`/clients/${clientId}/processes/${processId}/sessions/${sessionId}`} />}
+                      isActive={pathname === `/clients/${clientId}/processes/${processId}/sessions/${sessionId}`}
+                      tooltip="Overview"
+                    >
+                      <LayoutDashboard />
+                      <span>Overview</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
+
+      </SidebarContent>
+      <SidebarFooter>
         <SidebarSeparator />
         <SidebarGroup>
           <SidebarGroupLabel>Account</SidebarGroupLabel>
@@ -209,8 +254,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" tooltip={user?.fullName ?? 'Account'}>

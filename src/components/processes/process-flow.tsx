@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, Fragment } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -16,12 +16,11 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Plus, Save, Undo2, Loader2, ChevronDown } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { Save, Undo2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { parseProcessSteps, type ProcessStepParsed } from '@/lib/validations/process';
-import { StepCard } from './step-card';
+import { ProcessStepRow } from './process-step-row';
+import { ConfidenceLegend } from './confidence-legend';
 import { toast } from 'sonner';
 
 interface ProcessFlowProps {
@@ -135,65 +134,51 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
     }
   }, [localSteps, clientId, processId, mutateProcess]);
 
-  const [open, setOpen] = useState(true);
-
   return (
-    <Card>
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CollapsibleTrigger className="flex items-center gap-1.5 cursor-pointer hover:text-foreground/80">
-              <ChevronDown
-                className={`size-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
-              />
-              <CardTitle className="text-base">Process Steps</CardTitle>
-            </CollapsibleTrigger>
-            <div className="flex items-center gap-2">
-              {isDirty && (
-                <>
-                  <Button variant="outline" size="sm" onClick={handleDiscard} disabled={saving}>
-                    <Undo2 className="size-3.5 mr-1" />
-                    Discard
-                  </Button>
-                  <Button size="sm" onClick={handleSave} disabled={saving}>
-                    {saving ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Save className="size-3.5 mr-1" />}
-                    Save
-                  </Button>
-                </>
-              )}
-              <Button variant="outline" size="sm" onClick={handleAddStep}>
-                <Plus className="size-3.5 mr-1" />
-                Add Step
-              </Button>
-            </div>
+    <div className="space-y-3">
+      {/* Header with legend + Save/Discard */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <ConfidenceLegend onAddStep={handleAddStep} />
+        {isDirty && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleDiscard} disabled={saving}>
+              <Undo2 className="size-3.5 mr-1" />
+              Discard
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Save className="size-3.5 mr-1" />}
+              Save
+            </Button>
           </div>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent>
-            {steps.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">
-                No steps yet. Generate a hypothesis to create initial steps, or add steps manually.
-              </p>
-            ) : (
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-2">
-                    {steps.map((step, index) => (
-                      <StepCard
-                        key={step.id}
-                        step={step}
-                        index={index}
-                        onUpdate={handleUpdateStep}
-                        onDelete={handleDeleteStep}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-            )}
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+        )}
+      </div>
+
+      {/* Steps */}
+      {steps.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-6 text-center">
+          No steps yet. Generate a hypothesis to create initial steps, or add steps manually.
+        </p>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+            <div>
+              {steps.map((step, index) => (
+                <Fragment key={step.id}>
+                  <ProcessStepRow
+                    step={step}
+                    index={index}
+                    onUpdate={handleUpdateStep}
+                    onDelete={handleDeleteStep}
+                  />
+                  {index < steps.length - 1 && (
+                    <div className="w-px h-2 bg-border ml-10" />
+                  )}
+                </Fragment>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
   );
 }

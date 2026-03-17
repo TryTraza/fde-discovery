@@ -46,6 +46,16 @@ function useResolvedNames(segments: string[]): Record<number, string> {
     names[processIdx] = processData.name;
   }
 
+  // Resolve session name: segments[4]=sessions, segments[5]=uuid
+  const sessionIdx =
+    processId && segments[4] === 'sessions' && segments[5] && UUID_RE.test(segments[5]) ? 5 : -1;
+  const sessionId = sessionIdx >= 0 ? segments[sessionIdx] : null;
+
+  const { data: sessionData } = useSWR(sessionId ? `/api/sessions/${sessionId}` : null);
+  if (sessionIdx >= 0 && sessionData?.title) {
+    names[sessionIdx] = sessionData.title;
+  }
+
   return names;
 }
 

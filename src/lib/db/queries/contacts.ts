@@ -1,4 +1,4 @@
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, inArray } from 'drizzle-orm';
 import { db } from '../index';
 import { contacts, type NewContact } from '../schema';
 
@@ -25,6 +25,14 @@ export async function updateContact(id: string, data: Partial<NewContact>) {
     .where(and(eq(contacts.id, id), notDeleted))
     .returning();
   return updated ?? null;
+}
+
+export async function getContactsByIds(ids: string[]) {
+  if (ids.length === 0) return [];
+  return db
+    .select()
+    .from(contacts)
+    .where(and(inArray(contacts.id, ids), notDeleted));
 }
 
 // v4: FIX #27 — include updatedAt in soft-delete

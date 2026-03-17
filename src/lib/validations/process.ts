@@ -1,9 +1,8 @@
 import { z } from 'zod';
+import { PROCESS_STATUSES, type ProcessStatus } from '@/lib/db/schema';
 
-// --- Status transition validation ---
-
-export const PROCESS_STATUSES = ['draft', 'mapping', 'validated', 'locked'] as const;
-export type ProcessStatus = typeof PROCESS_STATUSES[number];
+// Re-export for consumers that import from validations
+export { PROCESS_STATUSES, type ProcessStatus };
 
 export const VALID_TRANSITIONS: Record<ProcessStatus, ProcessStatus[]> = {
   draft: ['mapping'],

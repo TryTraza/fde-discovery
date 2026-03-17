@@ -1,6 +1,6 @@
 import { eq, and, isNull, or } from 'drizzle-orm';
 import { db } from '../index';
-import { eventLogs, type NewEventLog } from '../schema';
+import { eventLogs, type EventType, type NewEventLog } from '../schema';
 
 export async function createEvent(data: NewEventLog) {
   const [event] = await db.insert(eventLogs).values(data).returning();
@@ -23,8 +23,8 @@ export async function getDebriefEvents(sessionId: string) {
     .where(and(
       eq(eventLogs.sessionId, sessionId),
       or(
-        eq(eventLogs.type, 'QUESTION'),
-        and(eq(eventLogs.type, 'IMPLICIT'), isNull(eventLogs.label))
+        eq(eventLogs.type, 'QUESTION' satisfies EventType),
+        and(eq(eventLogs.type, 'IMPLICIT' satisfies EventType), isNull(eventLogs.label))
       )
     ))
     .orderBy(eventLogs.timestamp);

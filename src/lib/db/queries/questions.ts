@@ -1,6 +1,6 @@
 import { eq, and, isNull, inArray, desc } from 'drizzle-orm';
 import { db } from '../index';
-import { openQuestions, type NewOpenQuestion } from '../schema';
+import { openQuestions, type QuestionStatus, type NewOpenQuestion } from '../schema';
 
 const notDeleted = isNull(openQuestions.deletedAt);
 
@@ -31,7 +31,7 @@ export async function updateOpenQuestion(id: string, data: Partial<NewOpenQuesti
 
 export async function resolveQuestion(id: string, resolutionNotes: string) {
   return updateOpenQuestion(id, {
-    status: 'resolved' as const,
+    status: 'resolved' satisfies QuestionStatus,
     resolvedAt: new Date(),
     resolutionNotes,
   });

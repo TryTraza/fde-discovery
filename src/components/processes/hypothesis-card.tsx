@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-import { CollapsibleCard } from '@/components/shared/collapsible-card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface HypothesisCardProps {
   process: any;
@@ -16,6 +16,7 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
   const [isPolling, setIsPolling] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   const [justRegenerated, setJustRegenerated] = useState(false);
+  const [showFull, setShowFull] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -93,20 +94,7 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
   }, [clientId, process.id, process.hypothesisText, startPolling]);
 
   return (
-    <CollapsibleCard
-      title="Hypothesis"
-      actions={
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRegenerate}
-          disabled={isPolling}
-        >
-          <RefreshCw className="mr-1 size-3.5" />
-          Regenerate
-        </Button>
-      }
-    >
+    <div>
       {isPolling ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
           <Loader2 className="size-4 animate-spin" />
@@ -117,19 +105,48 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
           Generation is taking longer than expected. Try regenerating.
         </p>
       ) : process.hypothesisText ? (
-        <div className="space-y-3">
-          <p className="text-sm">{process.hypothesisText}</p>
-          {process.processTypeL1 && process.processTypeL1 !== 'unknown' && (
-            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-              {process.processTypeL1}
-            </span>
-          )}
+        <div>
+          <div
+            className={cn(
+              'text-sm text-muted-foreground leading-relaxed px-4 py-3 bg-muted/30 rounded-lg border-l-[3px] border-muted-foreground/20',
+              !showFull && 'line-clamp-3'
+            )}
+          >
+            {process.hypothesisText}
+          </div>
+          <div className="flex items-center gap-3 mt-2 px-1">
+            <button
+              onClick={() => setShowFull(!showFull)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showFull ? 'Collapse' : 'Show full hypothesis'}
+            </button>
+            <span className="text-muted-foreground">·</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto py-0 px-0 text-xs text-muted-foreground hover:text-foreground"
+              onClick={handleRegenerate}
+              disabled={isPolling}
+            >
+              <RefreshCw className="size-3 mr-1" />
+              Regenerate
+            </Button>
+            {process.processTypeL1 && process.processTypeL1 !== 'unknown' && (
+              <>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                  {process.processTypeL1}
+                </span>
+              </>
+            )}
+          </div>
         </div>
       ) : (
         <p className="text-sm text-muted-foreground py-4">
           No hypothesis generated yet. Click Regenerate or configure your API key in Settings.
         </p>
       )}
-    </CollapsibleCard>
+    </div>
   );
 }

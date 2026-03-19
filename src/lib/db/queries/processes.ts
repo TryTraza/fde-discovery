@@ -1,6 +1,6 @@
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { db } from '../index';
-import { processes, processModels, processModelSnapshots, sessions, openQuestions, type NewProcess } from '../schema';
+import { processes, processModels, processModelSnapshots, sessions, openQuestions, type SnapshotTrigger, type NewProcess } from '../schema';
 
 const notDeleted = isNull(processes.deletedAt);
 
@@ -86,7 +86,7 @@ export async function softDeleteProcess(id: string) {
   return deleted ?? null;
 }
 
-export async function createSnapshot(data: { processModelId: string; trigger: 'synthesis_apply' | 'validation_merge'; sessionId?: string; state: any }) {
+export async function createSnapshot(data: { processModelId: string; trigger: SnapshotTrigger; sessionId?: string; state: any }) {
   const [snapshot] = await db.insert(processModelSnapshots).values(data).returning();
   return snapshot;
 }

@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Search } from 'lucide-react';
+import { CLIENT_STATUSES } from '@/lib/db/schema';
 
 interface ClientFiltersProps {
   searchValue: string;
@@ -17,12 +18,16 @@ interface ClientFiltersProps {
   onStatusChange: (value: string) => void;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  prospecting: 'Prospecting',
+  active_poc: 'Active POC',
+  demo_ready: 'Demo Ready',
+  closed: 'Closed',
+};
+
 const STATUS_OPTIONS = [
   { value: 'all', label: 'All statuses' },
-  { value: 'prospecting', label: 'Prospecting' },
-  { value: 'active_poc', label: 'Active POC' },
-  { value: 'demo_ready', label: 'Demo Ready' },
-  { value: 'closed', label: 'Closed' },
+  ...CLIENT_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] ?? s })),
 ];
 
 export function ClientFilters({

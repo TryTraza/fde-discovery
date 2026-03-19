@@ -9,9 +9,9 @@
 ## Current State
 
 ```
-Phase:          3 — Process CRUD + Hypothesis (COMPLETE)
-Last Completed: Step 3.6 — System badges with detailNotes tooltip
-Next Step:      Phase 4 / Step 4.1 — Session creation: type selector
+Phase:          4 — Session Lifecycle (Non-Shadowing) (COMPLETE)
+Last Completed: Step 4.8 — Synthesis display + apply
+Next Step:      Phase 5 / Step 5.1 — Capture page (full-screen, 65/35 split)
 Blocker:        None
 ```
 
@@ -57,14 +57,15 @@ Blocker:        None
 - [x] 3.6 — System badges with detailNotes tooltip
 
 ### Phase 4 — Session Lifecycle (Non-Shadowing)
-- [ ] 4.1 — Session creation: type selector
-- [ ] 4.2 — Session creation: structured fields (per type)
-- [ ] 4.3 — Session creation: AI interview (3 adaptive questions)
-- [ ] 4.4 — Session API routes
-- [ ] 4.5 — Prep brief generation
-- [ ] 4.6 — Session detail page (transcript + notes textareas, auto-save)
-- [ ] 4.7 — Non-shadowing synthesis (transcript + notes → synthesis)
-- [ ] 4.8 — Synthesis display panels
+- [x] 4.0 — Schema audit: added title, durationMinutes, createdBy columns; synthesis_done status; query functions
+- [x] 4.1 — Session CRUD API routes (GET list, POST create, GET detail, PATCH, DELETE) + validation schemas
+- [x] 4.2 — SWR hooks (useSessions, useSession) + sessions list in process view
+- [x] 4.3 — Session creation dialog (3-step: type selector → details → interview → submit)
+- [x] 4.4 — AI interview route (3 adaptive questions via generateObject)
+- [x] 4.5 — Session detail page (transcript + notes with 2s debounced auto-save, mark completed)
+- [x] 4.6 — Prep brief generation (AI route + collapsible card)
+- [x] 4.7 — Non-shadowing synthesis (AI route, status=completed required, transcript+notes→synthesis)
+- [x] 4.8 — Synthesis display + apply (4 collapsible panels, section toggles, transaction-based apply with snapshot)
 
 ### Phase 5 — Shadowing Capture
 - [ ] 5.1 — Capture page (full-screen, 65/35 split)
@@ -117,6 +118,11 @@ Blocker:        None
 | Fire-and-forget needs pre-resolved model | `getAIConfig` uses `auth()` which requires request context; fire-and-forget runs after response, so model must be resolved eagerly in the route handler and passed as parameter | 2026-03-11 |
 | processStepSchema accepts string systems | Seed data stores `systems: ["Email"]` (strings), hypothesis generates `systems: [{name,confirmed,detailNotes}]` (objects); `parseProcessSteps` now handles both via `z.union` | 2026-03-11 |
 | Clerk testing + proxy.ts incompatible | `@clerk/testing@2.0.1` `clerk.signIn()` doesn't work with Next.js 16 `proxy.ts`; Playwright E2E auth needs manual approach or future Clerk fix | 2026-03-11 |
+| Session type enum uses existing values | `discovery`, `process_mapping`, `shadowing`, `validation`, `demo` (not plan's stakeholder_interview etc.) | 2026-03-16 |
+| Session status includes synthesis_done | Added `synthesis_done` to sessionStatusEnum for post-synthesis state | 2026-03-16 |
+| Apply-synthesis uses db.transaction | Snapshot + merge + model update + open questions all in one transaction for atomicity | 2026-03-16 |
+| Merge functions are pure | `mergeSteps`, `mergeEdgeCases`, `mergeSystems` in `lib/utils/merge-process-model.ts` — no DB access, fully testable | 2026-03-16 |
+| Question priority enum | `critical`, `important`, `nice_to_have` (not plan's must_answer/parked) — matches existing schema | 2026-03-16 |
 
 ---
 
@@ -137,6 +143,9 @@ Blocker:        None
 | `listClients` filter wraps single string in array | Route wraps `searchParams.get('status')` in `[status]` to match query layer's `string[]` type | 2 | Works — may want multi-select later |
 | `client-detail-card.tsx` mutateClient type error | `mutateClient` called with 2 args but typed for 0 — pre-existing from Phase 2 | 3 | Tech debt |
 | Clerk testing Playwright auth broken with proxy.ts | `clerk.signIn()` doesn't work with Next.js 16 `proxy.ts` — E2E tests can't authenticate programmatically | 3 | Tech debt — wait for Clerk update |
+| Zod v4 strict UUID validation in tests | Test UUIDs like `00000000-0000-...` fail Zod v4 RFC 4122 checks; use `crypto.randomUUID()` for test data | 4 | Fixed |
+| openQuestions column is `text` not `question` | Plan assumed `question` column but actual schema uses `text` | 4 | Fixed in apply route |
+| processModels version column skipped | Snapshots provide history; version column unnecessary for v1 | 4 | Decision |
 
 ---
 
@@ -166,5 +175,7 @@ Blocker:        None
 | 2026-03-10 | 1.1–1.6 | Full Phase 1: schema (11 tables, 9 enums), JSONB types, query layer (8 files), migration pushed to Supabase, seed data verified. 63 tests passing, build clean. | Supabase MCP not available — verified via direct SQL connection |
 | 2026-03-11 | 2.1–2.8 | Full Phase 2: client CRUD API (5 routes), contacts CRUD API (5 routes), company research AI, SWR hooks, client list page, create dialog, overview page with inline edit + AI summary + contacts. 107 tests passing, build clean. | AI SDK v6 `maxSteps` → `stopWhen`, shadcn v4 no `asChild`, SWR v2 `globalMutate` limitation |
 | 2026-03-11 | 3.1–3.6 | Full Phase 3: L1 domain JSON (procurement + unknown), hypothesis AI with fire-and-forget, process CRUD API (3 routes: list/create, detail/patch/delete, hypothesis regenerate), creation dialog, process overview (detail card + hypothesis card + process flow + step cards + system badges), breadcrumb UUID resolution for processes. 157 tests passing (50 new), build clean. | Race condition in hypothesis write order (steps after hypothesisText), requireAuthWithUser needed for API key access, Zod v4 no SafeParseSuccess export |
+
+| 2026-03-16 | 4.0–4.8 | Full Phase 4: schema audit (3 columns + synthesis_done status), session CRUD API (5 routes), SWR hooks, sessions list, creation dialog (3-step with type selector + AI interview), AI interview route (3 adaptive questions), session detail page (transcript + notes with 2s debounced auto-save), prep brief AI, synthesis AI, synthesis display (4 collapsible panels with section toggles), apply-synthesis route (transaction with snapshot + merge + open questions). 257 tests passing (100 new), build clean. | Zod v4 strict UUID validation, vi.mock hoisting with variable references, session type enum differs from plan |
 
 *(Claude Code appends a line here after each session)*

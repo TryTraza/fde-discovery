@@ -1,8 +1,10 @@
-const statusColors: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700',
-  mapping: 'bg-blue-100 text-blue-700',
-  validated: 'bg-green-100 text-green-700',
-  locked: 'bg-amber-100 text-amber-700',
+import type { ProcessStatus } from '@/lib/db/schema';
+
+const statusColors: Record<ProcessStatus, string> = {
+  draft: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+  mapping: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+  validated: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+  locked: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
 };
 
 interface ProcessStatusBadgeProps {
@@ -10,7 +12,7 @@ interface ProcessStatusBadgeProps {
 }
 
 export function ProcessStatusBadge({ status }: ProcessStatusBadgeProps) {
-  const colors = statusColors[status] ?? statusColors.draft;
+  const colors = statusColors[status as ProcessStatus] ?? statusColors.draft;
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors}`}>
       {status}

@@ -42,6 +42,7 @@ export const sessionStatusEnum = pgEnum('session_status', [
   'planned',
   'in_progress',
   'completed',
+  'synthesis_done',
 ]);
 
 export const eventTypeEnum = pgEnum('event_type', [
@@ -75,6 +76,37 @@ export const snapshotTriggerEnum = pgEnum('snapshot_trigger', [
   'synthesis_apply',
   'validation_merge',
 ]);
+
+// ====================================================================
+// ENUM CONSTANTS + UNION TYPES — derived from pgEnum definitions
+// ====================================================================
+
+export const CLIENT_STATUSES = clientStatusEnum.enumValues;
+export type ClientStatus = (typeof CLIENT_STATUSES)[number];
+
+export const PROCESS_STATUSES = processStatusEnum.enumValues;
+export type ProcessStatus = (typeof PROCESS_STATUSES)[number];
+
+export const SESSION_TYPES = sessionTypeEnum.enumValues;
+export type SessionType = (typeof SESSION_TYPES)[number];
+
+export const SESSION_STATUSES = sessionStatusEnum.enumValues;
+export type SessionStatus = (typeof SESSION_STATUSES)[number];
+
+export const EVENT_TYPES = eventTypeEnum.enumValues;
+export type EventType = (typeof EVENT_TYPES)[number];
+
+export const ARTIFACT_STAGES = artifactStageEnum.enumValues;
+export type ArtifactStage = (typeof ARTIFACT_STAGES)[number];
+
+export const QUESTION_PRIORITIES = questionPriorityEnum.enumValues;
+export type QuestionPriority = (typeof QUESTION_PRIORITIES)[number];
+
+export const QUESTION_STATUSES = questionStatusEnum.enumValues;
+export type QuestionStatus = (typeof QUESTION_STATUSES)[number];
+
+export const SNAPSHOT_TRIGGERS = snapshotTriggerEnum.enumValues;
+export type SnapshotTrigger = (typeof SNAPSHOT_TRIGGERS)[number];
 
 // ====================================================================
 // TABLES — 11 total
@@ -151,10 +183,14 @@ export const sessions = pgTable('sessions', {
   id:                uuid('id').defaultRandom().primaryKey(),
   processId:         uuid('process_id').notNull().references(() => processes.id),
   type:              sessionTypeEnum('type').notNull(),
+  title:             text('title').notNull(),
   date:              date('date').notNull(),
   status:            sessionStatusEnum('status').default('planned').notNull(),
+  durationMinutes:   integer('duration_minutes'),
+  createdBy:         text('created_by'),
   interviewAnswers:  jsonb('interview_answers'),       // InterviewAnswers
   prepBrief:         jsonb('prep_brief'),               // PrepBrief
+  questionsAsked:    jsonb('questions_asked'),           // boolean[]
   transcriptText:    text('transcript_text'),            // Pasted from Granola or recording tool
   notes:             text('notes'),                      // User's own notes/observations
   aiSummary:         text('ai_summary'),

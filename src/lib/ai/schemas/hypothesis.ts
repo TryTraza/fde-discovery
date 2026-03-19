@@ -4,7 +4,7 @@ export const hypothesisStepSchema = z.object({
   name: z.string().describe('Step name'),
   description: z.string().describe('What happens in this step'),
   systems: z.array(z.string()).describe('Systems likely involved'),
-  order: z.number().int().positive().describe('Step order starting from 1'),
+  order: z.number().describe('Step order starting from 1'),
 });
 
 export const hypothesisSchema = z.object({

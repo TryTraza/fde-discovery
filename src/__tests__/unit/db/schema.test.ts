@@ -70,6 +70,10 @@ describe('Database Schema — Column Verification', () => {
     for (const c of jsonbCols) expect(cols).toContain(c);
   });
 
+  it('sessions table has questionsAsked column', () => {
+    expect(schema.sessions.questionsAsked).toBeDefined();
+  });
+
   it('eventLogs table has type, label, detail, suggestionUsed', () => {
     const cols = Object.keys(schema.eventLogs);
     for (const c of ['type', 'label', 'detail', 'suggestionUsed']) {
@@ -131,7 +135,7 @@ describe('Enum values', () => {
 
   it('sessionStatusEnum has correct values', () => {
     expect(schema.sessionStatusEnum.enumValues).toEqual([
-      'planned', 'in_progress', 'completed',
+      'planned', 'in_progress', 'completed', 'synthesis_done',
     ]);
   });
 

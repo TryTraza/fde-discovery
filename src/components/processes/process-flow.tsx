@@ -1,25 +1,22 @@
 'use client';
 
-import { useState, useCallback, useRef, Fragment } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+  type NodeMouseHandler,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { arrayMove } from '@dnd-kit/sortable';
 import { Save, Undo2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { parseProcessSteps, type ProcessStepParsed } from '@/lib/validations/process';
-import { ProcessStepRow } from './process-step-row';
+import { layoutProcessSteps } from '@/lib/utils/flow-layout';
+import { TerminalNode } from './flow-nodes/terminal-node';
+import { StepNode } from './flow-nodes/step-node';
+import { StepDetailPanel } from './flow-nodes/step-detail-panel';
 import { ConfidenceLegend } from './confidence-legend';
 import { toast } from 'sonner';
 
@@ -30,6 +27,11 @@ interface ProcessFlowProps {
   mutateProcess: () => void;
 }
 
+const nodeTypes = {
+  terminal: TerminalNode,
+  processStep: StepNode,
+};
+
 function generateStepId() {
   return `step-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -38,8 +40,8 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
   const serverSteps = parseProcessSteps(process.processModel?.steps);
   const [localSteps, setLocalSteps] = useState<ProcessStepParsed[] | null>(null);
   const [saving, setSaving] = useState(false);
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
 
-  // Use local state if dirty, otherwise server state
   const steps = localSteps ?? serverSteps;
   const isDirty = localSteps !== null;
 
@@ -49,35 +51,36 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
     prevServerRef.current = serverSteps;
   }
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  // Layout
+  const { nodes, edges } = useMemo(() => layoutProcessSteps(steps), [steps]);
+
+  // Selected step
+  const selectedStepIndex = steps.findIndex((s) => s.id === selectedStepId);
+  const selectedStep = selectedStepIndex >= 0 ? steps[selectedStepIndex] : null;
+
+  const updateLocalSteps = useCallback(
+    (updater: (prev: ProcessStepParsed[]) => ProcessStepParsed[]) => {
+      setLocalSteps((prev) => updater(prev ?? serverSteps));
+    },
+    [serverSteps]
   );
 
-  const updateLocalSteps = useCallback((updater: (prev: ProcessStepParsed[]) => ProcessStepParsed[]) => {
-    setLocalSteps((prev) => updater(prev ?? serverSteps));
-  }, [serverSteps]);
+  const handleUpdateStep = useCallback(
+    (id: string, field: keyof ProcessStepParsed, value: unknown) => {
+      updateLocalSteps((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+      );
+    },
+    [updateLocalSteps]
+  );
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    updateLocalSteps((prev) => {
-      const oldIndex = prev.findIndex((s) => s.id === active.id);
-      const newIndex = prev.findIndex((s) => s.id === over.id);
-      return arrayMove(prev, oldIndex, newIndex);
-    });
-  }, [updateLocalSteps]);
-
-  const handleUpdateStep = useCallback((id: string, field: keyof ProcessStepParsed, value: unknown) => {
-    updateLocalSteps((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
-    );
-  }, [updateLocalSteps]);
-
-  const handleDeleteStep = useCallback((id: string) => {
-    updateLocalSteps((prev) => prev.filter((s) => s.id !== id));
-  }, [updateLocalSteps]);
+  const handleDeleteStep = useCallback(
+    (id: string) => {
+      updateLocalSteps((prev) => prev.filter((s) => s.id !== id));
+      if (selectedStepId === id) setSelectedStepId(null);
+    },
+    [updateLocalSteps, selectedStepId]
+  );
 
   const handleAddStep = useCallback(() => {
     updateLocalSteps((prev) => [
@@ -95,14 +98,36 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
     ]);
   }, [updateLocalSteps]);
 
+  const handleMoveUp = useCallback(
+    (id: string) => {
+      updateLocalSteps((prev) => {
+        const idx = prev.findIndex((s) => s.id === id);
+        if (idx <= 0) return prev;
+        return arrayMove(prev, idx, idx - 1);
+      });
+    },
+    [updateLocalSteps]
+  );
+
+  const handleMoveDown = useCallback(
+    (id: string) => {
+      updateLocalSteps((prev) => {
+        const idx = prev.findIndex((s) => s.id === id);
+        if (idx < 0 || idx >= prev.length - 1) return prev;
+        return arrayMove(prev, idx, idx + 1);
+      });
+    },
+    [updateLocalSteps]
+  );
+
   const handleDiscard = useCallback(() => {
     setLocalSteps(null);
+    setSelectedStepId(null);
   }, []);
 
   const handleSave = useCallback(async () => {
     if (!localSteps || localSteps.length === 0) return;
 
-    // Validate: all steps need a name
     const emptyNames = localSteps.some((s) => !s.name.trim());
     if (emptyNames) {
       toast.error('All steps must have a name');
@@ -134,9 +159,18 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
     }
   }, [localSteps, clientId, processId, mutateProcess]);
 
+  const onNodeClick: NodeMouseHandler = useCallback((_, node) => {
+    if (node.type === 'processStep') {
+      setSelectedStepId((prev) => (prev === node.id ? null : node.id));
+    }
+  }, []);
+
+  // Canvas height: taller for more steps, min 350px, max 600px
+  const canvasHeight = Math.min(600, Math.max(350, steps.length * 110 + 150));
+
   return (
     <div className="space-y-3">
-      {/* Header with legend + Save/Discard */}
+      {/* Header: legend + save/discard */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <ConfidenceLegend onAddStep={handleAddStep} />
         {isDirty && (
@@ -146,39 +180,67 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
               Discard
             </Button>
             <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Save className="size-3.5 mr-1" />}
+              {saving ? (
+                <Loader2 className="size-3.5 mr-1 animate-spin" />
+              ) : (
+                <Save className="size-3.5 mr-1" />
+              )}
               Save
             </Button>
           </div>
         )}
       </div>
 
-      {/* Steps */}
-      {steps.length === 0 ? (
+      {/* ReactFlow canvas */}
+      {steps.length === 0 && !isDirty ? (
         <p className="text-sm text-muted-foreground py-6 text-center">
           No steps yet. Generate a hypothesis to create initial steps, or add steps manually.
         </p>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-            <div>
-              {steps.map((step, index) => (
-                <Fragment key={step.id}>
-                  <ProcessStepRow
-                    step={step}
-                    index={index}
-                    onUpdate={handleUpdateStep}
-                    onDelete={handleDeleteStep}
-                  />
-                  {index < steps.length - 1 && (
-                    <div className="w-px h-2 bg-border ml-10" />
-                  )}
-                </Fragment>
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+        <div
+          className="border rounded-lg bg-muted/20 overflow-hidden"
+          style={{ height: canvasHeight }}
+        >
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodeClick={onNodeClick}
+            fitView
+            fitViewOptions={{ padding: 0.3 }}
+            proOptions={{ hideAttribution: true }}
+            nodesDraggable={false}
+            nodesConnectable={false}
+            edgesReconnectable={false}
+            panOnScroll
+            zoomOnScroll={false}
+            minZoom={0.3}
+            maxZoom={1.5}
+          >
+            <Background gap={16} size={1} />
+            <Controls showInteractive={false} />
+            <MiniMap
+              nodeStrokeWidth={3}
+              pannable
+              zoomable={false}
+              className="!bg-background !border"
+            />
+          </ReactFlow>
+        </div>
       )}
+
+      {/* Step detail sheet */}
+      <StepDetailPanel
+        open={selectedStep !== null}
+        step={selectedStep}
+        stepIndex={selectedStepIndex}
+        totalSteps={steps.length}
+        onUpdate={handleUpdateStep}
+        onDelete={handleDeleteStep}
+        onMoveUp={handleMoveUp}
+        onMoveDown={handleMoveDown}
+        onClose={() => setSelectedStepId(null)}
+      />
     </div>
   );
 }

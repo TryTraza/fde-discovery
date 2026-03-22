@@ -9,9 +9,9 @@
 ## Current State
 
 ```
-Phase:          4 — Session Lifecycle (Non-Shadowing) (COMPLETE)
-Last Completed: Step 4.8 — Synthesis display + apply
-Next Step:      Phase 5 / Step 5.1 — Capture page (full-screen, 65/35 split)
+Phase:          5 — Shadowing Capture (IN PROGRESS)
+Last Completed: Step 5.8 — Post-capture screen (transcript + notes before debrief)
+Next Step:      Step 5.9 — iPad test (all buttons 64px+)
 Blocker:        None
 ```
 
@@ -68,14 +68,14 @@ Blocker:        None
 - [x] 4.8 — Synthesis display + apply (4 collapsible panels, section toggles, transaction-based apply with snapshot)
 
 ### Phase 5 — Shadowing Capture
-- [ ] 5.1 — Capture page (full-screen, 65/35 split)
-- [ ] 5.2 — Capture buttons component (5 buttons)
-- [ ] 5.3 — Input panel with suggestion chips (Haiku model)
-- [ ] 5.4 — SYSTEM picker with detail notes field
-- [ ] 5.5 — Event log panel (auto-scroll, color coded)
-- [ ] 5.6 — Suggestions AI route (NO_API_KEY → empty suggestions, never crash)
-- [ ] 5.7 — Offline queue + sync
-- [ ] 5.8 — Post-capture screen (transcript + notes before debrief)
+- [x] 5.1 — Capture page (full-screen, 65/35 split)
+- [x] 5.2 — Capture buttons component (5 buttons)
+- [x] 5.3 — Input panel with suggestion chips (Haiku model)
+- [x] 5.4 — SYSTEM picker with detail notes field
+- [x] 5.5 — Event log panel (auto-scroll, color coded)
+- [x] 5.6 — Suggestions AI route (NO_API_KEY → empty suggestions, never crash)
+- [x] 5.7 — Offline queue + sync
+- [x] 5.8 — Post-capture screen (transcript + notes before debrief)
 - [ ] 5.9 — iPad test (all buttons 64px+)
 
 ### Phase 6 — Debrief + Synthesis
@@ -123,6 +123,13 @@ Blocker:        None
 | Apply-synthesis uses db.transaction | Snapshot + merge + model update + open questions all in one transaction for atomicity | 2026-03-16 |
 | Merge functions are pure | `mergeSteps`, `mergeEdgeCases`, `mergeSystems` in `lib/utils/merge-process-model.ts` — no DB access, fully testable | 2026-03-16 |
 | Question priority enum | `critical`, `important`, `nice_to_have` (not plan's must_answer/parked) — matches existing schema | 2026-03-16 |
+| EVENT_TYPES_MUTABLE for Zod | Drizzle enumValues is readonly; Zod z.enum() requires mutable tuple — use `[...EVENT_TYPES] as [string, ...]` cast | 2026-03-21 |
+| eventLogs no deletedAt | Events are immutable — no soft delete column, no soft delete filter needed in queries | 2026-03-21 |
+| Suggestions never 500 | `/api/ai/suggestions` catches ALL errors and returns `{ suggestions: [] }` — capture UI must never break | 2026-03-21 |
+| (capture) route group | Capture page uses separate `(capture)` route group to avoid dashboard sidebar — hard navigation on post-capture | 2026-03-21 |
+| AI SDK v6 maxOutputTokens | `generateObject` uses `maxOutputTokens` not `maxTokens` (v6 breaking change) | 2026-03-21 |
+| System picker uses Dialog | shadcn v4 Popover has no `asChild` on PopoverTrigger — replaced with Dialog for system picker | 2026-03-21 |
+| No middleware.ts | Auth enforced via `requireUserId`/`requireAdmin` in route handlers, not Clerk middleware | 2026-03-21 |
 
 ---
 
@@ -177,5 +184,7 @@ Blocker:        None
 | 2026-03-11 | 3.1–3.6 | Full Phase 3: L1 domain JSON (procurement + unknown), hypothesis AI with fire-and-forget, process CRUD API (3 routes: list/create, detail/patch/delete, hypothesis regenerate), creation dialog, process overview (detail card + hypothesis card + process flow + step cards + system badges), breadcrumb UUID resolution for processes. 157 tests passing (50 new), build clean. | Race condition in hypothesis write order (steps after hypothesisText), requireAuthWithUser needed for API key access, Zod v4 no SafeParseSuccess export |
 
 | 2026-03-16 | 4.0–4.8 | Full Phase 4: schema audit (3 columns + synthesis_done status), session CRUD API (5 routes), SWR hooks, sessions list, creation dialog (3-step with type selector + AI interview), AI interview route (3 adaptive questions), session detail page (transcript + notes with 2s debounced auto-save), prep brief AI, synthesis AI, synthesis display (4 collapsible panels with section toggles), apply-synthesis route (transaction with snapshot + merge + open questions). 257 tests passing (100 new), build clean. | Zod v4 strict UUID validation, vi.mock hoisting with variable references, session type enum differs from plan |
+
+| 2026-03-21 | 5.1–5.8 | Phase 5 (steps 1-8): event type constants + UI config, events API (single + batch + patch), suggestions AI route (never 500), capture page with (capture) route group (full-screen, no sidebar), 10 capture UI components (header, event-type-bar, observation-input, system-picker, suggestion-chips, event-log-panel, analytics-sidebar, confirm-end-dialog, post-capture-screen, capture-view), useEventSync hook (offline queue + batch sync + server ID mapping), useSuggestions hook (debounced with timeout), "Iniciar Captura" button on session detail. 399 tests passing (142 new), build clean. | EVENT_TYPES_MUTABLE Zod cast, AI SDK v6 maxOutputTokens, shadcn v4 no asChild on PopoverTrigger, no middleware.ts (auth via utils) |
 
 *(Claude Code appends a line here after each session)*

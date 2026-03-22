@@ -229,19 +229,18 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
         </div>
       )}
 
-      {/* Step detail panel */}
-      {selectedStep && (
-        <StepDetailPanel
-          step={selectedStep}
-          stepIndex={selectedStepIndex}
-          totalSteps={steps.length}
-          onUpdate={handleUpdateStep}
-          onDelete={handleDeleteStep}
-          onMoveUp={handleMoveUp}
-          onMoveDown={handleMoveDown}
-          onClose={() => setSelectedStepId(null)}
-        />
-      )}
+      {/* Step detail sheet */}
+      <StepDetailPanel
+        open={selectedStep !== null}
+        step={selectedStep}
+        stepIndex={selectedStepIndex}
+        totalSteps={steps.length}
+        onUpdate={handleUpdateStep}
+        onDelete={handleDeleteStep}
+        onMoveUp={handleMoveUp}
+        onMoveDown={handleMoveDown}
+        onClose={() => setSelectedStepId(null)}
+      />
     </div>
   );
 }

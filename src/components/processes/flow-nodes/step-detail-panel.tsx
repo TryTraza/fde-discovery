@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronUp, ChevronDown, Trash2, X, Plus } from 'lucide-react';
+import { ChevronUp, ChevronDown, Trash2, Plus, X } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,7 +21,8 @@ const confidenceBadgeColors = {
 };
 
 interface StepDetailPanelProps {
-  step: ProcessStepParsed;
+  open: boolean;
+  step: ProcessStepParsed | null;
   stepIndex: number;
   totalSteps: number;
   onUpdate: (id: string, field: keyof ProcessStepParsed, value: unknown) => void;
@@ -26,6 +33,7 @@ interface StepDetailPanelProps {
 }
 
 export function StepDetailPanel({
+  open,
   step,
   stepIndex,
   totalSteps,
@@ -36,6 +44,9 @@ export function StepDetailPanel({
   onClose,
 }: StepDetailPanelProps) {
   const [newSystem, setNewSystem] = useState('');
+
+  if (!step) return null;
+
   const isMissing = step.confidence === 'missing';
 
   const addSystem = () => {
@@ -58,165 +69,159 @@ export function StepDetailPanel({
   };
 
   return (
-    <div className="border rounded-lg bg-background shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30 rounded-t-lg">
-        <span className="text-sm font-medium">
-          Step {stepIndex + 1}: {step.name || 'Unnamed'}
-        </span>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onMoveUp(step.id)}
-            disabled={stepIndex === 0}
-            title="Move up"
-          >
-            <ChevronUp className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onMoveDown(step.id)}
-            disabled={stepIndex >= totalSteps - 1}
-            title="Move down"
-          >
-            <ChevronDown className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onDelete(step.id)}
-            className="text-muted-foreground hover:text-destructive"
-            title="Delete step"
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            title="Close panel"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="px-4 py-3 space-y-3">
-        {/* Name */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Name</label>
-          <Input
-            value={step.name}
-            onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
-            className="h-8 text-sm"
-            placeholder="Step name"
-          />
-        </div>
-
-        {/* Description */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Description</label>
-          <Textarea
-            value={step.description}
-            onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
-            className="text-sm min-h-[36px] resize-none"
-            placeholder="Step description"
-            rows={2}
-          />
-        </div>
-
-        {/* Confidence */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Confidence</label>
-          <select
-            value={step.confidence}
-            onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
-            className={cn(
-              'text-xs px-2 py-1 rounded-full border-0 cursor-pointer',
-              confidenceBadgeColors[step.confidence]
-            )}
-          >
-            <option value="confirmed">confirmed</option>
-            <option value="inferred">inferred</option>
-            <option value="missing">missing</option>
-          </select>
-        </div>
-
-        {/* Systems */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Systems</label>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {step.systems.map((system) => (
-              <span
-                key={system.name}
-                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
+    <Sheet open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <SheetContent className="sm:max-w-md overflow-y-auto">
+        <SheetHeader>
+          <div className="flex items-center justify-between pr-2">
+            <SheetTitle className="text-base">
+              Step {stepIndex + 1}: {step.name || 'Unnamed'}
+            </SheetTitle>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onMoveUp(step.id)}
+                disabled={stepIndex === 0}
+                title="Move up"
               >
-                {system.name}
-                {system.confirmed && <span className="text-green-600">&#10003;</span>}
-                <button
-                  onClick={() => removeSystem(system.name)}
-                  className="ml-0.5 hover:text-destructive"
-                  aria-label={`Remove ${system.name}`}
-                >
-                  <X className="size-3" />
-                </button>
-              </span>
-            ))}
-            <form
-              onSubmit={(e) => { e.preventDefault(); addSystem(); }}
-              className="inline-flex items-center gap-1"
-            >
-              <Input
-                value={newSystem}
-                onChange={(e) => setNewSystem(e.target.value)}
-                placeholder="+ system"
-                className="h-6 w-24 text-xs px-2"
-              />
-              {newSystem.trim() && (
-                <Button type="submit" variant="ghost" size="icon-xs">
-                  <Plus className="size-3" />
-                </Button>
+                <ChevronUp className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onMoveDown(step.id)}
+                disabled={stepIndex >= totalSteps - 1}
+                title="Move down"
+              >
+                <ChevronDown className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => { onDelete(step.id); onClose(); }}
+                className="text-muted-foreground hover:text-destructive"
+                title="Delete step"
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        </SheetHeader>
+
+        <div className="space-y-4 px-4 pb-6">
+          {/* Name */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Name</label>
+            <Input
+              value={step.name}
+              onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
+              className="h-9 text-sm"
+              placeholder="Step name"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Description</label>
+            <Textarea
+              value={step.description}
+              onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
+              className="text-sm min-h-[60px] resize-none"
+              placeholder="Step description"
+              rows={3}
+            />
+          </div>
+
+          {/* Confidence */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Confidence</label>
+            <select
+              value={step.confidence}
+              onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
+              className={cn(
+                'text-xs px-2 py-1 rounded-full border-0 cursor-pointer',
+                confidenceBadgeColors[step.confidence]
               )}
-            </form>
+            >
+              <option value="confirmed">confirmed</option>
+              <option value="inferred">inferred</option>
+              <option value="missing">missing</option>
+            </select>
           </div>
-        </div>
 
-        {/* Notes */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Notes</label>
-          <Textarea
-            value={step.notes}
-            onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
-            className="text-sm min-h-[36px] resize-none"
-            placeholder="Notes about this step"
-            rows={2}
-          />
-        </div>
-
-        {/* Edge cases (read-only) */}
-        {step.edgeCases.length > 0 && (
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
-            <ul className="text-sm list-disc list-inside text-muted-foreground">
-              {step.edgeCases.map((ec: any, i: number) => (
-                <li key={i}>
-                  {typeof ec === 'string' ? ec : ec.description ?? JSON.stringify(ec)}
-                </li>
+          {/* Systems */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Systems</label>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {step.systems.map((system) => (
+                <span
+                  key={system.name}
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
+                >
+                  {system.name}
+                  {system.confirmed && <span className="text-green-600">&#10003;</span>}
+                  <button
+                    onClick={() => removeSystem(system.name)}
+                    className="ml-0.5 hover:text-destructive"
+                    aria-label={`Remove ${system.name}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
               ))}
-            </ul>
+              <form
+                onSubmit={(e) => { e.preventDefault(); addSystem(); }}
+                className="inline-flex items-center gap-1"
+              >
+                <Input
+                  value={newSystem}
+                  onChange={(e) => setNewSystem(e.target.value)}
+                  placeholder="+ system"
+                  className="h-6 w-24 text-xs px-2"
+                />
+                {newSystem.trim() && (
+                  <Button type="submit" variant="ghost" size="icon-xs">
+                    <Plus className="size-3" />
+                  </Button>
+                )}
+              </form>
+            </div>
           </div>
-        )}
 
-        {/* Gap warning */}
-        {isMissing && (
-          <p className="text-xs text-red-600 dark:text-red-400">
-            This step has a gap — consider scheduling a shadowing session to observe it.
-          </p>
-        )}
-      </div>
-    </div>
+          {/* Notes */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Notes</label>
+            <Textarea
+              value={step.notes}
+              onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
+              className="text-sm min-h-[60px] resize-none"
+              placeholder="Notes about this step"
+              rows={3}
+            />
+          </div>
+
+          {/* Edge cases (read-only) */}
+          {step.edgeCases.length > 0 && (
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
+              <ul className="text-sm list-disc list-inside text-muted-foreground">
+                {step.edgeCases.map((ec: any, i: number) => (
+                  <li key={i}>
+                    {typeof ec === 'string' ? ec : ec.description ?? JSON.stringify(ec)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Gap warning */}
+          {isMissing && (
+            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-md px-3 py-2">
+              This step has a gap — consider scheduling a shadowing session to observe it.
+            </p>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

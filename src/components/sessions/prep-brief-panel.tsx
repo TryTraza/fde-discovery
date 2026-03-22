@@ -21,9 +21,11 @@ import {
 } from 'lucide-react';
 import { getSessionTypeLabel } from '@/lib/utils/session-labels';
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief';
+import { InterviewStep } from './interview-step';
 
 interface PrepBriefPanelProps {
   sessionId: string;
+  processId: string;
   prepBrief: PrepBrief | null;
   mutateSession: () => void;
   interviewAnswers?: { question: string; answer: string }[];
@@ -34,6 +36,7 @@ interface PrepBriefPanelProps {
 
 export function PrepBriefPanel({
   sessionId,
+  processId,
   prepBrief,
   mutateSession,
   interviewAnswers,
@@ -43,6 +46,8 @@ export function PrepBriefPanel({
 }: PrepBriefPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [contextExpanded, setContextExpanded] = useState(false);
+  const [showInterview, setShowInterview] = useState(false);
+  const [isSavingAnswers, setIsSavingAnswers] = useState(false);
   const [areasExpanded, setAreasExpanded] = useState(false);
   const [expandedApproach, setExpandedApproach] = useState<number | null>(null);
 
@@ -73,8 +78,55 @@ export function PrepBriefPanel({
     }
   };
 
+  const handleInterviewComplete = async (answers: { question: string; answer: string }[]) => {
+    setIsSavingAnswers(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interviewAnswers: { questions: answers } }),
+      });
+      if (!res.ok) throw new Error();
+      setShowInterview(false);
+      mutateSession();
+      toast.success('Interview answers saved');
+    } catch {
+      toast.error('Failed to save interview answers');
+    } finally {
+      setIsSavingAnswers(false);
+    }
+  };
+
+  const handleInterviewSkip = () => {
+    setShowInterview(false);
+  };
+
+  // Interview step
+  if (showInterview && !interviewAnswers) {
+    return (
+      <div className="max-w-lg mx-auto py-8 space-y-4">
+        <div className="text-center space-y-1">
+          <h3 className="font-medium">Quick Prep Interview</h3>
+          <p className="text-sm text-muted-foreground">
+            Answer a few questions to help AI generate a better prep brief.
+          </p>
+        </div>
+        <InterviewStep
+          processId={processId}
+          sessionType={sessionType}
+          onComplete={handleInterviewComplete}
+          onSkip={handleInterviewSkip}
+        />
+        {isSavingAnswers && (
+          <p className="text-xs text-muted-foreground text-center">Saving answers...</p>
+        )}
+      </div>
+    );
+  }
+
   // Empty state
   if (!prepBrief) {
+    const hasAnswers = interviewAnswers && interviewAnswers.length > 0;
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
         {isLoading ? (
@@ -93,13 +145,23 @@ export function PrepBriefPanel({
             <div>
               <p className="font-medium">No prep brief yet</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Generate a tailored brief with questions, approaches, and focus areas.
+                {hasAnswers
+                  ? 'Generate a tailored brief with questions, approaches, and focus areas.'
+                  : 'Start with a quick interview for better results, or generate directly.'}
               </p>
             </div>
-            <Button variant="outline" onClick={handleGenerate}>
-              <Sparkles className="mr-1.5 size-3.5" />
-              Generate Prep Brief
-            </Button>
+            <div className="flex gap-2">
+              {!hasAnswers && (
+                <Button variant="outline" onClick={() => setShowInterview(true)}>
+                  <MessageSquare className="mr-1.5 size-3.5" />
+                  Start Interview
+                </Button>
+              )}
+              <Button onClick={handleGenerate}>
+                <Sparkles className="mr-1.5 size-3.5" />
+                Generate Prep Brief
+              </Button>
+            </div>
           </>
         )}
       </div>

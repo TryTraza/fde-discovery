@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { useContacts } from '@/lib/hooks/use-contacts';
 import { getSessionTypeLabel } from '@/lib/utils/session-labels';
 import { SessionTypeSelector } from './session-type-selector';
-import { InterviewStep } from './interview-step';
 import {
   Dialog,
   DialogContent,
@@ -39,7 +38,7 @@ export function CreateSessionDialog({
   const router = useRouter();
   const { contacts } = useContacts(clientId);
 
-  const [step, setStep] = useState<'type' | 'details' | 'interview'>('type');
+  const [step, setStep] = useState<'type' | 'details'>('type');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [sessionType, setSessionType] = useState<string | null>(null);
@@ -73,10 +72,10 @@ export function CreateSessionDialog({
     );
   };
 
-  const handleDetailsNext = (e: React.FormEvent) => {
+  const handleDetailsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sessionType || !title.trim() || !date) return;
-    setStep('interview');
+    submitSession();
   };
 
   const submitSession = async (interviewAnswers?: { question: string; answer: string }[]) => {
@@ -123,7 +122,6 @@ export function CreateSessionDialog({
   const stepDescription: Record<string, string> = {
     type: 'What kind of session are you planning?',
     details: 'Fill in the session details.',
-    interview: 'Quick prep questions to focus your session.',
   };
 
   return (
@@ -145,7 +143,7 @@ export function CreateSessionDialog({
         )}
 
         {step === 'details' && (
-          <form onSubmit={handleDetailsNext} className="space-y-4">
+          <form onSubmit={handleDetailsSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="session-title">Title *</Label>
               <Input
@@ -204,26 +202,13 @@ export function CreateSessionDialog({
                 <ArrowLeft className="mr-1.5 size-3.5" />
                 Back
               </Button>
-              <Button type="submit" disabled={!title.trim() || !date}>
-                Next
+              <Button type="submit" disabled={!title.trim() || !date || isSubmitting}>
+                {isSubmitting ? 'Creating...' : 'Create Session'}
               </Button>
             </DialogFooter>
           </form>
         )}
 
-        {step === 'interview' && sessionType && (
-          <div className="space-y-4">
-            <InterviewStep
-              processId={processId}
-              sessionType={sessionType}
-              onComplete={(answers) => submitSession(answers)}
-              onSkip={() => submitSession()}
-            />
-            {isSubmitting && (
-              <p className="text-xs text-muted-foreground">Creating session...</p>
-            )}
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );

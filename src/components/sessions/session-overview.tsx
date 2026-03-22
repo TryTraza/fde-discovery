@@ -33,6 +33,7 @@ import {
   PenLine,
   Sparkles,
 } from 'lucide-react';
+import { ShadowingCapturePanel } from './shadowing-capture-panel';
 import { SynthesisPanels } from './synthesis-panels';
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis';
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief';
@@ -231,7 +232,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
     | undefined;
 
   return (
-    <div className="space-y-6 min-w-0 overflow-hidden">
+    <div className="space-y-6 min-w-0">
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
@@ -292,10 +293,11 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
         ))}
       </div>
 
-      {/* Active Section Content */}
-      {activeSection === 'preparation' && (
+      {/* Tab Panels — use CSS hidden to keep capture state alive across tab switches */}
+      <div className={activeSection === 'preparation' ? '' : 'hidden'}>
         <PrepBriefPanel
           sessionId={sessionId}
+          processId={processId}
           prepBrief={prepBrief}
           mutateSession={() => mutateSession()}
           interviewAnswers={interviewAnswers}
@@ -303,41 +305,53 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           onToggleQuestion={toggleQuestion}
           sessionType={session.type}
         />
-      )}
+      </div>
 
-      {activeSection === 'capture' && (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start min-w-0">
-          <div className="lg:col-span-3 space-y-6 min-w-0">
-            <TranscriptNotesEditor
-              sessionId={sessionId}
-              initialTranscript={session.transcriptText}
-              initialNotes={session.notes}
-              sessionStatus={session.status}
-              mutateSession={() => mutateSession()}
-            />
+      <div className={activeSection === 'capture' ? '' : 'hidden'}>
+        {session.type === 'shadowing' ? (
+          <ShadowingCapturePanel
+            sessionId={sessionId}
+            clientId={clientId}
+            processId={processId}
+            sessionStatus={status}
+            initialTranscript={session.transcriptText}
+            initialNotes={session.notes}
+            mutateSession={mutateSession}
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start min-w-0">
+            <div className="lg:col-span-3 space-y-6 min-w-0">
+              <TranscriptNotesEditor
+                sessionId={sessionId}
+                initialTranscript={session.transcriptText}
+                initialNotes={session.notes}
+                sessionStatus={session.status}
+                mutateSession={() => mutateSession()}
+              />
 
-            {canComplete && (
-              <div className="flex justify-center pt-2 border-t">
-                <Button onClick={handleMarkCompleted} disabled={isCompleting}>
-                  {isCompleting ? 'Updating...' : 'Mark as Completed'}
-                </Button>
+              {canComplete && (
+                <div className="flex justify-center pt-2 border-t">
+                  <Button onClick={handleMarkCompleted} disabled={isCompleting}>
+                    {isCompleting ? 'Updating...' : 'Mark as Completed'}
+                  </Button>
+                </div>
+              )}
+            </div>
+            {prepBrief && (
+              <div className="lg:col-span-2 min-w-0">
+                <QuestionSidebar
+                  questions={prepBrief.questionsToAsk}
+                  questionsAsked={questionsAsked}
+                  onToggleQuestion={toggleQuestion}
+                  watchFor={prepBrief.watchFor}
+                />
               </div>
             )}
           </div>
-          {prepBrief && (
-            <div className="lg:col-span-2 min-w-0">
-              <QuestionSidebar
-                questions={prepBrief.questionsToAsk}
-                questionsAsked={questionsAsked}
-                onToggleQuestion={toggleQuestion}
-                watchFor={prepBrief.watchFor}
-              />
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
-      {activeSection === 'results' && (
+      <div className={activeSection === 'results' ? '' : 'hidden'}>
         <div className="space-y-6">
           {canSynthesize && (
             <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
@@ -370,7 +384,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* Warning dialog */}
       <Dialog open={showWarning} onOpenChange={setShowWarning}>

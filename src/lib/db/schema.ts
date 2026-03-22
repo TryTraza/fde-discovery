@@ -95,6 +95,8 @@ export type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 export const EVENT_TYPES = eventTypeEnum.enumValues;
 export type EventType = (typeof EVENT_TYPES)[number];
+// Mutable copy for z.enum() which rejects readonly tuples at the type level.
+export const EVENT_TYPES_MUTABLE = [...EVENT_TYPES] as [string, ...string[]];
 
 export const ARTIFACT_STAGES = artifactStageEnum.enumValues;
 export type ArtifactStage = (typeof ARTIFACT_STAGES)[number];

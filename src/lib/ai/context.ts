@@ -2,6 +2,8 @@ import 'server-only';
 import { getSessionById, listSessionContacts, getCompletedSessionsByProcess } from '@/lib/db/queries/sessions';
 import { getProcessWithModel } from '@/lib/db/queries/processes';
 import { getClientById } from '@/lib/db/queries/clients';
+import { getEventsBySessionId } from '@/lib/db/queries/events';
+import type { DebriefAnswers } from '@/lib/db/types';
 
 export interface SessionContext {
   client: {
@@ -50,6 +52,15 @@ export interface SessionContext {
     transcriptText: string | null;
     notes: string | null;
   }>;
+  // Shadowing-specific fields
+  events?: Array<{
+    type: string;
+    label: string | null;
+    detail: string | null;
+    timestamp: string;
+  }>;
+  debriefAnswers?: DebriefAnswers | null;
+  notes?: string | null;
 }
 
 /**
@@ -73,7 +84,24 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
 
   const pm = process.processModel;
 
+  // For shadowing sessions, load events for synthesis context
+  let shadowingFields: Pick<SessionContext, 'events' | 'debriefAnswers' | 'notes'> = {};
+  if (session.type === 'shadowing') {
+    const events = await getEventsBySessionId(session.id);
+    shadowingFields = {
+      events: events.map((e) => ({
+        type: e.type,
+        label: e.label,
+        detail: e.detail,
+        timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : String(e.timestamp),
+      })),
+      debriefAnswers: session.debriefAnswers as DebriefAnswers | null,
+      notes: session.notes ?? null,
+    };
+  }
+
   return {
+    ...shadowingFields,
     client: {
       id: client.id,
       name: client.name,

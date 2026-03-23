@@ -175,6 +175,14 @@ export function SynthesisPanels({ sessionId, synthesis, mutateSession }: Synthes
               </div>
               <p className="text-muted-foreground mt-0.5">{sys.role} — {sys.details}</p>
               {sys.gaps && <p className="text-xs text-amber-600 mt-0.5">Gap: {sys.gaps}</p>}
+              {sys.detailNotes && (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Detail Notes</p>
+                  <div className="text-xs bg-muted p-2 rounded font-mono whitespace-pre-wrap">
+                    {sys.detailNotes}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
           {synthesis.systems.length === 0 && (

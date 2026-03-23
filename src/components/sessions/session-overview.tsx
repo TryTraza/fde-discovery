@@ -35,8 +35,10 @@ import {
 } from 'lucide-react';
 import { ShadowingCapturePanel } from './shadowing-capture-panel';
 import { SynthesisPanels } from './synthesis-panels';
+import { DebriefPanel } from './debrief-panel';
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis';
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief';
+import type { DebriefAnswers } from '@/lib/db/types';
 
 interface SessionOverviewProps {
   clientId: string;
@@ -353,7 +355,22 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
 
       <div className={activeSection === 'results' ? '' : 'hidden'}>
         <div className="space-y-6">
-          {canSynthesize && (
+          {/* Shadowing sessions: show debrief panel before synthesis */}
+          {session.type === 'shadowing' && canSynthesize && !session.debriefAnswers && (
+            <DebriefPanel
+              sessionId={sessionId}
+              processId={processId}
+              onComplete={() => mutateSession()}
+            />
+          )}
+
+          {/* Shadowing debrief summary badge */}
+          {session.type === 'shadowing' && session.debriefAnswers && (
+            <DebriefSummaryBadge answers={session.debriefAnswers as DebriefAnswers} />
+          )}
+
+          {/* Synthesis button: for non-shadowing, or shadowing with debrief done */}
+          {canSynthesize && (session.type !== 'shadowing' || session.debriefAnswers) && (
             <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
               <MessageSquare className="size-5 text-muted-foreground" />
               <div className="flex-1">
@@ -421,6 +438,23 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function DebriefSummaryBadge({ answers }: { answers: DebriefAnswers }) {
+  const items = answers.items ?? [];
+  const answered = items.filter(i => i.resolution === 'asked_answered').length;
+  const described = items.filter(i => i.resolution === 'described').length;
+  const open = items.filter(i => i.resolution === 'open_question').length;
+  const skipped = items.filter(i => i.resolution === 'skipped').length;
+
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Badge variant="outline" className="bg-emerald-50 text-emerald-700">
+        Debrief complete
+      </Badge>
+      <span>{answered} answered, {described} described, {open} open, {skipped} skipped</span>
     </div>
   );
 }

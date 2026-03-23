@@ -115,6 +115,7 @@ export function mergeSystems(
             role: sys.role,
             details: sys.details,
             gaps: sys.gaps ?? '',
+            detailNotes: sys.detailNotes ?? '',
           });
         }
         break;
@@ -129,6 +130,9 @@ export function mergeSystems(
             role: sys.role,
             details: sys.details,
             gaps: sys.gaps ?? result[idx].gaps ?? '',
+            detailNotes: [result[idx].detailNotes, sys.detailNotes]
+              .filter(Boolean)
+              .join('\n---\n') || '',
           };
         }
         break;

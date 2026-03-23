@@ -25,6 +25,9 @@ export const synthesisSystemSchema = z.object({
   role: z.string().describe('What role this system plays'),
   details: z.string().describe('Specific details about how the system is used'),
   gaps: z.string().optional().describe('Unknown information about this system'),
+  detailNotes: z.string().optional().describe(
+    'Aggregated detail notes: column mappings, sheet names, data flows between systems. Combine ALL SYSTEM event detail fields for this system into one comprehensive string.'
+  ),
   changeType: z.enum(['unchanged', 'modified', 'new']),
 });
 

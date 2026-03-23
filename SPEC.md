@@ -9,9 +9,9 @@
 ## Current State
 
 ```
-Phase:          5 — Shadowing Capture (IN PROGRESS)
-Last Completed: Step 5.8 — Post-capture screen (transcript + notes before debrief)
-Next Step:      Step 5.9 — iPad test (all buttons 64px+)
+Phase:          6 — Debrief + Synthesis (COMPLETE)
+Last Completed: Step 6.5 — Synthesis display shows detailNotes in monospace block
+Next Step:      Step 5.9 — iPad test (all buttons 64px+) / Phase 7 — Polish
 Blocker:        None
 ```
 
@@ -79,11 +79,11 @@ Blocker:        None
 - [ ] 5.9 — iPad test (all buttons 64px+)
 
 ### Phase 6 — Debrief + Synthesis
-- [ ] 6.1 — Debrief page (sequential card flow)
-- [ ] 6.2 — Debrief API route
-- [ ] 6.3 — Shadowing synthesis (aggregates system detail notes)
-- [ ] 6.4 — Apply changes with snapshots
-- [ ] 6.5 — Synthesis display (4 panels: steps diff, edge cases, systems, questions)
+- [x] 6.1 — Debrief API route (POST save + GET eligible events, 22 tests)
+- [x] 6.2 — Debrief page UI (sequential card flow, review screen, gated in session-overview)
+- [x] 6.3 — Shadowing synthesis (events + debrief context, system event grouping, 13 tests)
+- [x] 6.4 — Apply changes — detailNotes merge (append with separator, 5 tests)
+- [x] 6.5 — Synthesis display — detailNotes rendered in monospace block
 
 ### Phase 7 — Research Panel + Polish
 - [ ] 7.1 — AI Research panel (streaming, web search, user's key)
@@ -130,6 +130,10 @@ Blocker:        None
 | AI SDK v6 maxOutputTokens | `generateObject` uses `maxOutputTokens` not `maxTokens` (v6 breaking change) | 2026-03-21 |
 | System picker uses Dialog | shadcn v4 Popover has no `asChild` on PopoverTrigger — replaced with Dialog for system picker | 2026-03-21 |
 | No middleware.ts | Auth enforced via `requireUserId`/`requireAdmin` in route handlers, not Clerk middleware | 2026-03-21 |
+| Debrief gates synthesis | Shadowing sessions must complete debrief before synthesis; non-shadowing sessions unchanged | 2026-03-23 |
+| Debrief uses tx.update not query fns | Inside db.transaction, use tx.update() directly — standalone query fns use outer db instance, breaking atomicity | 2026-03-23 |
+| detailNotes merge appends | mergeSystems appends detailNotes with `\n---\n` separator instead of replacing | 2026-03-23 |
+| Shadowing synthesis has separate prompt | buildShadowingSynthesisPrompt includes event log + system grouping + debrief answers; non-shadowing uses existing prompt | 2026-03-23 |
 
 ---
 

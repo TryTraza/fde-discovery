@@ -183,3 +183,54 @@ describe('mergeSystems', () => {
     expect(result).toHaveLength(1);
   });
 });
+
+// --- mergeSystems — detailNotes ---
+
+describe('mergeSystems — detailNotes', () => {
+  const existingSystems = [
+    { id: 'sys-1', name: 'Excel', confirmed: true, role: 'Data entry', details: 'Main sheet', gaps: '', detailNotes: 'Sheet: Orders\nCol A = PO Number' },
+  ];
+
+  it('new system includes detailNotes from synthesis output', () => {
+    const synthesis: SynthesisOutput['systems'] = [
+      { name: 'SAP', confirmed: true, role: 'ERP', details: 'PO module', detailNotes: 'Transaction: ME21N', changeType: 'new' },
+    ];
+    const result = mergeSystems(existingSystems, synthesis);
+    const sap = result.find(s => s.name === 'SAP');
+    expect(sap!.detailNotes).toBe('Transaction: ME21N');
+  });
+
+  it('new system without detailNotes gets empty string default', () => {
+    const synthesis: SynthesisOutput['systems'] = [
+      { name: 'Slack', confirmed: false, role: 'Communication', details: 'Notifications', changeType: 'new' },
+    ];
+    const result = mergeSystems(existingSystems, synthesis);
+    const slack = result.find(s => s.name === 'Slack');
+    expect(slack!.detailNotes).toBe('');
+  });
+
+  it('modified system appends detailNotes with separator', () => {
+    const synthesis: SynthesisOutput['systems'] = [
+      { name: 'Excel', confirmed: true, role: 'Data entry', details: 'Main sheet', detailNotes: 'Col B = Vendor Name', changeType: 'modified' },
+    ];
+    const result = mergeSystems(existingSystems, synthesis);
+    expect(result[0].detailNotes).toBe('Sheet: Orders\nCol A = PO Number\n---\nCol B = Vendor Name');
+  });
+
+  it('modified system with empty existing detailNotes uses new value directly', () => {
+    const systems = [{ id: 'sys-2', name: 'SAP', confirmed: true, role: 'ERP', details: 'PO', gaps: '', detailNotes: '' }];
+    const synthesis: SynthesisOutput['systems'] = [
+      { name: 'SAP', confirmed: true, role: 'ERP', details: 'PO', detailNotes: 'New notes', changeType: 'modified' },
+    ];
+    const result = mergeSystems(systems, synthesis);
+    expect(result[0].detailNotes).toBe('New notes');
+  });
+
+  it('modified system with no new detailNotes preserves existing', () => {
+    const synthesis: SynthesisOutput['systems'] = [
+      { name: 'Excel', confirmed: true, role: 'Updated role', details: 'Updated details', changeType: 'modified' },
+    ];
+    const result = mergeSystems(existingSystems, synthesis);
+    expect(result[0].detailNotes).toBe('Sheet: Orders\nCol A = PO Number');
+  });
+});

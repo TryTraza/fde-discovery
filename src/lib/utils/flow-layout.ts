@@ -3,19 +3,20 @@ import type { Node, Edge } from '@xyflow/react';
 import type { ProcessStepParsed } from '@/lib/validations/process';
 
 const NODE_WIDTH = 280;
-const NODE_HEIGHT = 80;
-const TERMINAL_SIZE = 48;
+const NODE_HEIGHT = 88;
+const TERMINAL_WIDTH = 80;
+const TERMINAL_HEIGHT = 32;
 
 export function layoutProcessSteps(steps: ProcessStepParsed[]): {
   nodes: Node[];
   edges: Edge[];
 } {
   const g = new Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'TB', ranksep: 50, nodesep: 40 });
+  g.setGraph({ rankdir: 'TB', ranksep: 60, nodesep: 50 });
 
   // Terminal nodes
-  g.setNode('start', { width: TERMINAL_SIZE, height: TERMINAL_SIZE });
-  g.setNode('end', { width: TERMINAL_SIZE, height: TERMINAL_SIZE });
+  g.setNode('start', { width: TERMINAL_WIDTH, height: TERMINAL_HEIGHT });
+  g.setNode('end', { width: TERMINAL_WIDTH, height: TERMINAL_HEIGHT });
 
   // Step nodes
   for (const step of steps) {
@@ -39,7 +40,7 @@ export function layoutProcessSteps(steps: ProcessStepParsed[]): {
     {
       id: 'start',
       type: 'terminal',
-      position: centered(g.node('start'), TERMINAL_SIZE, TERMINAL_SIZE),
+      position: centered(g.node('start'), TERMINAL_WIDTH, TERMINAL_HEIGHT),
       data: { label: 'Start' },
     },
     ...steps.map((step, index) => ({
@@ -51,7 +52,7 @@ export function layoutProcessSteps(steps: ProcessStepParsed[]): {
     {
       id: 'end',
       type: 'terminal',
-      position: centered(g.node('end'), TERMINAL_SIZE, TERMINAL_SIZE),
+      position: centered(g.node('end'), TERMINAL_WIDTH, TERMINAL_HEIGHT),
       data: { label: 'End' },
     },
   ];
@@ -62,32 +63,28 @@ export function layoutProcessSteps(steps: ProcessStepParsed[]): {
       id: 'e-start-first',
       source: 'start',
       target: steps[0].id,
-      type: 'smoothstep',
-      animated: false,
+      type: 'animated',
     });
     for (let i = 0; i < steps.length - 1; i++) {
       edges.push({
         id: `e-${steps[i].id}-${steps[i + 1].id}`,
         source: steps[i].id,
         target: steps[i + 1].id,
-        type: 'smoothstep',
-        animated: false,
+        type: 'animated',
       });
     }
     edges.push({
       id: 'e-last-end',
       source: steps[steps.length - 1].id,
       target: 'end',
-      type: 'smoothstep',
-      animated: false,
+      type: 'animated',
     });
   } else {
     edges.push({
       id: 'e-start-end',
       source: 'start',
       target: 'end',
-      type: 'smoothstep',
-      animated: false,
+      type: 'animated',
     });
   }
 

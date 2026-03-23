@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "ai-sdk": {
+      "source": "vercel/ai",
+      "sourceType": "github",
+      "computedHash": "58ce68f628890c3925aea2b5435a649251ac182057541045c68fc19a27aaa0ec"
+    },
     "clerk-auth": {
       "source": "sickn33/antigravity-awesome-skills",
       "sourceType": "github",
@@ -45,6 +50,11 @@
       "source": "bobmatnyc/claude-mpm-skills",
       "sourceType": "github",
       "computedHash": "9d2eef62dbba4528c258222534cf2f1bfa37bdc1a00547add05e3367ac4946f3"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
     }
   }
 }

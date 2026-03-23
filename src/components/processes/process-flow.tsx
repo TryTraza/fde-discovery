@@ -4,8 +4,6 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
-  Controls,
-  MiniMap,
   type NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -16,6 +14,9 @@ import { parseProcessSteps, type ProcessStepParsed } from '@/lib/validations/pro
 import { layoutProcessSteps } from '@/lib/utils/flow-layout';
 import { TerminalNode } from './flow-nodes/terminal-node';
 import { StepNode } from './flow-nodes/step-node';
+import { AnimatedEdge } from './flow-nodes/animated-edge';
+import { FlowControls } from './flow-nodes/flow-controls';
+import { SketchyDefs } from './flow-nodes/sketchy-defs';
 import { StepDetailPanel } from './flow-nodes/step-detail-panel';
 import { ConfidenceLegend } from './confidence-legend';
 import { toast } from 'sonner';
@@ -30,6 +31,10 @@ interface ProcessFlowProps {
 const nodeTypes = {
   terminal: TerminalNode,
   processStep: StepNode,
+};
+
+const edgeTypes = {
+  animated: AnimatedEdge,
 };
 
 function generateStepId() {
@@ -198,16 +203,18 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
         </p>
       ) : (
         <div
-          className="border rounded-lg bg-muted/20 overflow-hidden"
+          className="relative rounded-xl border-[1.5px] border-border/60 overflow-hidden bg-[#fafaf8] dark:bg-[#1a1a1a]"
           style={{ height: canvasHeight }}
         >
+          <SketchyDefs />
           <ReactFlow
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             onNodeClick={onNodeClick}
             fitView
-            fitViewOptions={{ padding: 0.3 }}
+            fitViewOptions={{ padding: 0.35 }}
             proOptions={{ hideAttribution: true }}
             nodesDraggable={false}
             nodesConnectable={false}
@@ -217,14 +224,12 @@ export function ProcessFlow({ process, clientId, processId, mutateProcess }: Pro
             minZoom={0.3}
             maxZoom={1.5}
           >
-            <Background gap={16} size={1} />
-            <Controls showInteractive={false} />
-            <MiniMap
-              nodeStrokeWidth={3}
-              pannable
-              zoomable={false}
-              className="!bg-background !border"
+            <Background
+              gap={24}
+              size={0.6}
+              color="hsl(var(--foreground) / 0.06)"
             />
+            <FlowControls />
           </ReactFlow>
         </div>
       )}

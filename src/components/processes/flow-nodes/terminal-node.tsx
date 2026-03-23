@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { Play, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TerminalNodeData {
@@ -14,17 +15,38 @@ function TerminalNodeComponent({ data }: NodeProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full w-12 h-12 text-xs font-semibold shadow-sm border',
+        'flex items-center gap-1.5 px-5 py-2 border-[1.5px] transition-all',
+        'shadow-[2px_2px_0px_0px_rgba(0,0,0,0.06)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.04)]',
         isStart
-          ? 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
-          : 'bg-zinc-100 text-zinc-600 border-zinc-300 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-700'
+          ? 'bg-emerald-50/90 text-emerald-700 border-emerald-400 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-600'
+          : 'bg-zinc-50/90 text-zinc-500 border-zinc-300 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-600'
       )}
+      style={{
+        borderRadius: isStart ? '12px 10px 14px 9px' : '10px 13px 11px 14px',
+        fontFamily: 'var(--font-hand), cursive',
+        filter: 'url(#sketchy-filter)',
+      }}
     >
-      {label}
       {isStart ? (
-        <Handle type="source" position={Position.Bottom} className="!bg-emerald-500 !w-2 !h-2 !border-0" />
+        <>
+          <Play className="size-3.5 fill-current" />
+          <span className="text-base font-semibold">Start</span>
+          <Handle
+            type="source"
+            position={Position.Bottom}
+            className="!w-2.5 !h-2.5 !bg-background !border-[1.5px] !border-emerald-400 !rounded-full !-bottom-[6px]"
+          />
+        </>
       ) : (
-        <Handle type="target" position={Position.Top} className="!bg-zinc-400 !w-2 !h-2 !border-0" />
+        <>
+          <Square className="size-3 fill-current" />
+          <span className="text-base font-semibold">End</span>
+          <Handle
+            type="target"
+            position={Position.Top}
+            className="!w-2.5 !h-2.5 !bg-background !border-[1.5px] !border-zinc-400 !rounded-full !-top-[6px]"
+          />
+        </>
       )}
     </div>
   );

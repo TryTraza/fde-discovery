@@ -15,6 +15,12 @@ export async function listArtifactsByProcess(processId: string) {
     .orderBy(desc(artifacts.createdAt));
 }
 
+export async function getArtifactById(id: string) {
+  const [artifact] = await db.select().from(artifacts)
+    .where(and(eq(artifacts.id, id), notDeleted));
+  return artifact ?? null;
+}
+
 export async function updateArtifact(id: string, data: Partial<NewArtifact>) {
   const [updated] = await db.update(artifacts)
     .set({ ...data, updatedAt: new Date() })

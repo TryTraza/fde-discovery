@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useRole } from '@/lib/hooks/use-role';
 import { toast } from 'sonner';
 import { useProcess } from '@/lib/hooks/use-processes';
 import { useSessions } from '@/lib/hooks/use-sessions';
@@ -14,6 +14,7 @@ import { ProcessStatusBadge } from './process-status-badge';
 import { MetadataStrip } from './metadata-strip';
 import { EditDetailsSheet } from './edit-details-sheet';
 import { SessionsFeed } from '@/components/sessions/sessions-feed';
+import { ArtifactsPanel } from './artifacts-panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -34,13 +35,11 @@ interface ProcessOverviewProps {
 export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
   const { process, isLoading, error, mutateProcess } = useProcess(clientId, processId);
   const { sessions, isLoading: sessionsLoading, error: sessionsError, mutateSessions } = useSessions(processId);
-  const { user } = useUser();
+  const { isAdmin } = useRole();
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  const isAdmin = (user?.publicMetadata as any)?.role === 'admin';
 
   const onDelete = async () => {
     setDeleting(true);
@@ -133,6 +132,7 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
             steps={parseProcessSteps(process.processModel?.steps)}
             processStatus={process.status}
           />
+          <ArtifactsPanel clientId={clientId} processId={processId} isAdmin={isAdmin} />
         </div>
       </div>
 

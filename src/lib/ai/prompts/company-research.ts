@@ -15,7 +15,7 @@ export async function triggerCompanyResearch(
     const websiteContext = website ? `Their website is ${website}.` : '';
     const { text } = await generateText({
       model,
-      tools: { web_search: anthropic.tools.webSearch_20250305() },
+      tools: { web_search: anthropic.tools.webSearch_20250305() } as any,
       stopWhen: stepCountIs(3),
       maxOutputTokens: 1500,
       system: 'You are a business research analyst. Provide a concise company overview.',

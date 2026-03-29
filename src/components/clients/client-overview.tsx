@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useRole } from '@/lib/hooks/use-role';
 import { toast } from 'sonner';
 import { useClient } from '@/lib/hooks/use-clients';
 import { ClientDetailCard } from './client-detail-card';
@@ -25,12 +25,10 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 
 export function ClientOverview({ clientId }: { clientId: string }) {
   const { client, isLoading, error, mutateClient } = useClient(clientId);
-  const { user } = useUser();
+  const { isAdmin } = useRole();
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
-  const isAdmin = (user?.publicMetadata as any)?.role === 'admin';
 
   const onDelete = async () => {
     setDeleting(true);

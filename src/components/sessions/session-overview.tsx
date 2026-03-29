@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useRole } from '@/lib/hooks/use-role';
 import { toast } from 'sonner';
 import { useSession } from '@/lib/hooks/use-sessions';
 import { getSessionTypeLabel } from '@/lib/utils/session-labels';
 import type { SessionStatus } from '@/lib/db/schema';
 import { SessionStatusBadge } from './session-status-badge';
+import { EmailDraftCard } from './email-draft-card';
 import { TranscriptNotesEditor } from './transcript-notes-editor';
 import { PrepBriefPanel } from './prep-brief-panel';
 import { QuestionSidebar } from './question-sidebar';
@@ -56,7 +57,7 @@ type SectionId = (typeof sections)[number]['id'];
 
 export function SessionOverview({ clientId, processId, sessionId }: SessionOverviewProps) {
   const { session, isLoading, error, mutateSession } = useSession(sessionId);
-  const { user } = useUser();
+  const { isAdmin } = useRole();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<SectionId>('preparation');
   const [isCompleting, setIsCompleting] = useState(false);
@@ -70,8 +71,6 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
   const [questionsAsked, setQuestionsAsked] = useState<boolean[]>([]);
   const qaTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const qaInitialized = useRef(false);
-
-  const isAdmin = (user?.publicMetadata as any)?.role === 'admin';
 
   const prepBrief = session?.prepBrief as PrepBrief | null;
 
@@ -386,11 +385,14 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           )}
 
           {status === 'synthesis_done' && session.synthesisOutput && (
-            <SynthesisPanels
-              sessionId={sessionId}
-              synthesis={session.synthesisOutput as SynthesisOutput}
-              mutateSession={() => mutateSession()}
-            />
+            <>
+              <SynthesisPanels
+                sessionId={sessionId}
+                synthesis={session.synthesisOutput as SynthesisOutput}
+                mutateSession={() => mutateSession()}
+              />
+              {isAdmin && <EmailDraftCard sessionId={sessionId} />}
+            </>
           )}
 
           {status !== 'completed' && status !== 'synthesis_done' && (

@@ -9,9 +9,9 @@
 ## Current State
 
 ```
-Phase:          6 — Debrief + Synthesis (COMPLETE)
-Last Completed: Step 6.5 — Synthesis display shows detailNotes in monospace block
-Next Step:      Step 5.9 — iPad test (all buttons 64px+) / Phase 7 — Polish
+Phase:          7 — Research Panel + Polish (COMPLETE)
+Last Completed: Step 7.6 — Polish (error boundaries, not-found pages, mobile audit)
+Next Step:      Step 5.9 — iPad test (all buttons 64px+) / Production deploy
 Blocker:        None
 ```
 
@@ -86,12 +86,12 @@ Blocker:        None
 - [x] 6.5 — Synthesis display — detailNotes rendered in monospace block
 
 ### Phase 7 — Research Panel + Polish
-- [ ] 7.1 — AI Research panel (streaming, web search, user's key)
-- [ ] 7.2 — Follow-up email draft
-- [ ] 7.3 — Artifact upload (Supabase Storage)
-- [ ] 7.4 — Viewer role enforcement (frontend + backend)
-- [ ] 7.5 — Breadcrumb navigation (resolves UUIDs to names)
-- [ ] 7.6 — Polish (skeletons, error boundaries, toasts, mobile, auto-save)
+- [x] 7.1 — AI Research panel (streaming, web search, user's key)
+- [x] 7.2 — Follow-up email draft
+- [x] 7.3 — Artifact upload (Supabase Storage)
+- [x] 7.4 — Viewer role enforcement (frontend + backend)
+- [x] 7.5 — Breadcrumb navigation (resolves UUIDs to names)
+- [x] 7.6 — Polish (error boundaries, not-found pages, mobile audit)
 
 ---
 
@@ -134,6 +134,14 @@ Blocker:        None
 | Debrief uses tx.update not query fns | Inside db.transaction, use tx.update() directly — standalone query fns use outer db instance, breaking atomicity | 2026-03-23 |
 | detailNotes merge appends | mergeSystems appends detailNotes with `\n---\n` separator instead of replacing | 2026-03-23 |
 | Shadowing synthesis has separate prompt | buildShadowingSynthesisPrompt includes event log + system grouping + debrief answers; non-shadowing uses existing prompt | 2026-03-23 |
+| AI SDK v6 useChat transport API | `useChat` no longer accepts `api` option; use `DefaultChatTransport({ api, body })` as `transport` | 2026-03-29 |
+| AI SDK v6 stopWhen for streaming | Streaming routes use `stopWhen: stepCountIs(n)` not `maxSteps` (consistent with v6 pattern) | 2026-03-29 |
+| AI SDK v6 convertToModelMessages async | `convertToModelMessages` returns Promise in v6 — must `await` | 2026-03-29 |
+| webSearch tool type cast | `anthropic.tools.webSearch_20250305()` needs `as any` cast for `tools` param type compatibility | 2026-03-29 |
+| useRole hook replaces inline checks | All `(user?.publicMetadata as any)?.role === 'admin'` replaced with `useRole().isAdmin` | 2026-03-29 |
+| Research panel = Sheet from header | Available on all dashboard pages; auto-includes client/process context from URL | 2026-03-29 |
+| Email draft language toggle | User-selectable EN/ES on the email draft card; defaults to EN | 2026-03-29 |
+| Artifacts bucket not auto-created | `artifacts` bucket must exist in Supabase Storage before uploads work; manual setup step | 2026-03-29 |
 
 ---
 
@@ -190,5 +198,9 @@ Blocker:        None
 | 2026-03-16 | 4.0–4.8 | Full Phase 4: schema audit (3 columns + synthesis_done status), session CRUD API (5 routes), SWR hooks, sessions list, creation dialog (3-step with type selector + AI interview), AI interview route (3 adaptive questions), session detail page (transcript + notes with 2s debounced auto-save), prep brief AI, synthesis AI, synthesis display (4 collapsible panels with section toggles), apply-synthesis route (transaction with snapshot + merge + open questions). 257 tests passing (100 new), build clean. | Zod v4 strict UUID validation, vi.mock hoisting with variable references, session type enum differs from plan |
 
 | 2026-03-21 | 5.1–5.8 | Phase 5 (steps 1-8): event type constants + UI config, events API (single + batch + patch), suggestions AI route (never 500), capture page with (capture) route group (full-screen, no sidebar), 10 capture UI components (header, event-type-bar, observation-input, system-picker, suggestion-chips, event-log-panel, analytics-sidebar, confirm-end-dialog, post-capture-screen, capture-view), useEventSync hook (offline queue + batch sync + server ID mapping), useSuggestions hook (debounced with timeout), "Iniciar Captura" button on session detail. 399 tests passing (142 new), build clean. | EVENT_TYPES_MUTABLE Zod cast, AI SDK v6 maxOutputTokens, shadcn v4 no asChild on PopoverTrigger, no middleware.ts (auth via utils) |
+
+| 2026-03-23 | 6.1–6.5 | Full Phase 6: debrief API (POST save + GET eligible events), debrief page UI (sequential card flow, review screen), shadowing synthesis (events + debrief context, system grouping), apply changes with detailNotes merge (append with separator), synthesis display with detailNotes in monospace block. 399 tests passing, build clean. | Debrief gates synthesis, tx.update inside transactions, detailNotes merge appends |
+
+| 2026-03-29 | 7.0–7.6 | Full Phase 7: dependency audit + schema binding, AI research panel (streaming + web search via Sheet), follow-up email draft (EN/ES toggle, editable textarea), artifact upload/download/delete (Supabase Storage), viewer role enforcement (useRole hook + 8 regression tests + 3 component refactors), error boundaries (4 levels) + not-found pages (2), mobile audit. 462 tests passing (63 new), build clean. | AI SDK v6 useChat transport API, stopWhen for streaming, convertToModelMessages async, webSearch tool type cast |
 
 *(Claude Code appends a line here after each session)*

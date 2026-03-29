@@ -41,7 +41,7 @@ export async function POST(
         const result = await generateObject({
           model,
           schema: synthesisOutputSchema,
-          maxTokens: 4000,
+          maxOutputTokens: 4000,
           system: 'You are an expert process analyst. Analyze a shadowing session and produce structured updates to the process model.',
           prompt,
         });

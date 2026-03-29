@@ -362,7 +362,7 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
           {answer?.resolution === 'open_question' && (
             <Select
               value={answer.priority ?? ''}
-              onValueChange={(value: string) => updateAnswer(event.id, { priority: value as Priority })}
+              onValueChange={(value: string | null) => value && updateAnswer(event.id, { priority: value as Priority })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select priority" />

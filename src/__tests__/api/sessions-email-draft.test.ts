@@ -9,14 +9,9 @@ vi.mock('@clerk/nextjs/server', () => ({
   clerkClient: (...args: unknown[]) => mockClerkClient(...args),
 }));
 
-const mockGenerateText = vi.fn();
-vi.mock('ai', () => ({
-  generateText: (...args: unknown[]) => mockGenerateText(...args),
-}));
-
-const mockCreateAnthropic = vi.fn();
-vi.mock('@ai-sdk/anthropic', () => ({
-  createAnthropic: (...args: unknown[]) => mockCreateAnthropic(...args),
+const mockExecuteAI = vi.fn();
+vi.mock('@/lib/ai/builder', () => ({
+  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
 }));
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
@@ -98,8 +93,9 @@ const MOCK_CONTACTS = [
 describe('POST /api/sessions/[sessionId]/email-draft', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGenerateText.mockResolvedValue({
+    mockExecuteAI.mockResolvedValue({
       text: 'Dear team, following up on our session...',
+      meta: { agentSlug: 'email-draft', configVersion: 1, promptVersion: 1, model: 'fast', layerTimings: {}, totalDuration: 100, layerErrors: [] },
     });
     vi.mocked(getAIConfig).mockResolvedValue({
       model: { modelId: 'claude-sonnet-4-20250514' },
@@ -172,11 +168,11 @@ describe('POST /api/sessions/[sessionId]/email-draft', () => {
 
     await POST(createRequest({ language: 'es' }), withParams('s1'));
 
-    const call = mockGenerateText.mock.calls[0][0];
-    expect(call.system).toContain('Spanish');
+    const call = mockExecuteAI.mock.calls[0][0];
+    expect(call.overrides.templateVars.languageInstruction).toContain('Spanish');
   });
 
-  it('includes session contacts in the AI prompt', async () => {
+  it('includes session contacts in the AI call overrides', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META });
     vi.mocked(getSessionById).mockResolvedValue(MOCK_SESSION as any);
     vi.mocked(getProcessById).mockResolvedValue(MOCK_PROCESS as any);
@@ -185,8 +181,8 @@ describe('POST /api/sessions/[sessionId]/email-draft', () => {
 
     await POST(createRequest(), withParams('s1'));
 
-    const call = mockGenerateText.mock.calls[0][0];
-    expect(call.prompt).toContain('Jane Doe');
-    expect(call.prompt).toContain('Procurement Manager');
+    const call = mockExecuteAI.mock.calls[0][0];
+    expect(call.overrides.templateVars.contactsList).toContain('Jane Doe');
+    expect(call.overrides.templateVars.contactsList).toContain('Procurement Manager');
   });
 });

@@ -10,18 +10,7 @@ vi.mock('@clerk/nextjs/server', () => ({
 }));
 
 vi.mock('@/lib/db/queries/sessions', () => ({
-  getSessionById: vi.fn(),
-  listSessionContacts: vi.fn(),
-  getCompletedSessionsByProcess: vi.fn(),
   updateSession: vi.fn(),
-}));
-
-vi.mock('@/lib/db/queries/processes', () => ({
-  getProcessWithModel: vi.fn(),
-}));
-
-vi.mock('@/lib/db/queries/clients', () => ({
-  getClientById: vi.fn(),
 }));
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
@@ -32,29 +21,32 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
   }),
 }));
 
-vi.mock('ai', () => ({
-  generateObject: vi.fn().mockResolvedValue({
-    object: {
-      summary: 'This session should validate the 3-step purchasing flow.',
-      questionsToAsk: [
-        { question: 'How do you handle rush orders?', rationale: 'Identifies exception paths', followUp: 'What happens when approval is delayed?' },
-        { question: 'Who approves purchases over $10k?', rationale: 'Maps authority chain', followUp: 'Is there a secondary approver?' },
-      ],
-      approaches: [
-        { title: 'Walk through happy path first', description: 'Start with standard flow before probing exceptions' },
-      ],
-      areasToProbe: ['Approval bottlenecks', 'System handoffs', 'Manual workarounds'],
-      watchFor: ['Mentions of shadow processes', 'Hesitation around compliance topics'],
-    },
-  }),
+const mockPrepBrief = {
+  summary: 'This session should validate the 3-step purchasing flow.',
+  questionsToAsk: [
+    { question: 'How do you handle rush orders?', rationale: 'Identifies exception paths', followUp: 'What happens when approval is delayed?' },
+    { question: 'Who approves purchases over $10k?', rationale: 'Maps authority chain', followUp: 'Is there a secondary approver?' },
+  ],
+  approaches: [
+    { title: 'Walk through happy path first', description: 'Start with standard flow before probing exceptions' },
+  ],
+  areasToProbe: ['Approval bottlenecks', 'System handoffs', 'Manual workarounds'],
+  watchFor: ['Mentions of shadow processes', 'Hesitation around compliance topics'],
+};
+
+const mockExecuteAI = vi.fn().mockResolvedValue({
+  data: mockPrepBrief,
+  meta: { agentSlug: 'prep-brief', configVersion: 1, promptVersion: 1, model: 'standard', layerTimings: {}, totalDuration: 100, layerErrors: [] },
+});
+
+vi.mock('@/lib/ai/builder', () => ({
+  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
 }));
 
 // --- Imports (after mocks) ---
 
 import { POST } from '@/app/api/sessions/[sessionId]/prep-brief/route';
-import { getSessionById, listSessionContacts, getCompletedSessionsByProcess, updateSession } from '@/lib/db/queries/sessions';
-import { getProcessWithModel } from '@/lib/db/queries/processes';
-import { getClientById } from '@/lib/db/queries/clients';
+import { updateSession } from '@/lib/db/queries/sessions';
 import { getAIConfig } from '@/lib/ai/get-ai-config';
 
 // --- Helpers ---
@@ -71,47 +63,9 @@ function withParams(sessionId: string) {
   return { params: Promise.resolve({ sessionId }) };
 }
 
-const fakeSession = {
-  id: SESSION_ID,
-  processId: 'p1',
-  type: 'discovery',
-  status: 'planned',
-  title: 'Kickoff',
-  date: '2026-03-15',
-  interviewAnswers: null,
-  prepBrief: null,
-  transcriptText: null,
-  notes: null,
-};
-
-const fakeProcess = {
-  id: 'p1',
-  clientId: 'c1',
-  name: 'Purchasing',
-  description: 'Buy things',
-  status: 'mapping',
-  hypothesisText: null,
-  departmentTag: null,
-  processTypeL1: null,
-  processModel: { steps: [], systems: [], edgeCases: [] },
-};
-
-const fakeClient = {
-  id: 'c1',
-  name: 'Acme Corp',
-  industry: 'Manufacturing',
-  website: null,
-  status: 'active_poc',
-  aiSummary: null,
-  notes: null,
-};
+// No fake DB data needed — route delegates to executeAI which is mocked
 
 function setupDBMocks() {
-  vi.mocked(getSessionById).mockResolvedValue(fakeSession as any);
-  vi.mocked(getProcessWithModel).mockResolvedValue(fakeProcess as any);
-  vi.mocked(getClientById).mockResolvedValue(fakeClient as any);
-  vi.mocked(listSessionContacts).mockResolvedValue([]);
-  vi.mocked(getCompletedSessionsByProcess).mockResolvedValue([]);
   vi.mocked(updateSession).mockResolvedValue({} as any);
 }
 
@@ -132,9 +86,10 @@ describe('POST /api/sessions/[sessionId]/prep-brief', () => {
     expect(res.status).toBe(403);
   });
 
-  it('returns 404 for nonexistent session', async () => {
+  it('returns 404 when executeAI throws Session not found', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } });
-    vi.mocked(getSessionById).mockResolvedValue(null as any);
+    setupDBMocks();
+    mockExecuteAI.mockRejectedValueOnce(new Error('Session not found'));
 
     const res = await POST(createRequest(), withParams(SESSION_ID));
     expect(res.status).toBe(404);
@@ -163,21 +118,20 @@ describe('POST /api/sessions/[sessionId]/prep-brief', () => {
     expect(data.areasToProbe).toHaveLength(3);
     expect(data.watchFor).toHaveLength(2);
     expect(updateSession).toHaveBeenCalledWith(SESSION_ID, {
-      prepBrief: data,
+      prepBrief: mockPrepBrief,
     });
   });
 
-  it('regenerate overwrites previous brief', async () => {
+  it('regenerate calls executeAI and updates session', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } });
     setupDBMocks();
-    vi.mocked(getSessionById).mockResolvedValue({
-      ...fakeSession,
-      prepBrief: { summary: 'old' },
-    } as any);
 
     const res = await POST(createRequest(), withParams(SESSION_ID));
 
     expect(res.status).toBe(200);
     expect(updateSession).toHaveBeenCalled();
+    expect(mockExecuteAI).toHaveBeenCalledWith(
+      expect.objectContaining({ agentSlug: 'prep-brief' })
+    );
   });
 });

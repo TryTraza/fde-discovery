@@ -36,18 +36,15 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
   }),
 }));
 
-const mockGenerateObject = vi.fn();
-vi.mock('ai', () => ({
-  generateObject: (...args: unknown[]) => mockGenerateObject(...args),
+const mockExecuteAI = vi.fn();
+vi.mock('@/lib/ai/builder', () => ({
+  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
 }));
 
 // --- Imports (after mocks) ---
 
 import { POST } from '@/app/api/sessions/[sessionId]/synthesize/route';
 import { getSessionById, updateSession } from '@/lib/db/queries/sessions';
-import { getProcessWithModel } from '@/lib/db/queries/processes';
-import { getClientById } from '@/lib/db/queries/clients';
-import { getEventsBySessionId } from '@/lib/db/queries/events';
 
 // --- Helpers ---
 
@@ -120,10 +117,10 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
     vi.clearAllMocks();
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' }, privateMetadata: { anthropicApiKey: 'sk-test' } });
     vi.mocked(getSessionById).mockResolvedValue(fakeShadowingSession as any);
-    vi.mocked(getProcessWithModel).mockResolvedValue(fakeProcess as any);
-    vi.mocked(getClientById).mockResolvedValue(fakeClient as any);
-    vi.mocked(getEventsBySessionId).mockResolvedValue(fakeEvents as any);
-    mockGenerateObject.mockResolvedValue({ object: fakeSynthesisResult });
+    mockExecuteAI.mockResolvedValue({
+      data: fakeSynthesisResult,
+      meta: { agentSlug: 'shadowing-synthesis', configVersion: 1, promptVersion: 1, model: 'standard', layerTimings: {}, totalDuration: 100, layerErrors: [] },
+    });
   });
 
   it('1. returns 400 when shadowing session has no debriefAnswers', async () => {
@@ -140,36 +137,37 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
     expect(res.status).toBe(400);
   });
 
-  it('3. calls generateObject with shadowing prompt containing System Events Grouped', async () => {
+  it('3. calls executeAI with shadowing-synthesis agent', async () => {
     const res = await POST(createRequest(), withParams(SESSION_ID));
     expect(res.status).toBe(200);
-    expect(mockGenerateObject).toHaveBeenCalledTimes(1);
-    const callArgs = mockGenerateObject.mock.calls[0][0];
-    expect(callArgs.prompt).toContain('System Events Grouped');
+    expect(mockExecuteAI).toHaveBeenCalledTimes(1);
+    expect(mockExecuteAI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentSlug: 'shadowing-synthesis',
+        params: { sessionId: SESSION_ID },
+      })
+    );
   });
 
-  it('4. calls generateObject with prompt that includes events array', async () => {
+  it('4. calls executeAI with sessionId param', async () => {
     await POST(createRequest(), withParams(SESSION_ID));
-    const callArgs = mockGenerateObject.mock.calls[0][0];
-    expect(callArgs.prompt).toContain('Chronological Event Log');
-    expect(callArgs.prompt).toContain('Open spreadsheet');
+    const callArgs = mockExecuteAI.mock.calls[0][0];
+    expect(callArgs.params).toEqual({ sessionId: SESSION_ID });
   });
 
-  it('5. calls generateObject with prompt that includes debriefAnswers', async () => {
+  it('5. calls executeAI with correct model', async () => {
     await POST(createRequest(), withParams(SESSION_ID));
-    const callArgs = mockGenerateObject.mock.calls[0][0];
-    expect(callArgs.prompt).toContain('Debrief Answers');
-    expect(callArgs.prompt).toContain('asked_answered');
+    const callArgs = mockExecuteAI.mock.calls[0][0];
+    expect(callArgs.model).toBe('mock-model');
   });
 
-  it('6. calls generateObject with prompt that includes notes field', async () => {
+  it('6. calls executeAI with anthropic config', async () => {
     await POST(createRequest(), withParams(SESSION_ID));
-    const callArgs = mockGenerateObject.mock.calls[0][0];
-    expect(callArgs.prompt).toContain('FDE Personal Notes');
-    expect(callArgs.prompt).toContain('User opened Excel first');
+    const callArgs = mockExecuteAI.mock.calls[0][0];
+    expect(callArgs.anthropic).toBeDefined();
   });
 
-  it('7. saves synthesis output with detailNotes on systems', async () => {
+  it('7. saves synthesis output via updateSession', async () => {
     const res = await POST(createRequest(), withParams(SESSION_ID));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -179,7 +177,7 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
     }));
   });
 
-  it('8. non-shadowing session still uses original prompt', async () => {
+  it('8. non-shadowing session uses session-synthesis agent', async () => {
     vi.mocked(getSessionById).mockResolvedValue({
       ...fakeShadowingSession,
       type: 'discovery',
@@ -189,18 +187,18 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
     } as any);
     const res = await POST(createRequest(), withParams(SESSION_ID));
     expect(res.status).toBe(200);
-    const callArgs = mockGenerateObject.mock.calls[0][0];
-    expect(callArgs.prompt).not.toContain('System Events Grouped');
+    const callArgs = mockExecuteAI.mock.calls[0][0];
+    expect(callArgs.agentSlug).toBe('session-synthesis');
   });
 
-  it('9. returns 500 when generateObject throws', async () => {
-    mockGenerateObject.mockRejectedValueOnce(new Error('AI failed'));
+  it('9. returns 500 when executeAI throws', async () => {
+    mockExecuteAI.mockRejectedValueOnce(new Error('AI failed'));
     const res = await POST(createRequest(), withParams(SESSION_ID));
     expect(res.status).toBe(500);
   });
 
-  it('10. does NOT update session when generateObject throws', async () => {
-    mockGenerateObject.mockRejectedValueOnce(new Error('AI failed'));
+  it('10. does NOT update session when executeAI throws', async () => {
+    mockExecuteAI.mockRejectedValueOnce(new Error('AI failed'));
     await POST(createRequest(), withParams(SESSION_ID));
     expect(vi.mocked(updateSession)).not.toHaveBeenCalled();
   });

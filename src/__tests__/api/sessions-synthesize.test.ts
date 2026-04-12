@@ -11,17 +11,7 @@ vi.mock('@clerk/nextjs/server', () => ({
 
 vi.mock('@/lib/db/queries/sessions', () => ({
   getSessionById: vi.fn(),
-  listSessionContacts: vi.fn(),
-  getCompletedSessionsByProcess: vi.fn(),
   updateSession: vi.fn(),
-}));
-
-vi.mock('@/lib/db/queries/processes', () => ({
-  getProcessWithModel: vi.fn(),
-}));
-
-vi.mock('@/lib/db/queries/clients', () => ({
-  getClientById: vi.fn(),
 }));
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
@@ -32,25 +22,28 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
   }),
 }));
 
-vi.mock('ai', () => ({
-  generateObject: vi.fn().mockResolvedValue({
-    object: {
-      summary: 'Process has 3 main steps with one edge case.',
-      steps: [{ stepId: null, name: 'Step 1', description: 'First step', order: 0, confidence: 'confirmed', systems: [], changeType: 'new' }],
-      edgeCases: [],
-      systems: [],
-      openQuestions: [{ text: 'What happens on failure?', priority: 'critical' }],
-      confidence: 75,
-    },
-  }),
+const mockSynthesisOutput = {
+  summary: 'Process has 3 main steps with one edge case.',
+  steps: [{ stepId: null, name: 'Step 1', description: 'First step', order: 0, confidence: 'confirmed', systems: [], changeType: 'new' }],
+  edgeCases: [],
+  systems: [],
+  openQuestions: [{ text: 'What happens on failure?', priority: 'critical' }],
+  confidence: 75,
+};
+
+const mockExecuteAI = vi.fn().mockResolvedValue({
+  data: mockSynthesisOutput,
+  meta: { agentSlug: 'session-synthesis', configVersion: 1, promptVersion: 1, model: 'standard', layerTimings: {}, totalDuration: 100, layerErrors: [] },
+});
+
+vi.mock('@/lib/ai/builder', () => ({
+  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
 }));
 
 // --- Imports (after mocks) ---
 
 import { POST } from '@/app/api/sessions/[sessionId]/synthesize/route';
-import { getSessionById, listSessionContacts, getCompletedSessionsByProcess, updateSession } from '@/lib/db/queries/sessions';
-import { getProcessWithModel } from '@/lib/db/queries/processes';
-import { getClientById } from '@/lib/db/queries/clients';
+import { getSessionById, updateSession } from '@/lib/db/queries/sessions';
 import { getAIConfig } from '@/lib/ai/get-ai-config';
 
 // --- Helpers ---
@@ -76,36 +69,11 @@ const fakeSession = {
   notes: 'Key insight: manual approval step',
   interviewAnswers: null,
   synthesisOutput: null,
-};
-
-const fakeProcess = {
-  id: 'p1',
-  clientId: 'c1',
-  name: 'Purchasing',
-  description: 'Buy things',
-  status: 'mapping',
-  hypothesisText: null,
-  departmentTag: null,
-  processTypeL1: null,
-  processModel: { steps: [], systems: [], edgeCases: [] },
-};
-
-const fakeClient = {
-  id: 'c1',
-  name: 'Acme Corp',
-  industry: 'Manufacturing',
-  website: null,
-  status: 'active_poc',
-  aiSummary: null,
-  notes: null,
+  debriefAnswers: null,
 };
 
 function setupDBMocks(sessionOverrides?: Partial<typeof fakeSession>) {
   vi.mocked(getSessionById).mockResolvedValue({ ...fakeSession, ...sessionOverrides } as any);
-  vi.mocked(getProcessWithModel).mockResolvedValue(fakeProcess as any);
-  vi.mocked(getClientById).mockResolvedValue(fakeClient as any);
-  vi.mocked(listSessionContacts).mockResolvedValue([]);
-  vi.mocked(getCompletedSessionsByProcess).mockResolvedValue([]);
   vi.mocked(updateSession).mockResolvedValue({} as any);
 }
 
@@ -193,7 +161,7 @@ describe('POST /api/sessions/[sessionId]/synthesize', () => {
     expect(data.confidence).toBe(75);
 
     expect(updateSession).toHaveBeenCalledWith(SESSION_ID, {
-      synthesisOutput: data,
+      synthesisOutput: mockSynthesisOutput,
       status: 'synthesis_done',
     });
   });

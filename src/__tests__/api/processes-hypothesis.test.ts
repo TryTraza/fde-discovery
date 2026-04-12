@@ -11,14 +11,12 @@ vi.mock('@clerk/nextjs/server', () => ({
 
 vi.mock('@/lib/db/queries/processes', () => ({
   getProcessById: vi.fn(),
+  updateProcess: vi.fn(),
+  updateProcessModel: vi.fn(),
 }));
 
 vi.mock('@/lib/db/queries/clients', () => ({
   getClientById: vi.fn(),
-}));
-
-vi.mock('@/lib/ai/prompts/process-hypothesis', () => ({
-  triggerProcessHypothesis: vi.fn(),
 }));
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
@@ -29,12 +27,16 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
   }),
 }));
 
+const mockExecuteAI = vi.fn();
+vi.mock('@/lib/ai/builder', () => ({
+  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+}));
+
 // --- Imports (after mocks) ---
 
 import { POST } from '@/app/api/clients/[id]/processes/[processId]/hypothesis/route';
 import { getProcessById } from '@/lib/db/queries/processes';
 import { getClientById } from '@/lib/db/queries/clients';
-import { triggerProcessHypothesis } from '@/lib/ai/prompts/process-hypothesis';
 
 // --- Helpers ---
 
@@ -58,7 +60,13 @@ const fakeClient = { id: 'client-1', name: 'Acme Corp', industry: 'Manufacturing
 // --- Tests ---
 
 describe('POST /api/clients/[id]/processes/[processId]/hypothesis', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockExecuteAI.mockResolvedValue({
+      data: { hypothesisText: 'Test hypothesis', matchedProcessType: 'procurement', initialSteps: [] },
+      meta: { agentSlug: 'process-hypothesis', configVersion: 1, promptVersion: 1, model: 'standard', layerTimings: {}, totalDuration: 100, layerErrors: [] },
+    });
+  });
 
   it('returns 403 without admin auth', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'viewer' } });
@@ -106,15 +114,15 @@ describe('POST /api/clients/[id]/processes/[processId]/hypothesis', () => {
     const req = createRequest('POST', 'http://localhost/api/clients/client-1/processes/proc-1/hypothesis');
     const res = await POST(req, withParams({ id: 'client-1', processId: 'proc-1' }));
     expect(res.status).toBe(200);
-    expect(triggerProcessHypothesis).toHaveBeenCalledWith(
-      'proc-1',
-      expect.objectContaining({ name: 'Acme Corp' }),
-      expect.objectContaining({ name: 'Purchasing' }),
-      'mock-model',
+    expect(mockExecuteAI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentSlug: 'process-hypothesis',
+        model: 'mock-model',
+      }),
     );
   });
 
-  it('passes correct args to triggerProcessHypothesis', async () => {
+  it('passes correct overrides to executeAI', async () => {
     setupClerkMocks({
       isAuthenticated: true,
       publicMetadata: { role: 'admin' },
@@ -125,11 +133,17 @@ describe('POST /api/clients/[id]/processes/[processId]/hypothesis', () => {
     const req = createRequest('POST', 'http://localhost/api/clients/client-1/processes/proc-1/hypothesis');
     await POST(req, withParams({ id: 'client-1', processId: 'proc-1' }));
 
-    expect(triggerProcessHypothesis).toHaveBeenCalledWith(
-      'proc-1',
-      { name: 'Acme Corp', industry: 'Manufacturing', website: 'https://acme.com' },
-      { name: 'Purchasing', description: 'Buy things' },
-      'mock-model',
+    expect(mockExecuteAI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentSlug: 'process-hypothesis',
+        params: { processId: 'proc-1' },
+        overrides: expect.objectContaining({
+          templateVars: expect.objectContaining({
+            clientName: 'Acme Corp',
+            processName: 'Purchasing',
+          }),
+        }),
+      }),
     );
   });
 });

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireUserId, requireAdmin, handleAPIError } from '@/lib/auth/utils';
 import { listClients, createClient } from '@/lib/db/queries/clients';
-import { triggerCompanyResearch } from '@/lib/ai/prompts/company-research';
+import { getAIConfig } from '@/lib/ai/get-ai-config';
+import { triggerCompanyResearchViaBuilder } from '@/lib/ai/trigger-research';
 import { parseJSON } from '@/lib/api/utils';
 
 const createClientSchema = z.object({
@@ -47,8 +48,12 @@ export async function POST(request: Request) {
     }
     const client = await createClient(parsed.data);
 
-    // Fire-and-forget — do NOT await
-    triggerCompanyResearch(client.id, client.name, client.industry, client.website ?? undefined);
+    // Resolve model NOW while auth context is available
+    getAIConfig('research')
+      .then(({ model, anthropic }) => {
+        triggerCompanyResearchViaBuilder(client.id, client, model, anthropic);
+      })
+      .catch(() => {}); // NO_API_KEY is fine — research is optional
 
     return NextResponse.json(client, { status: 201 });
   } catch (error) {

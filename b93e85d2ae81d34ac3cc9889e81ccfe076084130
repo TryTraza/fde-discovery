@@ -1,0 +1,167 @@
+src/__tests__/api/sessions-prep-brief.test.ts
+  d4a217f8069f051f 24-43,49,66,89,91-92,121,125,133-135
+src/__tests__/unit/db/schema-ai.test.ts
+  d4a217f8069f051f 1-38
+src/__tests__/api/ai-suggestions.test.ts
+  d4a217f8069f051f 30-32,62-64,96,126,135-137,161,167-168,170-171
+package.json
+  d4a217f8069f051f 28,37
+src/lib/db/migrations/0002_premium_spencer_smythe.sql
+  d4a217f8069f051f 1-37
+src/__tests__/unit/ai/layers/l1-domain.test.ts
+  d4a217f8069f051f 1-97
+src/__tests__/unit/ai/types.test.ts
+  d4a217f8069f051f 1-215
+src/lib/ai/layers/l1-domain.ts
+  d4a217f8069f051f 1-77
+src/components/layout/app-sidebar.tsx
+  d4a217f8069f051f 10,105-148
+src/__tests__/api/sessions-synthesize.test.ts
+  d4a217f8069f051f 25-40,46,72,164
+src/__tests__/unit/ai/skills/resolver.test.ts
+  d4a217f8069f051f 1-81
+src/lib/ai/tools/registry.ts
+  d4a217f8069f051f 1-35
+src/lib/hooks/use-skills.ts
+  d4a217f8069f051f 1-18
+src/__tests__/api/clients-id-research.test.ts
+  d4a217f8069f051f 12,15-20,23-25,36-39,77,81,86-91
+src/__tests__/unit/ai/builder.test.ts
+  d4a217f8069f051f 1-416
+src/__tests__/api/processes.test.ts
+  d4a217f8069f051f 21-22,25-30,160-162
+src/lib/ai/observe.ts
+  d4a217f8069f051f 1-29
+src/lib/ai/layers/types.ts
+  d4a217f8069f051f 1-13
+src/app/(dashboard)/settings/ai-agents/page.tsx
+  d4a217f8069f051f 1-883
+src/app/api/ai/research/route.ts
+  d4a217f8069f051f 4,6-8,38-41,43-47,50-54,56,58-70,72,78
+src/__tests__/unit/db/queries/skills.test.ts
+  d4a217f8069f051f 1-135
+src/app/api/sessions/[sessionId]/email-draft/route.ts
+  d4a217f8069f051f 4,9,51-81,84
+src/lib/db/migrations/meta/0002_snapshot.json
+  d4a217f8069f051f 1-1430
+src/lib/ai/skills/resolver.ts
+  d4a217f8069f051f 1-40
+src/lib/ai/builder.ts
+  d4a217f8069f051f 1-318
+src/__tests__/unit/ai/schemas/registry.test.ts
+  d4a217f8069f051f 1-50
+src/lib/db/queries/skills.ts
+  d4a217f8069f051f 1-60
+src/app/api/sessions/[sessionId]/synthesize/route.ts
+  d4a217f8069f051f 4-5,15-18,20,22,27-29,37,39-42,44,48,52,63,70,72-77,81,85
+src/__tests__/unit/ai/observe.test.ts
+  d4a217f8069f051f 1-69
+src/app/api/ai/suggestions/route.ts
+  d4a217f8069f051f 4,10,21,23-28,31
+src/lib/ai/types.ts
+  d4a217f8069f051f 1-201
+src/app/api/settings/ai-agents/route.ts
+  d4a217f8069f051f 1-13
+src/__tests__/unit/db/queries/ai-agents.test.ts
+  d4a217f8069f051f 1-180
+src/lib/ai/layers/l3-process.ts
+  d4a217f8069f051f 1-106
+src/lib/hooks/use-ai-agents.ts
+  d4a217f8069f051f 1-21
+src/lib/db/migrations/meta/_journal.json
+  d4a217f8069f051f 18-24
+src/lib/db/schema.ts
+  d4a217f8069f051f 80-96,381-419,456-461
+src/app/api/settings/ai-agents/[slug]/route.ts
+  d4a217f8069f051f 1-85
+src/app/api/sessions/[sessionId]/prep-brief/route.ts
+  d4a217f8069f051f 5,15,17-22,25,27
+src/app/api/sessions/interview/route.ts
+  d4a217f8069f051f 6,29,31-36,39-47,49,52
+src/lib/ai/layers/l2-client.ts
+  d4a217f8069f051f 1-72
+src/__tests__/unit/ai/prompts/behavioral.test.ts
+  d4a217f8069f051f 1-314
+.env.example
+  d4a217f8069f051f 15-19
+src/__tests__/unit/ai/layers/l2-client.test.ts
+  d4a217f8069f051f 1-94
+src/__tests__/api/sessions-email-draft.test.ts
+  d4a217f8069f051f 12-14,96,98,171-172,175,184-186
+src/__tests__/unit/ai/tools/registry.test.ts
+  d4a217f8069f051f 1-39
+src/lib/ai/prompts/fixtures.ts
+  d4a217f8069f051f 1-285
+src/app/(dashboard)/settings/skills/page.tsx
+  d4a217f8069f051f 1-403
+src/lib/ai/trigger-research.ts
+  d4a217f8069f051f 1-39
+src/__tests__/api/sessions-interview.test.ts
+  d4a217f8069f051f 20-22,70-76,106,108,112,133,147
+src/__tests__/unit/ai/layers/l3-process.test.ts
+  d4a217f8069f051f 1-99
+src/lib/ai/layers/l4-session.ts
+  d4a217f8069f051f 1-89
+src/app/api/clients/[id]/research/route.ts
+  d4a217f8069f051f 4-5,18-22
+src/__tests__/unit/ai/build-session-context.test.ts
+  d4a217f8069f051f 17-20
+src/app/globals.css
+  d4a217f8069f051f 5-6
+scripts/seed-ai-agents.ts
+  d4a217f8069f051f 1-221
+scripts/seed-skills.ts
+  d4a217f8069f051f 1-65
+src/__tests__/unit/ai/layers/l4-session.test.ts
+  d4a217f8069f051f 1-129
+src/app/api/settings/registries/route.ts
+  d4a217f8069f051f 1-16
+src/app/api/clients/route.ts
+  d4a217f8069f051f 5-6,51-56
+src/lib/db/queries/ai-agents.ts
+  d4a217f8069f051f 1-115
+src/__tests__/unit/ai/layers/registry.test.ts
+  d4a217f8069f051f 1-38
+src/app/api/settings/skills/route.ts
+  d4a217f8069f051f 1-54
+src/app/api/settings/skills/[id]/route.ts
+  d4a217f8069f051f 1-60
+src/lib/ai/schemas/registry.ts
+  d4a217f8069f051f 1-64
+src/__tests__/api/clients.test.ts
+  d4a217f8069f051f 15,18-23,26-28,101-104,161,176,178-180
+src/__tests__/api/sessions-synthesize-shadowing.test.ts
+  d4a217f8069f051f 39-41,120-123,140,143-149,152,154-155,158,160-161,164,166-167,170,180,190-191,194-195,200-201
+src/__tests__/api/ai-research.test.ts
+  d4a217f8069f051f 26-29,32-33,36-48,58,148,150-154,159,165,167-171
+src/__tests__/api/processes-hypothesis.test.ts
+  d4a217f8069f051f 14-15,30-32,63-69,117-121,125,136-146
+scripts/seed-langfuse-prompts.ts
+  d4a217f8069f051f 1-37
+src/app/api/clients/[id]/processes/[processId]/hypothesis/route.ts
+  d4a217f8069f051f 3,6,8-34,41,53-56,59-74,76-96
+src/app/api/clients/[id]/processes/route.ts
+  d4a217f8069f051f 9-10,13,74,76-92,94-116,118
+src/lib/ai/layers/registry.ts
+  d4a217f8069f051f 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "b93e85d2ae81d34ac3cc9889e81ccfe076084130",
+  "prompts": {
+    "d4a217f8069f051f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "558cddf9-368b-43a0-b06e-158dab925e23",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 8358,
+      "total_deletions": 1255,
+      "accepted_lines": 7549,
+      "overriden_lines": 0
+    }
+  }
+}

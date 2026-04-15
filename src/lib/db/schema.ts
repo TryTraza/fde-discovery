@@ -130,6 +130,7 @@ export const clients = pgTable('clients', {
   notes: text('notes'),
   status: clientStatusEnum('status').default('prospecting').notNull(),
   aiSummary: text('ai_summary'),
+  profile: jsonb('profile'), // CompanyProfile — see src/lib/ai/contracts/company-profile
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),

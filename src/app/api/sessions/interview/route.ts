@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils';
 import { interviewRequestSchema } from '@/lib/validations/session';
-import { interviewQuestionSchema } from '@/lib/ai/schemas/interview';
-import { buildInterviewPrompt } from '@/lib/ai/prompts/session-interview';
 import { getAIConfig } from '@/lib/ai/get-ai-config';
-import { getProcessWithModel } from '@/lib/db/queries/processes';
-import { getClientById } from '@/lib/db/queries/clients';
 import { parseJSON } from '@/lib/api/utils';
-import { generateObject } from 'ai';
+import { executeAI } from '@/lib/ai/builder';
 
 export async function POST(request: Request) {
   try {
@@ -30,43 +26,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ done: true });
     }
 
-    const process = await getProcessWithModel(body.processId);
-    if (!process) {
-      return NextResponse.json({ error: 'Process not found' }, { status: 404 });
+    const { model, anthropic } = await getAIConfig('interview');
+
+    // Pre-render previous answers for template interpolation
+    let previousAnswersSection = 'This is the first question — no previous answers yet.';
+    if (body.previousAnswers && body.previousAnswers.length > 0) {
+      previousAnswersSection = body.previousAnswers
+        .map((a: any, i: number) => `Q${i + 1}: ${a.question}\nA${i + 1}: ${a.answer}`)
+        .join('\n\n');
     }
 
-    const client = await getClientById(process.clientId);
-    if (!client) {
-      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
-    }
-
-    const aiConfig = await getAIConfig('interview');
-
-    const result = await generateObject({
-      model: aiConfig.model,
-      schema: interviewQuestionSchema,
-      prompt: buildInterviewPrompt({
-        client: {
-          name: client.name,
-          industry: client.industry,
-          website: client.website,
-          aiSummary: client.aiSummary,
+    const result = await executeAI({
+      agentSlug: 'session-interview',
+      params: { processId: body.processId },
+      userId: '',
+      model,
+      anthropic,
+      overrides: {
+        templateVars: {
+          previousAnswersSection,
         },
-        processContext: {
-          name: process.name,
-          description: process.description,
-          hypothesisText: process.hypothesisText ?? null,
-          model: process.processModel,
-          departmentTag: process.departmentTag,
-        },
-        sessionType: body.sessionType,
-        sessionContacts: [], // No contacts assigned yet during creation
-        previousAnswers: body.previousAnswers,
-        questionIndex: body.questionIndex,
-      }),
+      },
     });
 
-    return NextResponse.json({ done: false, ...result.object });
+    return NextResponse.json({ done: false, ...(result.data as object) });
   } catch (error) {
     return handleAPIError(error);
   }

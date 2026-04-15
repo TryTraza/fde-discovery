@@ -18,10 +18,16 @@ vi.mock('@/lib/db/queries/processes', () => ({
   createProcess: vi.fn(),
   createProcessModel: vi.fn(),
   softDeleteProcess: vi.fn(),
+  updateProcess: vi.fn(),
+  updateProcessModel: vi.fn(),
 }));
 
-vi.mock('@/lib/ai/prompts/process-hypothesis', () => ({
-  triggerProcessHypothesis: vi.fn(),
+const mockExecuteAI = vi.fn().mockResolvedValue({
+  data: { hypothesisText: 'Test hypothesis', matchedProcessType: 'procurement', initialSteps: [] },
+  meta: { agentSlug: 'process-hypothesis', configVersion: 1, promptVersion: 1, model: 'standard', layerTimings: {}, totalDuration: 100, layerErrors: [] },
+});
+vi.mock('@/lib/ai/builder', () => ({
+  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
 }));
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
@@ -41,7 +47,6 @@ import {
   createProcess,
   createProcessModel,
 } from '@/lib/db/queries/processes';
-import { triggerProcessHypothesis } from '@/lib/ai/prompts/process-hypothesis';
 
 // --- Helpers ---
 
@@ -152,15 +157,9 @@ describe('POST /api/clients/[id]/processes', () => {
 
     const body = await res.json();
     expect(body.name).toBe('Purchasing');
-    expect(mockCreateProcessModel).toHaveBeenCalledWith('proc-1');
-    expect(triggerProcessHypothesis).toHaveBeenCalledWith(
-      'proc-1',
-      expect.objectContaining({ name: 'Acme Corp' }),
-      expect.objectContaining({ name: 'Purchasing' }),
-      'mock-model',
+    expect(createProcessModel).toHaveBeenCalledWith('proc-1');
+    expect(mockExecuteAI).toHaveBeenCalledWith(
+      expect.objectContaining({ agentSlug: 'process-hypothesis' })
     );
   });
 });
-
-// Forward reference so the test can access it
-const mockCreateProcessModel = createProcessModel;

@@ -7,6 +7,7 @@ import useSWR from 'swr';
 import {
   Users, Settings, Compass, LifeBuoy,
   ArrowLeft, LayoutDashboard, FolderKanban, FileText,
+  Bot, Sparkles,
 } from 'lucide-react';
 
 import {
@@ -100,6 +101,50 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Settings context */}
+        {pathname.startsWith('/settings') && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Settings</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link href="/settings" />}
+                      isActive={pathname === '/settings'}
+                      tooltip="General"
+                    >
+                      <Settings />
+                      <span>General</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link href="/settings/ai-agents" />}
+                      isActive={pathname === '/settings/ai-agents'}
+                      tooltip="AI Agents"
+                    >
+                      <Bot />
+                      <span>AI Agents</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link href="/settings/skills" />}
+                      isActive={pathname === '/settings/skills'}
+                      tooltip="Skills"
+                    >
+                      <Sparkles />
+                      <span>Skills</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
 
         {/* Client context — visible at both client and process levels */}
         {clientId && (

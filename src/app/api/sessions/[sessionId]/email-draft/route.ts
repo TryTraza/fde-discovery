@@ -1,11 +1,12 @@
 import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils';
+import { getAIConfig } from '@/lib/ai/get-ai-config';
 import { getSessionById } from '@/lib/db/queries/sessions';
 import { getProcessById } from '@/lib/db/queries/processes';
 import { getClientById } from '@/lib/db/queries/clients';
 import { listContactsByClient } from '@/lib/db/queries/contacts';
-import { generateFollowUpEmail } from '@/lib/ai/prompts/email-draft';
+import { executeAI } from '@/lib/ai/builder';
 
 export async function POST(
   req: NextRequest,
@@ -47,16 +48,40 @@ export async function POST(
       return q.text ?? q.question ?? String(q);
     });
 
-    const email = await generateFollowUpEmail({
-      clientName,
-      processName: process.name,
-      contacts: contacts.map((c) => ({ name: c.name, role: c.role })),
-      synthesisHighlights: typeof highlights === 'string' ? highlights : JSON.stringify(highlights),
-      openQuestions,
-      language,
+    // Pre-render template variables (email-draft has no layers — all via overrides)
+    const languageInstruction = language === 'es'
+      ? 'Write the email entirely in Spanish (formal business Spanish).'
+      : 'Write the email in English.';
+
+    const contactsList = contacts
+      .map((c) => `${c.name}${c.role ? ` (${c.role})` : ''}`)
+      .join(', ');
+
+    const openQuestionsList = openQuestions
+      .map((q: string, i: number) => `${i + 1}. ${q}`)
+      .join('\n');
+
+    const { model, anthropic } = await getAIConfig('research');
+
+    const result = await executeAI({
+      agentSlug: 'email-draft',
+      params: {},
+      userId: '', // Not used since model is pre-resolved
+      model,
+      anthropic,
+      overrides: {
+        templateVars: {
+          languageInstruction,
+          clientName,
+          processName: process.name,
+          contactsList,
+          synthesisHighlights: typeof highlights === 'string' ? highlights : JSON.stringify(highlights),
+          openQuestionsList,
+        },
+      },
     });
 
-    return NextResponse.json({ email });
+    return NextResponse.json({ email: result.text });
   } catch (error) {
     return handleAPIError(error);
   }

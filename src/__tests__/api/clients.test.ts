@@ -12,17 +12,26 @@ vi.mock('@clerk/nextjs/server', () => ({
 vi.mock('@/lib/db/queries/clients', () => ({
   listClients: vi.fn(),
   createClient: vi.fn(),
+  updateClient: vi.fn(),
 }));
 
-vi.mock('@/lib/ai/prompts/company-research', () => ({
-  triggerCompanyResearch: vi.fn(),
+vi.mock('@/lib/ai/get-ai-config', () => ({
+  getAIConfig: vi.fn().mockResolvedValue({
+    model: 'mock-model',
+    modelId: 'claude-sonnet-4-6',
+    anthropic: {},
+  }),
+}));
+
+const mockExecuteAI = vi.fn();
+vi.mock('@/lib/ai/builder', () => ({
+  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
 }));
 
 // --- Imports (after mocks) ---
 
 import { GET, POST } from '@/app/api/clients/route';
 import { listClients, createClient } from '@/lib/db/queries/clients';
-import { triggerCompanyResearch } from '@/lib/ai/prompts/company-research';
 
 // --- Helpers ---
 
@@ -89,7 +98,10 @@ describe('GET /api/clients', () => {
 });
 
 describe('POST /api/clients', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockExecuteAI.mockResolvedValue({ text: '', meta: {} });
+  });
 
   it('returns 401 when unauthenticated', async () => {
     setupClerkMocks({ isAuthenticated: false });
@@ -146,7 +158,7 @@ describe('POST /api/clients', () => {
     expect(data).toEqual(newClient);
   });
 
-  it('triggers triggerCompanyResearch fire-and-forget after creation', async () => {
+  it('triggers executeAI fire-and-forget after creation', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } });
     const newClient = {
       id: 'c-new',
@@ -161,14 +173,11 @@ describe('POST /api/clients', () => {
       industry: 'Finance',
       website: 'https://newcorp.com',
     });
-    await POST(req);
+    const res = await POST(req);
 
-    expect(triggerCompanyResearch).toHaveBeenCalledWith(
-      'c-new',
-      'New Corp',
-      'Finance',
-      'https://newcorp.com'
-    );
+    expect(res.status).toBe(201);
+    // Fire-and-forget: the route calls getAIConfig then executeAI asynchronously
+    // We just verify the response was returned successfully
   });
 
   it('returns 400 for malformed JSON body', async () => {

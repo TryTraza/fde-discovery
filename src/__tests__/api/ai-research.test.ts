@@ -23,16 +23,29 @@ vi.mock('@ai-sdk/anthropic', () => ({
   createAnthropic: (...args: unknown[]) => mockCreateAnthropic(...args),
 }));
 
-vi.mock('@/lib/db/queries/clients', () => ({
-  getClientById: vi.fn(),
+vi.mock('@/lib/ai/layers/registry', () => ({
+  getLayer: vi.fn().mockReturnValue({
+    resolve: vi.fn().mockResolvedValue({ data: {}, templateVars: {} }),
+  }),
 }));
 
-vi.mock('@/lib/db/queries/processes', () => ({
-  getProcessById: vi.fn(),
+vi.mock('@/lib/ai/observe', () => ({
+  getLangfuseClient: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/lib/domain/l1', () => ({
-  getL1: vi.fn().mockReturnValue({ name: 'procurement', steps: [] }),
+vi.mock('@/lib/ai/prompts/fixtures', () => ({
+  PROMPTS: [
+    {
+      name: 'research-chat',
+      type: 'chat',
+      prompt: [
+        {
+          role: 'system',
+          content: 'You are a research assistant. Client: {{clientName}}. Industry: {{clientIndustry}}. Process: {{processName}}. Type: {{processTypeL1}}.',
+        },
+      ],
+    },
+  ],
 }));
 
 vi.mock('@/lib/db/queries/research-notes', () => ({
@@ -42,8 +55,7 @@ vi.mock('@/lib/db/queries/research-notes', () => ({
 // --- Imports (after mocks) ---
 
 import { POST } from '@/app/api/ai/research/route';
-import { getClientById } from '@/lib/db/queries/clients';
-import { getProcessById } from '@/lib/db/queries/processes';
+import { getLayer } from '@/lib/ai/layers/registry';
 import { createResearchNote } from '@/lib/db/queries/research-notes';
 
 // --- Helpers ---
@@ -133,25 +145,30 @@ describe('POST /api/ai/research', () => {
     );
   });
 
-  it('passes client context in system prompt when clientId provided', async () => {
+  it('resolves client layer when clientId provided', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META });
-    vi.mocked(getClientById).mockResolvedValue({
-      id: 'c1', name: 'Acme Corp', industry: 'Manufacturing', aiSummary: 'Big company',
-    } as any);
+    const mockResolve = vi.fn().mockResolvedValue({
+      data: {},
+      templateVars: { clientName: 'Acme Corp', clientIndustry: 'Manufacturing' },
+    });
+    vi.mocked(getLayer).mockReturnValue({ resolve: mockResolve } as any);
 
     const req = createRequest({ messages: MESSAGES, clientId: 'c1' });
     await POST(req);
 
+    expect(mockResolve).toHaveBeenCalledWith({ clientId: 'c1' }, { fields: 'full' });
     const call = mockStreamText.mock.calls[0][0];
     expect(call.system).toContain('Acme Corp');
     expect(call.system).toContain('Manufacturing');
   });
 
-  it('passes process + L1 domain context when processId provided', async () => {
+  it('resolves process layer when processId provided', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META });
-    vi.mocked(getProcessById).mockResolvedValue({
-      id: 'p1', name: 'PO Process', processTypeL1: 'procurement', hypothesisText: 'Initial hypothesis',
-    } as any);
+    const mockResolve = vi.fn().mockResolvedValue({
+      data: {},
+      templateVars: { processName: 'PO Process', processTypeL1: 'procurement' },
+    });
+    vi.mocked(getLayer).mockReturnValue({ resolve: mockResolve } as any);
 
     const req = createRequest({ messages: MESSAGES, processId: 'p1' });
     await POST(req);
@@ -163,7 +180,6 @@ describe('POST /api/ai/research', () => {
 
   it('calls createResearchNote in onFinish when clientId is present', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META });
-    vi.mocked(getClientById).mockResolvedValue({ id: 'c1', name: 'Acme' } as any);
 
     // Capture onFinish callback
     let capturedOnFinish: (args: { text: string }) => Promise<void>;

@@ -6,9 +6,11 @@ import {
   createProcess,
   createProcessModel,
   softDeleteProcess,
+  updateProcess,
+  updateProcessModel,
 } from '@/lib/db/queries/processes';
-import { triggerProcessHypothesis } from '@/lib/ai/prompts/process-hypothesis';
 import { getAIConfig } from '@/lib/ai/get-ai-config';
+import { executeAI } from '@/lib/ai/builder';
 import { createProcessSchema } from '@/lib/validations/process';
 import { parseJSON } from '@/lib/api/utils';
 
@@ -69,25 +71,51 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to create process' }, { status: 500 });
     }
 
-    // Resolve AI model NOW while Clerk auth context is still available.
-    // triggerProcessHypothesis runs fire-and-forget — auth() won't work later.
+    // Resolve AI model NOW while Clerk auth context is still available
     try {
-      const { model } = await getAIConfig('hypothesis');
-      triggerProcessHypothesis(
-        process.id,
-        { name: client.name, industry: client.industry, website: client.website },
-        {
-          name: parsed.data.name,
-          description: parsed.data.description,
-          departmentTag: parsed.data.departmentTag,
-          knownSystems: parsed.data.knownSystems,
-          knownPainPoints: parsed.data.knownPainPoints,
+      const { model, anthropic } = await getAIConfig('hypothesis');
+
+      executeAI({
+        agentSlug: 'process-hypothesis',
+        params: { processId: process.id },
+        userId: '',
+        model,
+        anthropic,
+        overrides: {
+          templateVars: {
+            clientName: client.name,
+            clientIndustry: client.industry ? `Industry: ${client.industry}` : '',
+            clientWebsite: client.website ? `Website: ${client.website}` : '',
+            processName: parsed.data.name,
+            processDescription: parsed.data.description ? `Description: ${parsed.data.description}` : '',
+            processDepartment: parsed.data.departmentTag ? `Department: ${parsed.data.departmentTag}` : '',
+          },
         },
-        model
-      );
+      })
+        .then(async (result) => {
+          const hypothesis = result.data as any;
+          const fullSteps = (hypothesis.initialSteps ?? []).map((step: any) => ({
+            id: crypto.randomUUID(),
+            name: step.name,
+            description: step.description,
+            order: step.order,
+            systems: step.systems.map((s: string) => ({ name: s, confirmed: false, detailNotes: '' })),
+            confidence: 'inferred' as const,
+            edgeCases: [],
+            notes: '',
+          }));
+
+          await updateProcessModel(process.id, { steps: fullSteps }).catch(() => {});
+          await updateProcess(process.id, {
+            hypothesisText: hypothesis.hypothesisText,
+            processTypeL1: hypothesis.matchedProcessType,
+          });
+        })
+        .catch((err) => {
+          console.error(`[hypothesis] Failed for process ${process.id}:`, err);
+        });
     } catch {
-      // No API key or auth issue — process created but hypothesis skipped.
-      // User can regenerate later from the process detail page.
+      // No API key or auth issue — process created but hypothesis skipped
     }
 
     return NextResponse.json(process, { status: 201 });

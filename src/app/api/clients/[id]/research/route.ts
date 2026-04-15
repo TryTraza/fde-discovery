@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils';
 import { getClientById } from '@/lib/db/queries/clients';
-import { triggerCompanyResearch } from '@/lib/ai/prompts/company-research';
+import { getAIConfig } from '@/lib/ai/get-ai-config';
+import { triggerCompanyResearchViaBuilder } from '@/lib/ai/trigger-research';
 
 export async function POST(
   _request: Request,
@@ -14,8 +15,11 @@ export async function POST(
     if (!client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
-    // Fire-and-forget
-    triggerCompanyResearch(id, client.name, client.industry, client.website ?? undefined);
+
+    // Resolve model NOW while auth context is available
+    const { model, anthropic } = await getAIConfig('research');
+    triggerCompanyResearchViaBuilder(id, client, model, anthropic);
+
     return NextResponse.json({ message: 'Research started' });
   } catch (error) {
     return handleAPIError(error);

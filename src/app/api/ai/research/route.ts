@@ -1,11 +1,11 @@
 import 'server-only';
 import { streamText, convertToModelMessages, stepCountIs, UIMessage } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { requireAdmin, requireAuthWithUser, handleAPIError } from '@/lib/auth/utils';
-import { getClientById } from '@/lib/db/queries/clients';
-import { getProcessById } from '@/lib/db/queries/processes';
-import { getL1 } from '@/lib/domain/l1';
+import { requireAuthWithUser, handleAPIError } from '@/lib/auth/utils';
 import { createResearchNote } from '@/lib/db/queries/research-notes';
+import { getLayer } from '@/lib/ai/layers/registry';
+import { getLangfuseClient } from '@/lib/ai/observe';
+import { PROMPTS } from '@/lib/ai/prompts/fixtures';
 
 export const maxDuration = 30;
 
@@ -35,34 +35,47 @@ export async function POST(req: Request) {
       processId?: string;
     } = await req.json();
 
-    // Build layered context (L1 + L2)
-    let context = '';
+    // Build context via layers (replaces manual context building)
+    const vars: Record<string, string> = {};
+    const layerPromises: Promise<void>[] = [];
+
     if (clientId) {
-      const client = await getClientById(clientId);
-      if (client) {
-        context += `Client: ${client.name}, ${client.industry}. ${client.aiSummary ?? ''}\n`;
-      }
+      layerPromises.push(
+        getLayer('l2-client').resolve({ clientId }, { fields: 'full' }).then((r) => {
+          Object.assign(vars, r.templateVars);
+        }).catch(() => {})
+      );
     }
     if (processId) {
-      const process = await getProcessById(processId);
-      if (process) {
-        const l1 = getL1(process.processTypeL1 ?? 'unknown');
-        context += `Process: ${process.name}. ${process.hypothesisText ?? ''}\n`;
-        context += `Domain knowledge: ${JSON.stringify(l1)}\n`;
-      }
+      layerPromises.push(
+        getLayer('l3-process').resolve({ processId }, { includeModel: false, fields: 'summary' }).then((r) => {
+          Object.assign(vars, r.templateVars);
+        }).catch(() => {})
+      );
+    }
+    await Promise.all(layerPromises);
+
+    // Compile prompt from fixtures (Langfuse fallback)
+    const langfuse = getLangfuseClient();
+    let systemPrompt: string;
+    if (langfuse) {
+      const prompt = await langfuse.getPrompt('research-chat', undefined, { label: 'production' });
+      const compiled = prompt.compile(vars) as any;
+      const sysMsg = (Array.isArray(compiled) ? compiled : []).find((m: any) => m.role === 'system');
+      systemPrompt = sysMsg?.content ?? '';
+    } else {
+      const fixture = PROMPTS.find((p) => p.name === 'research-chat')!;
+      const sysContent = fixture.prompt.find((m) => m.role === 'system')!.content;
+      systemPrompt = sysContent.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
     }
 
+    // Streaming call with onFinish stays in route
     const result = streamText({
       model: anthropic(modelId),
       messages: await convertToModelMessages(messages),
       tools: { web_search: anthropic.tools.webSearch_20250305() } as any,
       stopWhen: stepCountIs(5),
-      system: `You are a research assistant for a Forward Deployed Engineer at Traza AI. Help them research and understand client companies, industry patterns, operational processes, and system documentation.
-
-Current context:
-${context}
-
-Stay focused on FDE research. Be specific and actionable. Flag information that contradicts the current ProcessModel. Keep responses to 1-3 paragraphs unless asked for depth.`,
+      system: systemPrompt,
       onFinish: async ({ text }) => {
         const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
         if (lastUserMessage && clientId) {

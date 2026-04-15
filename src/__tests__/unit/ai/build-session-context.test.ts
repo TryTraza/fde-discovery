@@ -14,6 +14,10 @@ vi.mock('@/lib/db/queries/clients', () => ({
   getClientById: vi.fn(),
 }));
 
+vi.mock('@/lib/db/queries/events', () => ({
+  getEventsBySessionId: vi.fn().mockResolvedValue([]),
+}));
+
 import { buildSessionContext } from '@/lib/ai/context';
 import { getSessionById, listSessionContacts, getCompletedSessionsByProcess } from '@/lib/db/queries/sessions';
 import { getProcessWithModel } from '@/lib/db/queries/processes';

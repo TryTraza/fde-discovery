@@ -1,0 +1,29 @@
+src/lib/ai/prompts/refresh-company-profile.ts
+  fd955c16e7741b85 1-72
+src/__tests__/api/clients-id-refresh-profile.test.ts
+  fd955c16e7741b85 1-92
+src/app/api/clients/[id]/refresh-profile/route.ts
+  fd955c16e7741b85 1-26
+src/__tests__/ai/refresh-company-profile.test.ts
+  fd955c16e7741b85 1-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "ae896542fbfd981d2d35aef7b39ffd3d02a65329",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 277,
+      "total_deletions": 5,
+      "accepted_lines": 272,
+      "overriden_lines": 0
+    }
+  }
+}

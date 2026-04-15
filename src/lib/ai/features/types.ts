@@ -19,12 +19,23 @@ export interface FeatureConfig {
   model: 'fast' | 'standard'
   layers: LayerSpec[]
   /**
-   * Prompt identifier. Kept as `langfusePromptName` during the transition
-   * so builder.ts fetchPrompt can still read fixtures by this name.
-   * Post Phase 2.6 (Langfuse removal), templates in src/lib/ai/templates/
-   * take over and this field is retired.
+   * Fixture key into src/lib/ai/prompts/fixtures.ts. Used by unmigrated
+   * features that still flow through executeAI. Features migrated to the
+   * gateway (Phase 2.7+) provide `systemPrompt` directly and stop
+   * reading fixtures; once every feature is migrated, this field and
+   * fixtures.ts are both retired.
    */
   langfusePromptName: string
+  /**
+   * Worker persona + task instructions + output-format rules. Static —
+   * per-call variability must come from the user-side template, not
+   * here. This is the string that will move to the Traza worker once
+   * each feature is dispatched remotely (Bloque 3).
+   *
+   * Optional during the transition: features still routing through
+   * executeAI + fixtures.ts do not need it yet.
+   */
+  systemPrompt?: string
   schemaSlug: string | null
   tools: ToolSpec[]
   maxOutputTokens: number

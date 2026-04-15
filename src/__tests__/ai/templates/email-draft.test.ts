@@ -15,20 +15,23 @@ describe('renderEmailDraftTemplate', () => {
         'What is the SLA for Finance approval?',
         'Are rush POs logged separately?',
       ],
+      languageInstruction: 'Write the email in English.',
     })
     expect(out).toMatchInlineSnapshot(`
-      "Client: Acme Corp
-      Process: Purchase Order Approval
-      Contacts: Jane Doe (Procurement Lead), John Smith
+      "## Session
+      - Client: Acme Corp
+      - Process: Purchase Order Approval
+      - Contacts: Jane Doe (Procurement Lead), John Smith
 
-      ## Session highlights
+      ## Highlights
       POs under \$10k auto-approve; above go to Finance.
 
-      ## Open questions to address
+      ## Open questions
       1. What is the SLA for Finance approval?
       2. Are rush POs logged separately?
 
-      Draft a warm, concise follow-up email (3 paragraphs max + numbered question list). Thank them for their time, summarize key takeaways, list open questions, and propose a clear next step. Respond with the email body only (no subject line, no signature)."
+      ## Output language
+      Write the email in English."
     `)
   })
 
@@ -39,9 +42,10 @@ describe('renderEmailDraftTemplate', () => {
       contacts: [{ name: 'Jane', role: null }],
       synthesisHighlights: 'highlights',
       openQuestions: [],
+      languageInstruction: 'Write the email in English.',
     })
     expect(out).not.toContain('Open questions')
-    expect(out).toContain('## Session highlights')
+    expect(out).toContain('## Highlights')
   })
 
   it('renders contact without role cleanly', () => {
@@ -51,8 +55,37 @@ describe('renderEmailDraftTemplate', () => {
       contacts: [{ name: 'Jane', role: null }],
       synthesisHighlights: 'x',
       openQuestions: [],
+      languageInstruction: 'Write the email in English.',
     })
     expect(out).toContain('Contacts: Jane')
     expect(out).not.toContain('Jane (')
+  })
+
+  it('does not leak persona or task instructions into the template', () => {
+    const out = renderEmailDraftTemplate({
+      clientName: 'Acme',
+      processName: 'PO',
+      contacts: [{ name: 'Jane', role: null }],
+      synthesisHighlights: 'x',
+      openQuestions: [],
+      languageInstruction: 'Write the email in English.',
+    })
+    // Persona & task instructions live in systemPrompt, not in the template.
+    expect(out.toLowerCase()).not.toContain('you are')
+    expect(out.toLowerCase()).not.toContain('draft a warm')
+    expect(out.toLowerCase()).not.toContain('forward deployed engineer')
+  })
+
+  it('includes the language directive as its own section', () => {
+    const out = renderEmailDraftTemplate({
+      clientName: 'Acme',
+      processName: 'PO',
+      contacts: [{ name: 'Jane', role: null }],
+      synthesisHighlights: 'x',
+      openQuestions: [],
+      languageInstruction: 'Write the email entirely in Spanish (formal business Spanish).',
+    })
+    expect(out).toContain('## Output language')
+    expect(out).toContain('Spanish')
   })
 })

@@ -6,6 +6,13 @@ export interface EmailDraftTemplateInput {
   contacts: Array<{ name: string; role?: string | null }>
   synthesisHighlights: string
   openQuestions: string[]
+  /**
+   * Free-form language directive (e.g. "Write the email in English.").
+   * The persona rule "respond in the language the user specifies" lives
+   * in systemPrompt — this section just tells the worker which language
+   * to pick this time.
+   */
+  languageInstruction: string
 }
 
 function formatContacts(contacts: EmailDraftTemplateInput['contacts']): string {
@@ -17,29 +24,33 @@ function numberedList(items: string[]): string {
 }
 
 /**
- * Renders the user prompt for the email-draft feature.
+ * Renders the user-message body for the email-draft worker.
  *
- * Matches the Langfuse `email-draft` prompt body so callers can swap the
- * prompt-fetch path for this function with no output change.
+ * Pure context + light structural markers (H2s, numbered list, bullets).
+ * No persona. No task instructions. No output-format rules. Anything
+ * that describes WHAT the model should do lives in systemPrompt on the
+ * feature config, not here.
  */
 export function renderEmailDraftTemplate(input: EmailDraftTemplateInput): string {
   return renderTemplate([
     {
-      body: `Client: ${input.clientName}
-Process: ${input.processName}
-Contacts: ${formatContacts(input.contacts)}`,
+      heading: 'Session',
+      body: `- Client: ${input.clientName}
+- Process: ${input.processName}
+- Contacts: ${formatContacts(input.contacts)}`,
     },
     {
-      heading: 'Session highlights',
+      heading: 'Highlights',
       body: input.synthesisHighlights,
     },
     {
       when: input.openQuestions.length > 0,
-      heading: 'Open questions to address',
+      heading: 'Open questions',
       body: () => numberedList(input.openQuestions),
     },
     {
-      body: 'Draft a warm, concise follow-up email (3 paragraphs max + numbered question list). Thank them for their time, summarize key takeaways, list open questions, and propose a clear next step. Respond with the email body only (no subject line, no signature).',
+      heading: 'Output language',
+      body: input.languageInstruction,
     },
   ])
 }

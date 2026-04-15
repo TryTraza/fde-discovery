@@ -240,3 +240,41 @@ describe('LocalAIGateway.generateProcessHypothesis', () => {
     expect(out.structured).toBeNull()
   })
 })
+
+describe('LocalAIGateway.generatePrepBrief', () => {
+  const MOCK_BRIEF = {
+    summary: 'Validate the flow.',
+    questionsToAsk: [{ question: 'Q', rationale: 'R', followUp: 'F' }],
+    approaches: [{ title: 'Approach', description: 'Desc' }],
+    areasToProbe: ['area'],
+    watchFor: ['flag'],
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: {
+        clientSection: 'C',
+        processSection: 'P',
+        processModelSection: 'PM',
+        contactsSection: 'Co',
+        priorSessionsSection: 'Pr',
+        sessionInterviewAnswers: 'Q1: X\nA1: Y',
+      },
+    })
+    mockGenerateObject.mockResolvedValue({ object: MOCK_BRIEF })
+  })
+
+  it('uses the prep-brief systemPrompt and rendered template', async () => {
+    await localAIGateway.generatePrepBrief({ sessionId: 's1', model: FAKE_MODEL })
+    const call = mockGenerateObject.mock.calls[0][0]
+    expect(call.system).toContain('session brief')
+    expect(call.prompt).toContain('C')
+    expect(call.prompt).toContain('## FDE interview answers')
+  })
+
+  it('returns the AI-produced brief', async () => {
+    const out = await localAIGateway.generatePrepBrief({ sessionId: 's1', model: FAKE_MODEL })
+    expect(out).toEqual(MOCK_BRIEF)
+  })
+})

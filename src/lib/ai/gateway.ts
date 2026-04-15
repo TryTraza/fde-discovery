@@ -19,6 +19,7 @@
 
 import type { LanguageModel } from 'ai'
 import type { ProcessHypothesis } from '@/lib/ai/contracts'
+import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
 
 /**
  * Shared: every gateway method receives a pre-resolved model (the caller
@@ -65,10 +66,15 @@ export interface ProcessHypothesisGatewayResult {
   structured: ProcessHypothesis | null
 }
 
+export interface PrepBriefGatewayInput extends WithModel {
+  sessionId: string
+}
+
 export interface AIGateway {
   draftEmail(input: EmailDraftGatewayInput): Promise<string>
   generateInterviewQuestion(input: SessionInterviewGatewayInput): Promise<InterviewQuestion>
   generateProcessHypothesis(
     input: ProcessHypothesisGatewayInput
   ): Promise<ProcessHypothesisGatewayResult>
+  generatePrepBrief(input: PrepBriefGatewayInput): Promise<PrepBrief>
 }

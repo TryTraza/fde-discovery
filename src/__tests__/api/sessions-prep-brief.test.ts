@@ -45,21 +45,10 @@ const mockPrepBrief = {
   watchFor: ['Mentions of shadow processes', 'Hesitation around compliance topics'],
 }
 
-const mockExecuteAI = vi.fn().mockResolvedValue({
-  data: mockPrepBrief,
-  meta: {
-    agentSlug: 'prep-brief',
-    configVersion: 1,
-    promptVersion: 1,
-    model: 'standard',
-    layerTimings: {},
-    totalDuration: 100,
-    layerErrors: [],
-  },
-})
+const mockGeneratePrepBrief = vi.fn().mockResolvedValue(mockPrepBrief)
 
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({ generatePrepBrief: mockGeneratePrepBrief }),
 }))
 
 // --- Imports (after mocks) ---
@@ -105,10 +94,10 @@ describe('POST /api/sessions/[sessionId]/prep-brief', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 404 when executeAI throws Session not found', async () => {
+  it('returns 404 when the gateway throws Session not found', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     setupDBMocks()
-    mockExecuteAI.mockRejectedValueOnce(new Error('Session not found'))
+    mockGeneratePrepBrief.mockRejectedValueOnce(new Error('Session not found'))
 
     const res = await POST(createRequest(), withParams(SESSION_ID))
     expect(res.status).toBe(404)
@@ -141,7 +130,7 @@ describe('POST /api/sessions/[sessionId]/prep-brief', () => {
     })
   })
 
-  it('regenerate calls executeAI and updates session', async () => {
+  it('calls the gateway with sessionId and updates session', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     setupDBMocks()
 
@@ -149,6 +138,8 @@ describe('POST /api/sessions/[sessionId]/prep-brief', () => {
 
     expect(res.status).toBe(200)
     expect(updateSession).toHaveBeenCalled()
-    expect(mockExecuteAI).toHaveBeenCalledWith(expect.objectContaining({ agentSlug: 'prep-brief' }))
+    expect(mockGeneratePrepBrief).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionId: SESSION_ID })
+    )
   })
 })

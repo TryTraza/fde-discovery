@@ -15,17 +15,21 @@ import { generateObject, generateText } from 'ai'
 import { emailDraftFeature } from '@/lib/ai/features/email-draft'
 import { sessionInterviewFeature } from '@/lib/ai/features/session-interview'
 import { processHypothesisFeature } from '@/lib/ai/features/process-hypothesis'
+import { prepBriefFeature } from '@/lib/ai/features/prep-brief'
 import { renderEmailDraftTemplate } from '@/lib/ai/templates/email-draft'
 import { renderSessionInterviewTemplate } from '@/lib/ai/templates/session-interview'
 import { renderProcessHypothesisTemplate } from '@/lib/ai/templates/process-hypothesis'
+import { renderPrepBriefTemplate } from '@/lib/ai/templates/prep-brief'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { hypothesisSchema, type HypothesisOutput } from '@/lib/ai/schemas/hypothesis'
+import { prepBriefSchema, type PrepBrief } from '@/lib/ai/schemas/prep-brief'
 import { buildAIInput } from '@/lib/ai/input-builder'
 import { composeStructuredHypothesis } from '@/lib/ai/hypothesis/compose'
 import type {
   AIGateway,
   EmailDraftGatewayInput,
   InterviewQuestion,
+  PrepBriefGatewayInput,
   ProcessHypothesisGatewayInput,
   ProcessHypothesisGatewayResult,
   SessionInterviewGatewayInput,
@@ -141,6 +145,34 @@ class LocalAIGatewayImpl implements AIGateway {
       initialSteps: ai.initialSteps,
       structured,
     }
+  }
+
+  async generatePrepBrief(input: PrepBriefGatewayInput): Promise<PrepBrief> {
+    const feature = prepBriefFeature
+    if (!feature.systemPrompt) {
+      throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
+    }
+
+    const built = await buildAIInput(feature.slug, { sessionId: input.sessionId })
+
+    const userPrompt = renderPrepBriefTemplate({
+      clientSection: built.templateVars.clientSection ?? '',
+      processSection: built.templateVars.processSection ?? '',
+      processModelSection: built.templateVars.processModelSection ?? '',
+      contactsSection: built.templateVars.contactsSection ?? '',
+      priorSessionsSection: built.templateVars.priorSessionsSection ?? '',
+      sessionInterviewAnswers: built.templateVars.sessionInterviewAnswers ?? '',
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: userPrompt,
+      schema: prepBriefSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    return object as PrepBrief
   }
 }
 

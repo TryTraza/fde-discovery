@@ -27,6 +27,7 @@ vi.mock('@/lib/ai/input-builder', () => ({
 
 import { localAIGateway } from '@/lib/ai/gateway-local'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
+import { prepBriefSchema } from '@/lib/ai/schemas/prep-brief'
 import { processHypothesisSchema } from '@/lib/ai/contracts'
 
 const FAKE_MODEL = { modelId: 'fake-model' } as any
@@ -108,5 +109,32 @@ describe('gateway parity — process-hypothesis', () => {
 
     expect(out.structured).not.toBeNull()
     expect(processHypothesisSchema.safeParse(out.structured).success).toBe(true)
+  })
+})
+
+describe('gateway parity — prep-brief', () => {
+  it('LocalAIGateway.generatePrepBrief returns a prepBriefSchema-valid object', async () => {
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: {
+        clientSection: 'C',
+        processSection: 'P',
+        processModelSection: '',
+        contactsSection: '',
+        priorSessionsSection: '',
+        sessionInterviewAnswers: '',
+      },
+    })
+    mockGenerateObject.mockResolvedValue({
+      object: {
+        summary: 'Session summary.',
+        questionsToAsk: [{ question: 'Q', rationale: 'R', followUp: 'F' }],
+        approaches: [{ title: 'T', description: 'D' }],
+        areasToProbe: ['area1', 'area2', 'area3'],
+        watchFor: ['flag1', 'flag2'],
+      },
+    })
+
+    const out = await localAIGateway.generatePrepBrief({ sessionId: 's1', model: FAKE_MODEL })
+    expect(prepBriefSchema.safeParse(out).success).toBe(true)
   })
 })

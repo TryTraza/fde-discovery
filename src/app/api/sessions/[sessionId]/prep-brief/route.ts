@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
 import { updateSession } from '@/lib/db/queries/sessions'
-import { executeAI } from '@/lib/ai/builder'
+import { getAIGateway } from '@/lib/ai/gateway-factory'
 
 export async function POST(
   _request: Request,
@@ -12,19 +12,14 @@ export async function POST(
     const { sessionId } = await params
     await requireAdmin()
 
-    const { model, anthropic } = await getAIConfig('interview')
+    const { model } = await getAIConfig('interview')
+    const gateway = getAIGateway('prep-brief')
 
-    const result = await executeAI({
-      agentSlug: 'prep-brief',
-      params: { sessionId },
-      userId: '',
-      model,
-      anthropic,
-    })
+    const prepBrief = await gateway.generatePrepBrief({ sessionId, model })
 
-    await updateSession(sessionId, { prepBrief: result.data })
+    await updateSession(sessionId, { prepBrief })
 
-    return NextResponse.json(result.data)
+    return NextResponse.json(prepBrief)
   } catch (error) {
     if (error instanceof Error && error.message === 'Session not found') {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })

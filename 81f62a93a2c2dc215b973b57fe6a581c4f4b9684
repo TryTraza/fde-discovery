@@ -1,0 +1,25 @@
+src/app/api/sessions/[sessionId]/synthesize/route.ts
+  fd955c16e7741b85 6-15,57-64,66,70,92-99,101,105
+src/__tests__/api/sessions-synthesize.test.ts
+  fd955c16e7741b85 186-207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "81f62a93a2c2dc215b973b57fe6a581c4f4b9684",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 69,
+      "overriden_lines": 0
+    }
+  }
+}

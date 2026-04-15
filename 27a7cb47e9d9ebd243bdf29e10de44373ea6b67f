@@ -1,0 +1,37 @@
+src/modules/sessions/components/sessions-list-page.tsx
+  eb4d5a394f202027 61-66,68
+src/modules/processes/components/processes-list.tsx
+  eb4d5a394f202027 59-64,66
+src/modules/sessions/components/transcript-notes-editor.tsx
+  eb4d5a394f202027 5-6,107-108,116-117,128-133,135
+src/modules/processes/components/flow-nodes/flow-controls.tsx
+  eb4d5a394f202027 3,6,16-22,24-31,33-40,42
+src/modules/research/components/research-panel.tsx
+  eb4d5a394f202027 8,123,127
+src/modules/research/components/email-draft-card.tsx
+  eb4d5a394f202027 6,82,85
+src/modules/sessions/components/sessions-list.tsx
+  eb4d5a394f202027 52-57,59
+src/modules/sessions/components/sessions-feed.tsx
+  eb4d5a394f202027 75-80,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "27a7cb47e9d9ebd243bdf29e10de44373ea6b67f",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 73,
+      "total_deletions": 25,
+      "accepted_lines": 2562,
+      "overriden_lines": 0
+    }
+  }
+}

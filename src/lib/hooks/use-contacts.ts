@@ -1,17 +1,3 @@
-import useSWR, { useSWRConfig } from 'swr';
-
-export function useContacts(clientId: string | null) {
-  const { mutate: swrMutate } = useSWRConfig();
-  const key = clientId ? `/api/clients/${clientId}/contacts` : null;
-  const result = useSWR(key);
-
-  return {
-    ...result,
-    contacts: result.data ?? [],
-    mutateContacts: () => {
-      if (clientId) {
-        swrMutate(`/api/clients/${clientId}/contacts`);
-      }
-    },
-  };
-}
+// Re-export shim — contacts hooks moved to @/modules/contacts/hooks/use-contacts
+// This shim will be removed in Step 6 of the Traza alignment refactor.
+export { useContacts } from '@/modules/contacts/hooks/use-contacts'

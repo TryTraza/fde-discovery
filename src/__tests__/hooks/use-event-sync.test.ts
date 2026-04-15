@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useEventSync } from '@/lib/hooks/use-event-sync'
+import { useEventSync } from '@/modules/capture/hooks/use-event-sync'
 
 // Mock fetch globally
 const mockFetch = vi.fn()

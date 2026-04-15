@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import { SuggestedNextSession } from '@/components/sessions/suggested-next-session'
+import { SuggestedNextSession } from '@/modules/sessions/components/suggested-next-session'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
 function makeStep(overrides: Partial<ProcessStepParsed> = {}): ProcessStepParsed {

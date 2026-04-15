@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useSuggestions } from '@/lib/hooks/use-suggestions'
+import { useSuggestions } from '@/modules/ai/hooks/use-suggestions'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)

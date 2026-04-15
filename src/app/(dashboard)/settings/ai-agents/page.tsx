@@ -36,8 +36,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Pencil, Info, Plus, Trash2 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
-import { useAIAgents, useRegistries } from '@/lib/hooks/use-ai-agents'
-import { useSkills } from '@/lib/hooks/use-skills'
+import { useAIAgents, useRegistries } from '@/modules/ai/hooks/use-ai-agents'
+import { useSkills } from '@/modules/ai/hooks/use-skills'
 
 // ── Constants ──
 

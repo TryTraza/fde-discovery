@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { EditDetailsSheet } from '@/components/processes/edit-details-sheet'
+import { EditDetailsSheet } from '@/modules/processes/components/edit-details-sheet'
 
 // Mock fetch
 const mockFetch = vi.fn()

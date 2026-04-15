@@ -46,7 +46,7 @@ import {
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import ReactMarkdown from 'react-markdown'
-import { useSkills } from '@/lib/hooks/use-skills'
+import { useSkills } from '@/modules/ai/hooks/use-skills'
 
 type SkillType = 'system-prompt' | 'context-enrichment' | 'instruction'
 

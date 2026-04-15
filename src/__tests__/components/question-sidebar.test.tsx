@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { QuestionSidebar } from '@/components/sessions/question-sidebar'
+import { QuestionSidebar } from '@/modules/sessions/components/question-sidebar'
 
 const MOCK_QUESTIONS = [
   { question: 'How does intake work?', rationale: 'r1', followUp: 'f1' },

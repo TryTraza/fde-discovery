@@ -1,4 +1,4 @@
-import { SessionOverview } from '@/components/sessions/session-overview'
+import { SessionOverview } from '@/modules/sessions/components/session-overview'
 
 export default async function SessionDetailPage({
   params,

@@ -6,7 +6,7 @@ import { CalendarDays, Plus, ArrowRight } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getSessionTypeLabel } from '@/lib/utils/session-labels'
-import { CreateSessionDialog } from '@/components/sessions/create-session-dialog'
+import { CreateSessionDialog } from '@/modules/sessions/components/create-session-dialog'
 import { SuggestedNextSession } from './suggested-next-session'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 

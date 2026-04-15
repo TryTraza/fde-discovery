@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrepBriefPanel } from '@/components/sessions/prep-brief-panel'
+import { PrepBriefPanel } from '@/modules/sessions/components/prep-brief-panel'
 
 // Mock clerk
 vi.mock('@clerk/nextjs', () => ({

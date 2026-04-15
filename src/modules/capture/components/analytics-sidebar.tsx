@@ -1,7 +1,7 @@
 'use client'
 
 import { EVENT_TYPE_CONFIG } from '@/lib/capture/event-types'
-import type { LocalEvent } from '@/lib/hooks/use-event-sync'
+import type { LocalEvent } from '@/modules/capture/hooks/use-event-sync'
 
 interface AnalyticsSidebarProps {
   events: LocalEvent[]

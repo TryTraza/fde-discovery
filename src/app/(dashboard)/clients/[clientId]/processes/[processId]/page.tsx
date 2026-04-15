@@ -1,4 +1,4 @@
-import { ProcessOverview } from '@/components/processes/process-overview'
+import { ProcessOverview } from '@/modules/processes/components/process-overview'
 
 export default async function ProcessDetailPage({
   params,

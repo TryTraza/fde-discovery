@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { getEventTypeConfig } from '@/lib/capture/event-types'
 import { X, Pencil, Check } from 'lucide-react'
-import type { LocalEvent } from '@/lib/hooks/use-event-sync'
+import type { LocalEvent } from '@/modules/capture/hooks/use-event-sync'
 
 interface EventLogPanelProps {
   events: LocalEvent[]

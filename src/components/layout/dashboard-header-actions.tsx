@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Brain } from 'lucide-react'
-import { ResearchPanel } from '@/components/layout/research-panel'
+import { ResearchPanel } from '@/modules/research/components/research-panel'
 
 export function DashboardHeaderActions() {
   const [researchOpen, setResearchOpen] = useState(false)

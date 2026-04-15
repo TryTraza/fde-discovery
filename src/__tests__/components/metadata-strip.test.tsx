@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { MetadataStrip } from '@/components/processes/metadata-strip'
+import { MetadataStrip } from '@/modules/processes/components/metadata-strip'
 
 const mockProcess = {
   departmentTag: 'Finance',

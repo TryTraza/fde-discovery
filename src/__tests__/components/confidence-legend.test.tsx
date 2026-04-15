@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { ConfidenceLegend } from '@/components/processes/confidence-legend'
+import { ConfidenceLegend } from '@/modules/processes/components/confidence-legend'
 
 describe('ConfidenceLegend', () => {
   it('renders Confirmed, Inferred, and Gap labels', () => {

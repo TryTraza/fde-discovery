@@ -1,4 +1,4 @@
-import { SessionsListPage } from '@/components/sessions/sessions-list-page'
+import { SessionsListPage } from '@/modules/sessions/components/sessions-list-page'
 
 export default async function SessionsPage({
   params,

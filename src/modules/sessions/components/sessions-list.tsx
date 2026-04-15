@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSessions } from '@/lib/hooks/use-sessions'
+import { useSessions } from '@/modules/sessions/hooks/use-sessions'
 import { getSessionTypeLabel } from '@/lib/utils/session-labels'
 import { SessionStatusBadge } from './session-status-badge'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'

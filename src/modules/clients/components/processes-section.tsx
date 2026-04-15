@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useProcesses } from '@/lib/hooks/use-processes'
-import { ProcessStatusBadge } from '@/components/processes/process-status-badge'
-import { CreateProcessDialog } from '@/components/processes/create-process-dialog'
+import { useProcesses } from '@/modules/processes/hooks/use-processes'
+import { ProcessStatusBadge } from '@/modules/processes/components/process-status-badge'
+import { CreateProcessDialog } from '@/modules/processes/components/create-process-dialog'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'

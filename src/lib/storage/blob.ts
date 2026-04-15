@@ -1,5 +1,5 @@
 import 'server-only'
-import { put, del, head } from '@vercel/blob'
+import { put, del, get } from '@vercel/blob'
 import { env } from '@/lib/env'
 
 export async function uploadFile(
@@ -10,7 +10,7 @@ export async function uploadFile(
 ): Promise<string> {
   const key = `${bucket}/${path}`
   const blob = await put(key, file, {
-    access: 'public',
+    access: 'private',
     contentType,
     token: env.BLOB_READ_WRITE_TOKEN,
     addRandomSuffix: false,
@@ -23,12 +23,18 @@ export async function deleteFile(bucket: string, path: string): Promise<void> {
   await del(key, { token: env.BLOB_READ_WRITE_TOKEN })
 }
 
-// Returns the blob's canonical URL. Caller must NOT leak it to clients —
-// route handlers should stream the bytes through the API after authorization.
-export async function getBlobUrl(bucket: string, path: string): Promise<string> {
+export async function getFileStream(
+  bucket: string,
+  path: string
+): Promise<{ stream: ReadableStream; contentType: string | null } | null> {
   const key = path.startsWith(`${bucket}/`) ? path : `${bucket}/${path}`
-  const meta = await head(key, { token: env.BLOB_READ_WRITE_TOKEN })
-  return meta.url
+  const result = await get(key, {
+    access: 'private',
+    token: env.BLOB_READ_WRITE_TOKEN,
+  })
+  if (!result) return null
+  return {
+    stream: result.stream,
+    contentType: result.headers.get('content-type'),
+  }
 }
-
-export const getSignedUrl = getBlobUrl

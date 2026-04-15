@@ -19,8 +19,10 @@ vi.mock('@/lib/db/queries/artifacts', () => ({
 vi.mock('@/lib/storage/blob', () => ({
   uploadFile: vi.fn().mockResolvedValue('artifacts/process-1/abc-file.pdf'),
   deleteFile: vi.fn().mockResolvedValue(undefined),
-  getBlobUrl: vi.fn().mockResolvedValue('https://blob.vercel-storage.com/abc'),
-  getSignedUrl: vi.fn().mockResolvedValue('https://blob.vercel-storage.com/abc'),
+  getFileStream: vi.fn().mockResolvedValue({
+    stream: new ReadableStream(),
+    contentType: 'application/pdf',
+  }),
 }))
 
 // --- Imports ---

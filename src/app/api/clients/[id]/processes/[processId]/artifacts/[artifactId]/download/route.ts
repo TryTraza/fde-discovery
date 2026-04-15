@@ -2,7 +2,7 @@ import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserId, handleAPIError } from '@/lib/auth/utils'
 import { getArtifactById } from '@/lib/db/queries/artifacts'
-import { getBlobUrl } from '@/lib/storage/blob'
+import { getFileStream } from '@/lib/storage/blob'
 
 export async function GET(
   _req: NextRequest,
@@ -17,16 +17,14 @@ export async function GET(
       return NextResponse.json({ error: 'Artifact not found' }, { status: 404 })
     }
 
-    const blobUrl = await getBlobUrl('artifacts', artifact.storagePath)
-    const upstream = await fetch(blobUrl)
-
-    if (!upstream.ok || !upstream.body) {
-      return NextResponse.json({ error: 'Failed to fetch artifact' }, { status: 502 })
+    const file = await getFileStream('artifacts', artifact.storagePath)
+    if (!file) {
+      return NextResponse.json({ error: 'Blob not found' }, { status: 404 })
     }
 
-    return new Response(upstream.body, {
+    return new Response(file.stream, {
       headers: {
-        'content-type': upstream.headers.get('content-type') ?? artifact.mimeType ?? 'application/octet-stream',
+        'content-type': file.contentType ?? artifact.mimeType ?? 'application/octet-stream',
         'content-disposition': `inline; filename="${artifact.filename}"`,
         'cache-control': 'private, no-store',
       },

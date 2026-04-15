@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+import type { CompanyProfile } from '@/lib/ai/contracts'
 
 // ====================================================================
 // ENUMS — 9 total
@@ -130,7 +131,7 @@ export const clients = pgTable('clients', {
   notes: text('notes'),
   status: clientStatusEnum('status').default('prospecting').notNull(),
   aiSummary: text('ai_summary'),
-  profile: jsonb('profile'), // CompanyProfile — see src/lib/ai/contracts/company-profile
+  profile: jsonb('profile').$type<CompanyProfile>(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),

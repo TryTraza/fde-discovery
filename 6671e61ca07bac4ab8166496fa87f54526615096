@@ -1,0 +1,23 @@
+docs/plans/ai-redesign-traza-migration.md
+  c5b3cef2cef12edf 1-418
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "6671e61ca07bac4ab8166496fa87f54526615096",
+  "prompts": {
+    "c5b3cef2cef12edf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "15fc985e-84b6-4992-b969-5f2359019b00",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 418,
+      "total_deletions": 0,
+      "accepted_lines": 418,
+      "overriden_lines": 0
+    }
+  }
+}

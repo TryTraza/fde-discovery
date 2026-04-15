@@ -152,6 +152,92 @@ describe('Process Hypothesis', () => {
     expect(callArgs.prompt).toContain('Purchase Request Received')
   })
 
+  it('composes and persists a structured ProcessHypothesis when AI returns full shape', async () => {
+    const { triggerProcessHypothesis } = await import('@/lib/ai/prompts/process-hypothesis')
+    vi.mocked(generateObject).mockResolvedValue({
+      object: {
+        hypothesisText: 'POs flow through SAP with Finance approval over 10k.',
+        matchedProcessType: 'procurement',
+        initialSteps: [
+          { name: 'Submit PO', description: 'Buyer submits', systems: ['SAP'], order: 1 },
+        ],
+        triggers: [{ description: 'New PO request', frequency: 'daily' }],
+        stakeholders: [{ role: 'Buyer', responsibility: 'Submits PO' }],
+        assumptions: [
+          {
+            text: 'All POs in SAP',
+            confidence: 'medium',
+            validationQuestion: 'Are there off-system POs?',
+          },
+        ],
+        openQuestions: ['What is approval SLA?'],
+      },
+    } as any)
+
+    triggerProcessHypothesis(
+      'process-123',
+      { name: 'Acme Corp' },
+      { name: 'Purchasing' },
+      'mock-model' as any
+    )
+
+    await vi.waitFor(() => {
+      const call = vi
+        .mocked(updateProcess)
+        .mock.calls.find((c) => c[0] === 'process-123')
+      expect(call).toBeDefined()
+      const patch = call![1] as Record<string, unknown>
+      expect(patch.hypothesisText).toBe('POs flow through SAP with Finance approval over 10k.')
+      expect(patch.hypothesis).toBeDefined()
+      const structured = patch.hypothesis as {
+        schemaVersion: number
+        summary: string
+        triggers: unknown[]
+        stakeholders: unknown[]
+        assumptions: unknown[]
+        expectedSystems: { name: string }[]
+      }
+      expect(structured.schemaVersion).toBe(1)
+      expect(structured.summary).toContain('SAP')
+      expect(structured.triggers).toHaveLength(1)
+      expect(structured.stakeholders).toHaveLength(1)
+      expect(structured.assumptions).toHaveLength(1)
+      expect(structured.expectedSystems.map((s) => s.name)).toContain('SAP')
+    })
+  })
+
+  it('persists hypothesis: null when structured composition fails', async () => {
+    const { triggerProcessHypothesis } = await import('@/lib/ai/prompts/process-hypothesis')
+    // Missing required fields (triggers/stakeholders/assumptions) should make
+    // composition throw — the legacy fields still get written, hypothesis is null.
+    vi.mocked(generateObject).mockResolvedValue({
+      object: {
+        hypothesisText: 'Partial hypothesis',
+        matchedProcessType: 'unknown',
+        initialSteps: [],
+      },
+    } as any)
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    triggerProcessHypothesis(
+      'process-123',
+      { name: 'Acme Corp' },
+      { name: 'Purchasing' },
+      'mock-model' as any
+    )
+
+    await vi.waitFor(() => {
+      expect(updateProcess).toHaveBeenCalledWith(
+        'process-123',
+        expect.objectContaining({
+          hypothesisText: 'Partial hypothesis',
+          hypothesis: null,
+        })
+      )
+    })
+    consoleSpy.mockRestore()
+  })
+
   it('handles generateObject errors gracefully', async () => {
     const { triggerProcessHypothesis } = await import('@/lib/ai/prompts/process-hypothesis')
     vi.mocked(generateObject).mockRejectedValue(new Error('API error'))

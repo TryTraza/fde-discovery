@@ -2,7 +2,8 @@ import 'server-only'
 import { generateObject } from 'ai'
 import type { LanguageModel } from 'ai'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
-import { hypothesisSchema, type HypothesisStep } from '../schemas/hypothesis'
+import { hypothesisSchema, type HypothesisOutput, type HypothesisStep } from '../schemas/hypothesis'
+import { processHypothesisSchema, type ProcessHypothesis } from '@/lib/ai/contracts'
 import { getAllL1Domains } from '@/lib/domain/l1'
 import { updateProcess, updateProcessModel } from '@/lib/db/queries/processes'
 
@@ -19,6 +20,29 @@ interface ProcessStepFull {
   confidence: 'inferred'
   edgeCases: []
   notes: string
+}
+
+function composeStructuredHypothesis(output: HypothesisOutput): ProcessHypothesis {
+  const expectedSystems = Array.from(
+    new Set(output.initialSteps.flatMap((s) => s.systems))
+  ).map((name) => ({
+    name,
+    purpose: 'Inferred from hypothesis steps',
+    confidence: 'low' as const,
+  }))
+
+  return processHypothesisSchema.parse({
+    schemaVersion: 1,
+    summary: output.hypothesisText,
+    triggers: output.triggers,
+    stakeholders: output.stakeholders,
+    inputs: [],
+    outputs: [],
+    expectedSystems,
+    assumptions: output.assumptions,
+    openQuestions: output.openQuestions ?? [],
+    generatedAt: new Date().toISOString(),
+  })
 }
 
 function mapAIStepsToProcessSteps(aiSteps: HypothesisStep[]): ProcessStepFull[] {
@@ -73,11 +97,15 @@ Available process type templates (pick the best match for matchedProcessType, or
 ${allDomains.map((d) => `\n--- ${d.type} (${d.label}) ---\nTypical steps: ${d.typicalSteps.map((s) => s.name).join(' → ')}\nCommon systems: ${d.commonSystems.join(', ') || 'none specified'}`).join('\n')}
 
 Based on this context, generate:
-1. A hypothesis about how this process likely works at this company
-2. The best matching process type from the templates above
-3. An ordered list of likely steps with the systems involved
+1. A 2-4 sentence hypothesis (hypothesisText)
+2. The best matching process type (matchedProcessType)
+3. An ordered list of likely steps with systems (initialSteps)
+4. What kicks off this process (triggers) — each with a description and, if you can infer it, a frequency
+5. Key stakeholders (stakeholders) — role + responsibility
+6. Explicit assumptions (assumptions) — each with text, confidence (high/medium/low), and a question to validate it
+7. Open questions worth asking the client (openQuestions)
 
-Be specific to the company context. If you recognize the industry, tailor the steps accordingly.
+Be specific to the company context. If you recognize the industry, tailor everything accordingly.
 If the process matches a known template, use it as a starting point but customize for this company.`,
   })
 
@@ -122,13 +150,24 @@ export function triggerProcessHypothesis(
         )
       }
 
+      let structured: ProcessHypothesis | null = null
+      try {
+        structured = composeStructuredHypothesis(result)
+      } catch (err) {
+        console.warn(
+          `[hypothesis] Could not compose structured hypothesis for ${processId}:`,
+          err
+        )
+      }
+
       await updateProcess(processId, {
         hypothesisText: result.hypothesisText,
+        hypothesis: structured,
         processTypeL1: result.matchedProcessType,
       })
 
       console.log(
-        `[hypothesis] Completed for process ${processId}: ${result.initialSteps.length} steps`
+        `[hypothesis] Completed for process ${processId}: ${result.initialSteps.length} steps${structured ? ' (structured)' : ''}`
       )
     })
     .catch((err) => {

@@ -9,6 +9,7 @@ import { useProcess } from '@/modules/processes/hooks/use-processes'
 import { useSessions } from '@/modules/sessions/hooks/use-sessions'
 import { parseProcessSteps } from '@/lib/validations/process'
 import { HypothesisCard } from './hypothesis-card'
+import { HypothesisPanel } from './hypothesis-panel'
 import { ProcessFlow } from './process-flow'
 import { ProcessStatusBadge } from './process-status-badge'
 import { MetadataStrip } from './metadata-strip'
@@ -130,6 +131,7 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,2fr)] gap-6 items-start">
         <div className="min-w-0 space-y-4">
           <HypothesisCard process={process} clientId={clientId} mutateProcess={mutateProcess} />
+          <HypothesisPanel hypothesis={process.hypothesis} />
           <ProcessFlow
             process={process}
             clientId={clientId}

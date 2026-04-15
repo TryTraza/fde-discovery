@@ -1,0 +1,85 @@
+src/modules/clients/components/client-overview.tsx
+  eb4d5a394f202027 1-122
+src/modules/clients/components/status-badge.tsx
+  eb4d5a394f202027 1-20
+src/modules/contacts/hooks/use-contacts.ts
+  eb4d5a394f202027 1-21
+src/modules/clients/types/index.ts
+  eb4d5a394f202027 1-25
+src/modules/clients/components/client-detail-card.tsx
+  eb4d5a394f202027 1-158
+src/components/clients/processes-section.tsx
+  eb4d5a394f202027 1
+src/modules/clients/services/clients-service.ts
+  eb4d5a394f202027 1-37
+src/modules/contacts/lib/swr-keys.ts
+  eb4d5a394f202027 1-8
+src/modules/contacts/components/contact-form-dialog.tsx
+  eb4d5a394f202027 1-194
+src/__tests__/modules/clients/swr-keys.test.ts
+  eb4d5a394f202027 1-40
+src/__tests__/modules/clients/clients-service.test.ts
+  eb4d5a394f202027 1-86
+src/lib/hooks/use-contacts.ts
+  eb4d5a394f202027 1-3
+src/components/clients/client-card.tsx
+  eb4d5a394f202027 1
+src/modules/clients/components/client-filters.tsx
+  eb4d5a394f202027 1-64
+src/modules/clients/components/create-client-dialog.tsx
+  eb4d5a394f202027 1-159
+src/components/clients/create-client-dialog.tsx
+  eb4d5a394f202027 1
+src/components/clients/client-filters.tsx
+  eb4d5a394f202027 1
+src/modules/clients/components/client-card.tsx
+  eb4d5a394f202027 1-52
+src/components/clients/client-overview.tsx
+  eb4d5a394f202027 1
+src/lib/hooks/use-clients.ts
+  eb4d5a394f202027 1-3
+src/modules/clients/components/processes-section.tsx
+  eb4d5a394f202027 1-103
+src/components/clients/ai-summary-card.tsx
+  eb4d5a394f202027 1
+src/components/clients/status-badge.tsx
+  eb4d5a394f202027 1
+src/components/clients/client-detail-card.tsx
+  eb4d5a394f202027 1
+src/modules/clients/hooks/use-clients.ts
+  eb4d5a394f202027 1-32
+src/modules/contacts/services/contacts-service.ts
+  eb4d5a394f202027 1-43
+src/modules/clients/components/client-list.tsx
+  eb4d5a394f202027 1-81
+src/modules/clients/lib/swr-keys.ts
+  eb4d5a394f202027 1-30
+src/components/clients/contacts-section.tsx
+  eb4d5a394f202027 1
+src/modules/contacts/components/contacts-section.tsx
+  eb4d5a394f202027 1-137
+src/modules/clients/components/ai-summary-card.tsx
+  eb4d5a394f202027 1-69
+src/components/clients/contact-form-dialog.tsx
+  eb4d5a394f202027 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "c0829ae46b9835ffdb59c3df8b6dc0a3779b1913",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1497,
+      "overriden_lines": 0
+    }
+  }
+}

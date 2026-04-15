@@ -32,7 +32,7 @@ export async function getFileStream(
     access: 'private',
     token: env.BLOB_READ_WRITE_TOKEN,
   })
-  if (!result) return null
+  if (!result || !result.stream) return null
   return {
     stream: result.stream,
     contentType: result.headers.get('content-type'),

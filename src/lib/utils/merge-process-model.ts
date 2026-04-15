@@ -1,10 +1,7 @@
-import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis';
+import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 
-export function mergeSteps(
-  current: any[],
-  synthesisSteps: SynthesisOutput['steps']
-): any[] {
-  const result = [...current];
+export function mergeSteps(current: any[], synthesisSteps: SynthesisOutput['steps']): any[] {
+  const result = [...current]
 
   for (const s of synthesisSteps) {
     switch (s.changeType) {
@@ -20,12 +17,12 @@ export function mergeSteps(
           branch_condition: null,
           related_edge_cases: [],
           notes: '',
-        });
-        break;
+        })
+        break
 
       case 'modified':
         if (s.stepId) {
-          const idx = result.findIndex(r => r.id === s.stepId);
+          const idx = result.findIndex((r) => r.id === s.stepId)
           if (idx !== -1) {
             result[idx] = {
               ...result[idx],
@@ -34,34 +31,34 @@ export function mergeSteps(
               order: s.order,
               confidence: s.confidence,
               systems: s.systems,
-            };
+            }
           } else {
-            console.warn(`Unknown stepId: ${s.stepId} — skipping`);
+            console.warn(`Unknown stepId: ${s.stepId} — skipping`)
           }
         }
-        break;
+        break
 
       case 'removed':
         if (s.stepId) {
-          const idx = result.findIndex(r => r.id === s.stepId);
-          if (idx !== -1) result.splice(idx, 1);
-          else console.warn(`Unknown stepId for removal: ${s.stepId} — skipping`);
+          const idx = result.findIndex((r) => r.id === s.stepId)
+          if (idx !== -1) result.splice(idx, 1)
+          else console.warn(`Unknown stepId for removal: ${s.stepId} — skipping`)
         }
-        break;
+        break
       // 'unchanged': skip
     }
   }
 
   return result
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map((step, i) => ({ ...step, order: i }));
+    .map((step, i) => ({ ...step, order: i }))
 }
 
 export function mergeEdgeCases(
   current: any[],
   synthesisEdgeCases: SynthesisOutput['edgeCases']
 ): any[] {
-  const result = [...current];
+  const result = [...current]
 
   for (const ec of synthesisEdgeCases) {
     switch (ec.changeType) {
@@ -73,40 +70,37 @@ export function mergeEdgeCases(
           suggestedHandling: ec.suggestedHandling,
           status: 'open',
           related_step_id: null,
-        });
-        break;
+        })
+        break
 
       case 'modified':
         if (ec.edgeCaseId) {
-          const idx = result.findIndex(r => r.id === ec.edgeCaseId);
+          const idx = result.findIndex((r) => r.id === ec.edgeCaseId)
           if (idx !== -1) {
             result[idx] = {
               ...result[idx],
               description: ec.description,
               frequency: ec.frequency,
               suggestedHandling: ec.suggestedHandling,
-            };
+            }
           } else {
-            console.warn(`Unknown edgeCaseId: ${ec.edgeCaseId} — skipping`);
+            console.warn(`Unknown edgeCaseId: ${ec.edgeCaseId} — skipping`)
           }
         }
-        break;
+        break
       // 'unchanged': skip
     }
   }
-  return result;
+  return result
 }
 
-export function mergeSystems(
-  current: any[],
-  synthesisSystems: SynthesisOutput['systems']
-): any[] {
-  const result = [...current];
+export function mergeSystems(current: any[], synthesisSystems: SynthesisOutput['systems']): any[] {
+  const result = [...current]
 
   for (const sys of synthesisSystems) {
     switch (sys.changeType) {
       case 'new': {
-        const exists = result.some(r => r.name.toLowerCase() === sys.name.toLowerCase());
+        const exists = result.some((r) => r.name.toLowerCase() === sys.name.toLowerCase())
         if (!exists) {
           result.push({
             id: crypto.randomUUID(),
@@ -116,13 +110,13 @@ export function mergeSystems(
             details: sys.details,
             gaps: sys.gaps ?? '',
             detailNotes: sys.detailNotes ?? '',
-          });
+          })
         }
-        break;
+        break
       }
 
       case 'modified': {
-        const idx = result.findIndex(r => r.name.toLowerCase() === sys.name.toLowerCase());
+        const idx = result.findIndex((r) => r.name.toLowerCase() === sys.name.toLowerCase())
         if (idx !== -1) {
           result[idx] = {
             ...result[idx],
@@ -130,15 +124,14 @@ export function mergeSystems(
             role: sys.role,
             details: sys.details,
             gaps: sys.gaps ?? result[idx].gaps ?? '',
-            detailNotes: [result[idx].detailNotes, sys.detailNotes]
-              .filter(Boolean)
-              .join('\n---\n') || '',
-          };
+            detailNotes:
+              [result[idx].detailNotes, sys.detailNotes].filter(Boolean).join('\n---\n') || '',
+          }
         }
-        break;
+        break
       }
       // 'unchanged': skip
     }
   }
-  return result;
+  return result
 }

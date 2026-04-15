@@ -1,6 +1,6 @@
-import type { LanguageModel } from 'ai';
-import { executeAI } from './builder';
-import { updateClient } from '@/lib/db/queries/clients';
+import type { LanguageModel } from 'ai'
+import { executeAI } from './builder'
+import { updateClient } from '@/lib/db/queries/clients'
 
 /**
  * Fire-and-forget company research via executeAI.
@@ -10,7 +10,7 @@ export function triggerCompanyResearchViaBuilder(
   clientId: string,
   client: { name: string; industry: string; website?: string | null },
   model: LanguageModel,
-  anthropic: any,
+  anthropic: any
 ) {
   executeAI({
     agentSlug: 'company-research',
@@ -27,13 +27,14 @@ export function triggerCompanyResearchViaBuilder(
     },
   })
     .then(async (result) => {
-      await updateClient(clientId, { aiSummary: result.text ?? '' });
+      await updateClient(clientId, { aiSummary: result.text ?? '' })
     })
     .catch(async (err) => {
-      console.error(`[research] Failed for client ${clientId}:`, err);
-      const msg = err?.message === 'NO_API_KEY'
-        ? 'No API key configured. Go to Settings to add your Anthropic API key.'
-        : 'Unable to complete company research at this time. Try again later.';
-      await updateClient(clientId, { aiSummary: msg }).catch(() => {});
-    });
+      console.error(`[research] Failed for client ${clientId}:`, err)
+      const msg =
+        err?.message === 'NO_API_KEY'
+          ? 'No API key configured. Go to Settings to add your Anthropic API key.'
+          : 'Unable to complete company research at this time. Try again later.'
+      await updateClient(clientId, { aiSummary: msg }).catch(() => {})
+    })
 }

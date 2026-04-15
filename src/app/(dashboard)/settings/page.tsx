@@ -1,73 +1,67 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, EyeOff } from 'lucide-react';
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Eye, EyeOff } from 'lucide-react'
+import { settingsService } from '@/modules/settings/services/settings-service'
+import { ApiError } from '@/lib/api-client'
 import {
   AVAILABLE_MODELS,
   AI_FEATURE_LABELS,
   DEFAULT_MODELS,
   getModelLabel,
   type AIFeature,
-} from '@/lib/ai/models';
+} from '@/lib/ai/models'
 
 type SettingsData = {
-  hasApiKey: boolean;
-  aiModels: Record<string, string>;
-  role: string;
-};
+  hasApiKey: boolean
+  aiModels: Record<string, string>
+  role: string
+}
 
 export default function SettingsPage() {
-  const { isLoaded, user } = useUser();
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [inFlight, setInFlight] = useState(false);
+  const { isLoaded, user } = useUser()
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
+  const [inFlight, setInFlight] = useState(false)
 
   // API key state
-  const [apiKey, setApiKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
-  const [hasApiKey, setHasApiKey] = useState(false);
-  const [keyError, setKeyError] = useState('');
+  const [apiKey, setApiKey] = useState('')
+  const [showKey, setShowKey] = useState(false)
+  const [hasApiKey, setHasApiKey] = useState(false)
+  const [keyError, setKeyError] = useState('')
 
   // Model preferences state
-  const [aiModels, setAiModels] = useState<Record<string, string>>({});
+  const [aiModels, setAiModels] = useState<Record<string, string>>({})
 
   // Fetch settings on mount
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const res = await fetch('/api/settings');
-        if (!res.ok) throw new Error('Failed to fetch settings');
-        const data: SettingsData = await res.json();
-        setHasApiKey(data.hasApiKey);
-        setAiModels(data.aiModels);
+        const data = await settingsService.get()
+        setHasApiKey(data.hasApiKey)
+        setAiModels(data.aiModels)
       } catch {
-        toast.error('Failed to load settings');
+        toast.error('Failed to load settings')
       } finally {
-        setSettingsLoaded(true);
+        setSettingsLoaded(true)
       }
     }
-    fetchSettings();
-  }, []);
+    fetchSettings()
+  }, [])
 
   // Loading gate: show skeleton until both Clerk and GET are resolved
   if (!isLoaded || !settingsLoaded) {
@@ -77,80 +71,80 @@ export default function SettingsPage() {
         <Skeleton className="h-48 w-full" />
         <Skeleton className="h-64 w-full" />
       </div>
-    );
+    )
   }
 
   function validateKey(value: string): string {
-    if (!value.trim()) return 'API key cannot be empty';
-    if (!value.startsWith('sk-ant-')) return 'API key must start with sk-ant-';
-    return '';
+    if (!value.trim()) return 'API key cannot be empty'
+    if (!value.startsWith('sk-ant-')) return 'API key must start with sk-ant-'
+    return ''
   }
 
   async function handleSaveKey() {
-    const error = validateKey(apiKey);
+    const error = validateKey(apiKey)
     if (error) {
-      setKeyError(error);
-      return;
+      setKeyError(error)
+      return
     }
-    setKeyError('');
-    setInFlight(true);
+    setKeyError('')
+    setInFlight(true)
     try {
-      const res = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ anthropicApiKey: apiKey }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
-      }
-      setHasApiKey(true);
-      setApiKey('');
-      await user?.reload();
-      toast.success('API key saved successfully');
+      await settingsService.updateApiKey(apiKey)
+      setHasApiKey(true)
+      setApiKey('')
+      await user?.reload()
+      toast.success('API key saved successfully')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save API key');
+      const message =
+        err instanceof ApiError && typeof (err.body as { error?: string })?.error === 'string'
+          ? (err.body as { error: string }).error
+          : err instanceof Error
+            ? err.message
+            : 'Failed to save API key'
+      toast.error(message)
     } finally {
-      setInFlight(false);
+      setInFlight(false)
     }
   }
 
   async function handleTestKey() {
-    setInFlight(true);
+    setInFlight(true)
     try {
-      const res = await fetch('/api/settings/test-key', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Test failed');
-      toast.success('API key is valid!');
+      await settingsService.testKey()
+      toast.success('API key is valid!')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Key test failed');
+      const message =
+        err instanceof ApiError && typeof (err.body as { error?: string })?.error === 'string'
+          ? (err.body as { error: string }).error
+          : err instanceof Error
+            ? err.message
+            : 'Key test failed'
+      toast.error(message)
     } finally {
-      setInFlight(false);
+      setInFlight(false)
     }
   }
 
   async function handleSaveModels() {
-    setInFlight(true);
+    setInFlight(true)
     try {
-      const res = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aiModels }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
-      }
-      await user?.reload();
-      toast.success('Model preferences saved');
+      await settingsService.updateAiModels(aiModels)
+      await user?.reload()
+      toast.success('Model preferences saved')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save model preferences');
+      const message =
+        err instanceof ApiError && typeof (err.body as { error?: string })?.error === 'string'
+          ? (err.body as { error: string }).error
+          : err instanceof Error
+            ? err.message
+            : 'Failed to save model preferences'
+      toast.error(message)
     } finally {
-      setInFlight(false);
+      setInFlight(false)
     }
   }
 
-  const features = Object.keys(AI_FEATURE_LABELS) as AIFeature[];
+  const features = Object.keys(AI_FEATURE_LABELS) as AIFeature[]
 
   return (
     <div className="space-y-6 max-w-2xl w-full">
@@ -175,9 +169,7 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="api-key">
-              {hasApiKey ? 'Update API Key' : 'Enter API Key'}
-            </Label>
+            <Label htmlFor="api-key">{hasApiKey ? 'Update API Key' : 'Enter API Key'}</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Input
@@ -186,8 +178,8 @@ export default function SettingsPage() {
                   placeholder="sk-ant-..."
                   value={apiKey}
                   onChange={(e) => {
-                    setApiKey(e.target.value);
-                    setKeyError('');
+                    setApiKey(e.target.value)
+                    setKeyError('')
                   }}
                 />
                 <button
@@ -216,35 +208,36 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>AI Model Preferences</CardTitle>
-          <CardDescription>
-            Choose which Claude model to use for each AI feature.
-          </CardDescription>
+          <CardDescription>Choose which Claude model to use for each AI feature.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {features.map((feature) => {
-            const selectedValue = aiModels[feature] || DEFAULT_MODELS[feature];
+            const selectedValue = aiModels[feature] || DEFAULT_MODELS[feature]
             return (
-            <div key={feature} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-              <Label>{AI_FEATURE_LABELS[feature]}</Label>
-              <Select
-                value={selectedValue}
-                onValueChange={(value) => {
-                  if (value) setAiModels((prev) => ({ ...prev, [feature]: value }));
-                }}
+              <div
+                key={feature}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4"
               >
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <span className="truncate">{getModelLabel(selectedValue)}</span>
-                </SelectTrigger>
-                <SelectContent>
-                  {AVAILABLE_MODELS.map((model) => (
-                    <SelectItem key={model.value} value={model.value}>
-                      {model.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            );
+                <Label>{AI_FEATURE_LABELS[feature]}</Label>
+                <Select
+                  value={selectedValue}
+                  onValueChange={(value) => {
+                    if (value) setAiModels((prev) => ({ ...prev, [feature]: value }))
+                  }}
+                >
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <span className="truncate">{getModelLabel(selectedValue)}</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABLE_MODELS.map((model) => (
+                      <SelectItem key={model.value} value={model.value}>
+                        {model.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )
           })}
           <Button onClick={handleSaveModels} disabled={inFlight}>
             Save Model Preferences
@@ -252,5 +245,5 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

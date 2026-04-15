@@ -1,66 +1,70 @@
-import 'server-only';
-import { getSessionById, listSessionContacts, getCompletedSessionsByProcess } from '@/lib/db/queries/sessions';
-import { getProcessWithModel } from '@/lib/db/queries/processes';
-import { getClientById } from '@/lib/db/queries/clients';
-import { getEventsBySessionId } from '@/lib/db/queries/events';
-import type { DebriefAnswers } from '@/lib/db/types';
+import 'server-only'
+import {
+  getSessionById,
+  listSessionContacts,
+  getCompletedSessionsByProcess,
+} from '@/lib/db/queries/sessions'
+import { getProcessWithModel } from '@/lib/db/queries/processes'
+import { getClientById } from '@/lib/db/queries/clients'
+import { getEventsBySessionId } from '@/lib/db/queries/events'
+import type { DebriefAnswers } from '@/lib/db/types'
 
 export interface SessionContext {
   client: {
-    id: string;
-    name: string;
-    industry: string;
-    website: string | null;
-    status: string;
-    aiSummary: string | null;
-    notes: string | null;
-  };
+    id: string
+    name: string
+    industry: string
+    website: string | null
+    status: string
+    aiSummary: string | null
+    notes: string | null
+  }
   process: {
-    id: string;
-    name: string;
-    description: string | null;
-    status: string;
-    hypothesisText: string | null;
-    departmentTag: string | null;
-    processTypeL1: string | null;
-    model: { steps: any[]; systems: any[]; edgeCases: any[] } | null;
-  };
+    id: string
+    name: string
+    description: string | null
+    status: string
+    hypothesisText: string | null
+    departmentTag: string | null
+    processTypeL1: string | null
+    model: { steps: any[]; systems: any[]; edgeCases: any[] } | null
+  }
   session: {
-    id: string;
-    type: string;
-    title: string;
-    date: string;
-    status: string;
-    interviewAnswers: any;
-    transcriptText: string | null;
-    notes: string | null;
-  };
+    id: string
+    type: string
+    title: string
+    date: string
+    status: string
+    interviewAnswers: any
+    transcriptText: string | null
+    notes: string | null
+  }
   sessionContacts: Array<{
-    id: string;
-    name: string;
-    role: string | null;
-    department: string | null;
-  }>;
+    id: string
+    name: string
+    role: string | null
+    department: string | null
+  }>
   priorSessions: Array<{
-    id: string;
-    type: string;
-    title: string;
-    date: string;
-    status: string;
-    interviewAnswers: any;
-    synthesisOutput: any;
-    transcriptText: string | null;
-    notes: string | null;
-  }>;
+    id: string
+    type: string
+    title: string
+    date: string
+    status: string
+    interviewAnswers: any
+    synthesisOutput: any
+    transcriptText: string | null
+    notes: string | null
+  }>
   // Shadowing-specific fields
   events?: Array<{
-    type: string;
-    label: string | null;
-    detail: string | null;
-    timestamp: string;
-  }>;
-  debriefAnswers?: DebriefAnswers | null;
-  notes?: string | null;
+    type: string
+    label: string | null
+    detail: string | null
+    timestamp: string
+  }>
+  debriefAnswers?: DebriefAnswers | null
+  notes?: string | null
 }
 
 /**
@@ -68,26 +72,26 @@ export interface SessionContext {
  * Used by all AI prompts (interview, prep-brief, synthesis) to ensure consistent context.
  */
 export async function buildSessionContext(sessionId: string): Promise<SessionContext> {
-  const session = await getSessionById(sessionId);
-  if (!session) throw new Error('Session not found');
+  const session = await getSessionById(sessionId)
+  if (!session) throw new Error('Session not found')
 
-  const process = await getProcessWithModel(session.processId);
-  if (!process) throw new Error('Process not found');
+  const process = await getProcessWithModel(session.processId)
+  if (!process) throw new Error('Process not found')
 
-  const client = await getClientById(process.clientId);
-  if (!client) throw new Error('Client not found');
+  const client = await getClientById(process.clientId)
+  if (!client) throw new Error('Client not found')
 
   const [contacts, completedSessions] = await Promise.all([
     listSessionContacts(sessionId),
     getCompletedSessionsByProcess(session.processId),
-  ]);
+  ])
 
-  const pm = process.processModel;
+  const pm = process.processModel
 
   // For shadowing sessions, load events for synthesis context
-  let shadowingFields: Pick<SessionContext, 'events' | 'debriefAnswers' | 'notes'> = {};
+  let shadowingFields: Pick<SessionContext, 'events' | 'debriefAnswers' | 'notes'> = {}
   if (session.type === 'shadowing') {
-    const events = await getEventsBySessionId(session.id);
+    const events = await getEventsBySessionId(session.id)
     shadowingFields = {
       events: events.map((e) => ({
         type: e.type,
@@ -97,7 +101,7 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
       })),
       debriefAnswers: session.debriefAnswers as DebriefAnswers | null,
       notes: session.notes ?? null,
-    };
+    }
   }
 
   return {
@@ -120,7 +124,11 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
       departmentTag: process.departmentTag,
       processTypeL1: process.processTypeL1,
       model: pm
-        ? { steps: (pm.steps as any[]) ?? [], systems: (pm.systems as any[]) ?? [], edgeCases: (pm.edgeCases as any[]) ?? [] }
+        ? {
+            steps: (pm.steps as any[]) ?? [],
+            systems: (pm.systems as any[]) ?? [],
+            edgeCases: (pm.edgeCases as any[]) ?? [],
+          }
         : null,
     },
     session: {
@@ -152,5 +160,5 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
         transcriptText: s.transcriptText,
         notes: s.notes,
       })),
-  };
+  }
 }

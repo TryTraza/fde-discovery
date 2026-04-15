@@ -1,18 +1,18 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 
 interface CollapsibleCardProps {
-  title: React.ReactNode;
+  title: React.ReactNode
   /** Elements rendered to the right of the title (buttons, badges) */
-  actions?: React.ReactNode;
+  actions?: React.ReactNode
   /** Content shown when expanded */
-  children: React.ReactNode;
+  children: React.ReactNode
   /** Default open state */
-  defaultOpen?: boolean;
+  defaultOpen?: boolean
 }
 
 export function CollapsibleCard({
@@ -21,7 +21,7 @@ export function CollapsibleCard({
   children,
   defaultOpen = true,
 }: CollapsibleCardProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(defaultOpen)
 
   return (
     <Card>
@@ -34,9 +34,7 @@ export function CollapsibleCard({
               />
               <CardTitle className="text-base">{title}</CardTitle>
             </CollapsibleTrigger>
-            {actions && (
-              <div className="flex items-center gap-2">{actions}</div>
-            )}
+            {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>
         </CardHeader>
         <CollapsibleContent>
@@ -44,5 +42,5 @@ export function CollapsibleCard({
         </CollapsibleContent>
       </Collapsible>
     </Card>
-  );
+  )
 }

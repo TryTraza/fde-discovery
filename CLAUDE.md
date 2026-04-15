@@ -333,6 +333,11 @@ vi.mock('@/lib/auth/utils', () => ({
 
 ## 📁 FILE CONVENTIONS
 
+The codebase follows the **module-first architecture** prescribed by Traza's
+`CONTRIBUTING.md`. Domain code lives under `src/modules/<domain>/`; only
+truly cross-cutting infrastructure stays under `src/lib/` and
+`src/components/`.
+
 ```
 src/
 ├── app/
@@ -340,30 +345,63 @@ src/
 │   ├── (dashboard)/
 │   │   ├── layout.tsx                    # Sidebar + breadcrumb
 │   │   └── clients/[clientId]/...        # All protected pages
-│   ├── api/                              # All API routes
+│   ├── api/                              # All API routes (server-side only)
 │   └── layout.tsx                        # Root (ClerkProvider)
 ├── components/
 │   ├── ui/                               # shadcn (auto-generated, never edit)
-│   ├── layout/                           # sidebar, breadcrumb, research panel
-│   ├── clients/ processes/ sessions/     # Feature components
-│   └── shared/                           # confirm-dialog, status-badge, etc.
+│   ├── layout/                           # sidebar, breadcrumb, header
+│   ├── providers/                        # SWRProvider etc.
+│   └── shared/                           # confirm-dialog, collapsible-card, …
 ├── lib/
+│   ├── api-client.ts                     # Typed HTTP client used by all services
 │   ├── db/
 │   │   ├── index.ts                      # Drizzle client
 │   │   ├── schema.ts                     # All table definitions + Zod schemas
 │   │   ├── types.ts                      # JSONB type interfaces
-│   │   └── queries/[entity].ts           # Query functions per entity
+│   │   └── queries/[entity].ts           # Query functions per entity (server-only)
 │   ├── ai/
-│   │   ├── get-ai-config.ts              # Per-user key + model resolver
+│   │   ├── get-ai-config.ts              # Per-user key + model resolver (server-only)
 │   │   ├── prompts/[feature].ts          # AI call functions
 │   │   └── schemas/[feature].ts          # Zod schemas for AI output
 │   ├── domain/l1/                        # L1 domain JSON files
 │   ├── auth/utils.ts                     # requireAdmin, requireAuth, handleAPIError
 │   ├── supabase/storage.ts               # Supabase storage client (files only)
-│   └── hooks/                            # SWR hooks: use-clients.ts, etc.
+│   ├── hooks/use-role.ts                 # Truly cross-cutting hooks only
+│   └── api/utils.ts                      # parseJSON for route handlers
+└── modules/                              # 🎯 Client-side domain code
+    ├── clients/{components,hooks,services,types,lib}/
+    ├── contacts/{components,hooks,services,lib}/
+    ├── processes/{components,hooks,services,types,lib}/
+    ├── sessions/{components,hooks,services,lib}/
+    ├── capture/{components,hooks,services}/
+    ├── debrief/{components,services}/
+    ├── research/{components,hooks,services}/
+    ├── artifacts/{components,hooks,services,lib}/
+    ├── ai/{hooks,services,lib}/          # client-side AI hooks (skills, agents, suggestions)
+    └── settings/{services}/
 ```
 
+### Module conventions
+
+- **services/** — class-based singleton (`export const fooService = new FooService()`)
+  built on `apiClient`. Never call `fetch()` from a hook or component.
+- **lib/swr-keys.ts** — KEY factories + MATCH predicates for any module with
+  more than one cache key. Inline string keys in hooks are a code smell.
+- **hooks/** — SWR hooks read from the module's service via the factory key.
+- **types/** — re-exports from `lib/db/schema` plus module-local types.
+- **components/** — domain UI; uses `@/components/ui/*` for primitives and
+  the module's own service for mutations.
+
+Server-only code (Drizzle queries, AI prompts, `get-ai-config`, route
+handlers, `auth/utils`) stays under `src/lib/` and `src/app/api/`. Modules
+are for **client-side** domain code only.
+
 **Naming:** kebab-case for files, PascalCase for components, camelCase for functions.
+
+**Style:** no semicolons (Prettier-enforced), single quotes, 100-char line
+width. Run `npm run format` before committing if your editor doesn't
+auto-format. Use shadcn primitives (`<Button>`, `<Input>`, `<Textarea>`,
+`<Select>`) — never native HTML elements.
 
 ---
 

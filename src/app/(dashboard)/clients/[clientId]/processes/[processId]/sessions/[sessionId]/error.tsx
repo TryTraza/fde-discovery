@@ -1,14 +1,14 @@
-'use client';
+'use client'
 
-import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button'
+import { AlertCircle } from 'lucide-react'
 
 export default function SessionErrorBoundary({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+  error: Error & { digest?: string }
+  reset: () => void
 }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -19,5 +19,5 @@ export default function SessionErrorBoundary({
       </p>
       <Button onClick={reset}>Try again</Button>
     </div>
-  );
+  )
 }

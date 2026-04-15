@@ -1,24 +1,27 @@
-import { getSessionTypeLabel } from '@/lib/utils/session-labels';
-import type { SessionContext } from '@/lib/ai/context';
+import { getSessionTypeLabel } from '@/lib/utils/session-labels'
+import type { SessionContext } from '@/lib/ai/context'
 
 export function buildSynthesisPrompt(ctx: SessionContext): string {
-  const typeLabel = getSessionTypeLabel(ctx.session.type);
+  const typeLabel = getSessionTypeLabel(ctx.session.type)
 
   const modelSection = ctx.process.model
     ? `## Current Process Model\nSteps: ${JSON.stringify(ctx.process.model.steps)}\nSystems: ${JSON.stringify(ctx.process.model.systems)}\nEdge Cases: ${JSON.stringify(ctx.process.model.edgeCases)}`
-    : `## Current Process Model\nNone. Generate from scratch. All steps: changeType "new", stepId null.`;
+    : `## Current Process Model\nNone. Generate from scratch. All steps: changeType "new", stepId null.`
 
   const priorContext = ctx.priorSessions
-    .filter(s => s.synthesisOutput)
-    .map(s => {
-      const summary = (s.synthesisOutput as any)?.summary;
-      return summary ? `- ${getSessionTypeLabel(s.type)} "${s.title}" (${s.date}): ${summary}` : null;
+    .filter((s) => s.synthesisOutput)
+    .map((s) => {
+      const summary = (s.synthesisOutput as any)?.summary
+      return summary
+        ? `- ${getSessionTypeLabel(s.type)} "${s.title}" (${s.date}): ${summary}`
+        : null
     })
-    .filter(Boolean);
+    .filter(Boolean)
 
-  const contactsContext = ctx.sessionContacts.length > 0
-    ? `Session participants: ${ctx.sessionContacts.map(c => `${c.name}${c.role ? ` (${c.role})` : ''}`).join(', ')}`
-    : '';
+  const contactsContext =
+    ctx.sessionContacts.length > 0
+      ? `Session participants: ${ctx.sessionContacts.map((c) => `${c.name}${c.role ? ` (${c.role})` : ''}`).join(', ')}`
+      : ''
 
   return `You are analyzing a ${typeLabel} session for "${ctx.process.name}" at ${ctx.client.name} (${ctx.client.industry}).
 
@@ -52,5 +55,5 @@ IMPORTANT: stepId values must exactly match existing model step IDs. Use null fo
 
 For systems: use the actual field names (name, confirmed, role, details, gaps).
 Flag edge cases and generate open questions.
-Use priority values: critical, important, nice_to_have.`;
+Use priority values: critical, important, nice_to_have.`
 }

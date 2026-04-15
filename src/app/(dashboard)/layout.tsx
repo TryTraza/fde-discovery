@@ -1,18 +1,14 @@
-import { cookies } from 'next/headers';
-import { AppSidebar } from '@/components/layout/app-sidebar';
-import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { SWRProvider } from '@/components/providers/swr-provider';
-import { DashboardHeaderActions } from '@/components/layout/dashboard-header-actions';
+import { cookies } from 'next/headers'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { SWRProvider } from '@/components/providers/swr-provider'
+import { DashboardHeaderActions } from '@/components/layout/dashboard-header-actions'
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false';
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false'
 
   return (
     <TooltipProvider>
@@ -32,5 +28,5 @@ export default async function DashboardLayout({
         </SidebarProvider>
       </SWRProvider>
     </TooltipProvider>
-  );
+  )
 }

@@ -1,19 +1,19 @@
-import { NextResponse } from 'next/server';
-import { requireAuthWithUser, handleAPIError } from '@/lib/auth/utils';
-import { getProcessById, updateProcess, updateProcessModel } from '@/lib/db/queries/processes';
-import { getClientById } from '@/lib/db/queries/clients';
-import { getAIConfig } from '@/lib/ai/get-ai-config';
-import { executeAI } from '@/lib/ai/builder';
+import { NextResponse } from 'next/server'
+import { requireAuthWithUser, handleAPIError } from '@/lib/auth/utils'
+import { getProcessById, updateProcess, updateProcessModel } from '@/lib/db/queries/processes'
+import { getClientById } from '@/lib/db/queries/clients'
+import { getAIConfig } from '@/lib/ai/get-ai-config'
+import { executeAI } from '@/lib/ai/builder'
 
 interface ProcessStepFull {
-  id: string;
-  name: string;
-  description: string;
-  order: number;
-  systems: Array<{ name: string; confirmed: boolean; detailNotes: string }>;
-  confidence: 'inferred';
-  edgeCases: [];
-  notes: string;
+  id: string
+  name: string
+  description: string
+  order: number
+  systems: Array<{ name: string; confirmed: boolean; detailNotes: string }>
+  confidence: 'inferred'
+  edgeCases: []
+  notes: string
 }
 
 function mapAIStepsToProcessSteps(aiSteps: any[]): ProcessStepFull[] {
@@ -30,7 +30,7 @@ function mapAIStepsToProcessSteps(aiSteps: any[]): ProcessStepFull[] {
     confidence: 'inferred' as const,
     edgeCases: [],
     notes: '',
-  }));
+  }))
 }
 
 export async function POST(
@@ -38,23 +38,23 @@ export async function POST(
   { params }: { params: Promise<{ id: string; processId: string }> }
 ) {
   try {
-    const { role } = await requireAuthWithUser();
+    const { role } = await requireAuthWithUser()
     if (role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { id, processId } = await params;
+    const { id, processId } = await params
 
-    const process = await getProcessById(processId);
+    const process = await getProcessById(processId)
     if (!process || process.clientId !== id) {
-      return NextResponse.json({ error: 'Process not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Process not found' }, { status: 404 })
     }
 
     const [client, { model, anthropic }] = await Promise.all([
       getClientById(id),
       getAIConfig('hypothesis'),
-    ]);
-    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    ])
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
 
     // Fire-and-forget: start generation, return immediately
     executeAI({
@@ -75,28 +75,28 @@ export async function POST(
       },
     })
       .then(async (result) => {
-        const hypothesis = result.data as any;
+        const hypothesis = result.data as any
         // Write steps BEFORE hypothesisText — UI polls for hypothesisText
-        const fullSteps = mapAIStepsToProcessSteps(hypothesis.initialSteps ?? []);
+        const fullSteps = mapAIStepsToProcessSteps(hypothesis.initialSteps ?? [])
 
-        const modelResult = await updateProcessModel(processId, { steps: fullSteps });
+        const modelResult = await updateProcessModel(processId, { steps: fullSteps })
         if (!modelResult) {
-          console.warn(`[hypothesis] Model row not found for process ${processId}`);
+          console.warn(`[hypothesis] Model row not found for process ${processId}`)
         }
 
         await updateProcess(processId, {
           hypothesisText: hypothesis.hypothesisText,
           processTypeL1: hypothesis.matchedProcessType,
-        });
+        })
 
-        console.log(`[hypothesis] Completed for process ${processId}: ${fullSteps.length} steps`);
+        console.log(`[hypothesis] Completed for process ${processId}: ${fullSteps.length} steps`)
       })
       .catch((err) => {
-        console.error(`[hypothesis] Failed for process ${processId}:`, err);
-      });
+        console.error(`[hypothesis] Failed for process ${processId}:`, err)
+      })
 
-    return NextResponse.json({ message: 'Hypothesis generation started' });
+    return NextResponse.json({ message: 'Hypothesis generation started' })
   } catch (error) {
-    return handleAPIError(error);
+    return handleAPIError(error)
   }
 }

@@ -1,0 +1,31 @@
+src/lib/db/migrations/meta/_journal.json
+  fd955c16e7741b85 46-52
+src/__tests__/db/research-notes-structured-schema.test.ts
+  fd955c16e7741b85 1-36
+src/lib/db/schema.ts
+  fd955c16e7741b85 14-19,305
+src/lib/db/migrations/0006_research_notes_response_structured.sql
+  fd955c16e7741b85 1
+src/lib/db/migrations/meta/0006_snapshot.json
+  fd955c16e7741b85 1-1454
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "daf61cedfa2efb881a693b6ede8c3e6720e670c9",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 1505,
+      "total_deletions": 1,
+      "accepted_lines": 1505,
+      "overriden_lines": 0
+    }
+  }
+}

@@ -1,0 +1,71 @@
+src/lib/hooks/use-artifacts.ts
+  eb4d5a394f202027 1-2
+src/components/layout/research-panel.tsx
+  eb4d5a394f202027 1
+src/__tests__/modules/artifacts/artifacts-service.test.ts
+  eb4d5a394f202027 1-76
+src/modules/ai/services/ai-agents-service.ts
+  eb4d5a394f202027 1-24
+src/components/processes/artifacts-panel.tsx
+  eb4d5a394f202027 1
+src/__tests__/modules/ai/ai-services.test.ts
+  eb4d5a394f202027 1-37
+src/modules/ai/hooks/use-skills.ts
+  eb4d5a394f202027 1-19
+src/modules/artifacts/services/artifacts-service.ts
+  eb4d5a394f202027 1-70
+src/modules/research/hooks/use-research-context.ts
+  eb4d5a394f202027 1-19
+src/modules/research/components/research-panel.tsx
+  eb4d5a394f202027 1-147
+src/components/sessions/email-draft-card.tsx
+  eb4d5a394f202027 1
+src/modules/research/services/research-service.ts
+  eb4d5a394f202027 1-16
+src/modules/artifacts/lib/swr-keys.ts
+  eb4d5a394f202027 1-4
+src/lib/hooks/use-ai-agents.ts
+  eb4d5a394f202027 1-2
+src/__tests__/modules/research/research-service.test.ts
+  eb4d5a394f202027 1-34
+src/modules/artifacts/components/artifacts-panel.tsx
+  eb4d5a394f202027 1-184
+src/modules/ai/hooks/use-ai-agents.ts
+  eb4d5a394f202027 1-31
+src/lib/hooks/use-suggestions.ts
+  eb4d5a394f202027 1-2
+src/lib/hooks/use-research-context.ts
+  eb4d5a394f202027 1-2
+src/modules/ai/services/skills-service.ts
+  eb4d5a394f202027 1-17
+src/modules/ai/lib/swr-keys.ts
+  eb4d5a394f202027 1-16
+src/modules/research/components/email-draft-card.tsx
+  eb4d5a394f202027 1-116
+src/lib/hooks/use-skills.ts
+  eb4d5a394f202027 1-2
+src/modules/ai/hooks/use-suggestions.ts
+  eb4d5a394f202027 1-97
+src/modules/artifacts/hooks/use-artifacts.ts
+  eb4d5a394f202027 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "8540802a3a7a6f6635e4ae76010e802aa7e16fdc",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 2867,
+      "total_deletions": 712,
+      "accepted_lines": 2855,
+      "overriden_lines": 0
+    }
+  }
+}

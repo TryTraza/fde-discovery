@@ -1,0 +1,29 @@
+src/__tests__/unit/ai/layers/l2-client.test.ts
+  fd955c16e7741b85 88-116
+src/lib/ai/layers/l2-client.ts
+  fd955c16e7741b85 4,13-37,100
+src/__tests__/unit/ai/layers/l3-process.test.ts
+  fd955c16e7741b85 93-179
+src/lib/ai/layers/l3-process.ts
+  fd955c16e7741b85 3,12-39,143,147-152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "8e0f90f776ca8657d2e4803f893ef2776866a876",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 179,
+      "total_deletions": 1,
+      "accepted_lines": 179,
+      "overriden_lines": 0
+    }
+  }
+}

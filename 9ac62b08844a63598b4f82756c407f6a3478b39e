@@ -1,0 +1,29 @@
+src/__tests__/api/artifacts.test.ts
+  0ca0cb6a1501c4c1 22-25
+src/__tests__/api/viewer-enforcement.test.ts
+  0ca0cb6a1501c4c1 44
+src/app/api/clients/[id]/processes/[processId]/artifacts/[artifactId]/download/route.ts
+  0ca0cb6a1501c4c1 5,20-22,25,27
+src/lib/storage/blob.ts
+  0ca0cb6a1501c4c1 2,13,26-29,31-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "9ac62b08844a63598b4f82756c407f6a3478b39e",
+  "prompts": {
+    "0ca0cb6a1501c4c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9dac85b2-7f82-469a-903f-51437de4825d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 26,
+      "total_deletions": 21,
+      "accepted_lines": 26,
+      "overriden_lines": 0
+    }
+  }
+}

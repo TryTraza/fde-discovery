@@ -16,10 +16,11 @@ vi.mock('@/lib/db/queries/artifacts', () => ({
   softDeleteArtifact: vi.fn(),
 }))
 
-vi.mock('@/lib/supabase/storage', () => ({
-  uploadFile: vi.fn().mockResolvedValue('process-1/abc-file.pdf'),
+vi.mock('@/lib/storage/blob', () => ({
+  uploadFile: vi.fn().mockResolvedValue('artifacts/process-1/abc-file.pdf'),
   deleteFile: vi.fn().mockResolvedValue(undefined),
-  getSignedUrl: vi.fn().mockResolvedValue('https://signed-url.example.com/file.pdf'),
+  getBlobUrl: vi.fn().mockResolvedValue('https://blob.vercel-storage.com/abc'),
+  getSignedUrl: vi.fn().mockResolvedValue('https://blob.vercel-storage.com/abc'),
 }))
 
 // --- Imports ---
@@ -38,7 +39,7 @@ import {
   getArtifactById,
   softDeleteArtifact,
 } from '@/lib/db/queries/artifacts'
-import { uploadFile, deleteFile, getSignedUrl } from '@/lib/supabase/storage'
+import { uploadFile, deleteFile } from '@/lib/storage/blob'
 
 // --- Helpers ---
 
@@ -205,7 +206,7 @@ describe('Artifacts API', () => {
   })
 
   describe('GET /api/clients/[id]/processes/[processId]/artifacts/[artifactId]', () => {
-    it('returns artifact with signed URL', async () => {
+    it('returns artifact with a same-origin proxied downloadUrl', async () => {
       setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
       vi.mocked(getArtifactById).mockResolvedValue(MOCK_ARTIFACT as any)
 
@@ -214,8 +215,9 @@ describe('Artifacts API', () => {
       expect(res.status).toBe(200)
 
       const data = await res.json()
-      expect(data.downloadUrl).toBe('https://signed-url.example.com/file.pdf')
-      expect(getSignedUrl).toHaveBeenCalledWith('artifacts', 'p1/abc-test.pdf')
+      expect(data.downloadUrl).toBe(
+        'http://localhost/api/clients/c1/processes/p1/artifacts/a1/download'
+      )
     })
 
     it('returns 404 for nonexistent artifact', async () => {

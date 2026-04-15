@@ -101,10 +101,10 @@ Blocker:        None
 |----------|--------|------|
 | No server Anthropic key | Each user stores own key in Clerk privateMetadata | 2026-03-08 |
 | Per-feature model selection | 5 features, defaults in get-ai-config.ts | 2026-03-08 |
-| Supabase new API format | No anon key; publishable key for client, secret key for server storage | 2026-03-08 |
+| Neon + Vercel Blob | Migrated DB to Neon (DATABASE_URL direct, DATABASE_POOLED_URL pooled) and artifact storage to Vercel Blob; downloads proxied through `/artifacts/[id]/download` to preserve access control | 2026-04-15 |
 | Session has transcript + notes | Two separate fields, both feed synthesis | 2026-03-08 |
 | SystemEntry.detailNotes | Free-text for column/sheet/mapping capture, aggregated in synthesis | 2026-03-08 |
-| prepare: false | Required for Supabase connection pooler (Transaction mode) | 2026-03-08 |
+| prepare: false | Required for Neon pooler (PgBouncer Transaction mode) | 2026-04-15 |
 | await params | Next.js 15 — params is a Promise in dynamic routes | 2026-03-08 |
 | Suggestions fail silently | NO_API_KEY during capture returns empty suggestions, never crashes UI | 2026-03-08 |
 | AI SDK v6 stopWhen | `maxSteps` removed; use `stopWhen: stepCountIs(n)` for tool loops | 2026-03-11 |
@@ -178,9 +178,9 @@ Blocker:        None
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | ✅ Set |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | ✅ Set |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | ✅ Set |
-| `DATABASE_URL` | ✅ Set |
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Set |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Set |
+| `DATABASE_URL` (Neon direct) | ⏳ Update to Neon value |
+| `DATABASE_POOLED_URL` (Neon pooled) | ⏳ Add to .env.local |
+| `BLOB_READ_WRITE_TOKEN` | ⏳ Add to .env.local (auto-injected on Vercel) |
 
 *(Update to ✅ as each is added to .env.local)*
 

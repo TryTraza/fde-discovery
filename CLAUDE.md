@@ -32,14 +32,12 @@ If you start writing code before approval, stop immediately.
 
 You have direct access to two MCP servers. **Use them — don't ask Alberto to run commands manually.**
 
-### Supabase MCP
-Use for all database operations:
-- **Run migrations** — after `drizzle-kit generate`, apply via MCP instead of asking Alberto to run CLI
-- **Inspect tables** — verify schema after migrations, check column types, confirm data
-- **Query data** — check seed data, debug query issues, verify soft deletes
-- **Check RLS** — we don't use RLS (Clerk handles auth), but verify no accidental policies block queries
+### Neon (Postgres)
+Managed serverless Postgres. Two connection strings are required:
+- `DATABASE_URL` — direct (unpooled) URL, used by `drizzle-kit` for migrations.
+- `DATABASE_POOLED_URL` — pooled (`-pooler` hostname, PgBouncer Transaction mode), used by the app at runtime via `src/lib/db/index.ts`.
 
-When to use: after every `drizzle-kit generate`, after seed scripts, when debugging DB issues.
+Use `npm run db:push` after schema changes. Inspect data via the Neon SQL editor or `psql` against the direct URL.
 
 ### Clerk MCP
 Use for user/auth operations during development:
@@ -61,8 +59,9 @@ If an operation can be done via MCP, do it via MCP. Don't instruct Alberto to ru
 - **Framework:** Next.js 16 (App Router, `src/` dir, TypeScript)
 - **UI:** shadcn/ui (New York style, Zinc color) + AI Elements
 - **ORM:** Drizzle ORM — ALL DB access via query functions in `lib/db/queries/*`
-- **Auth:** Clerk — middleware-only, no Supabase RLS
-- **Storage:** Supabase Storage (file uploads only — never for data queries)
+- **Auth:** Clerk — middleware-only, no DB-side row security
+- **Database:** Neon Postgres (direct URL for migrations, pooled URL for app runtime)
+- **Storage:** Vercel Blob (artifact file uploads, proxied through API for access control)
 - **AI:** Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) with per-user API keys
 - **Data fetching:** SWR for client-side, not React Query
 - **Testing:** Vitest (unit/integration) + Playwright (E2E)
@@ -70,7 +69,7 @@ If an operation can be done via MCP, do it via MCP. Don't instruct Alberto to ru
 
 ### Hard Rules
 - **No raw SQL** — use Drizzle query functions only
-- **No Supabase client for data** — storage only (`lib/supabase/storage.ts`)
+- **Blob access is proxied** — never return a Vercel Blob URL to the client; stream through an auth-checked API route (see `/api/clients/[id]/processes/[processId]/artifacts/[artifactId]/download`)
 - **No server-side `ANTHROPIC_API_KEY`** — every AI call uses the user's key from Clerk `privateMetadata`
 - **`await params`** — Next.js 16: `params` is a Promise in dynamic routes, always `const { id } = await params`
 - **`requireAdmin()`** on all write API routes, **`requireAuth()`** on all read routes
@@ -157,16 +156,18 @@ if (res.status === 422) {
 
 ## 🗄️ DATABASE
 
-### Supabase Connection (Transaction mode — required)
+### Neon Connection (Pooled at runtime, direct for migrations)
 ```typescript
-// lib/db/index.ts
+// lib/db/index.ts — runtime uses the pooled URL (PgBouncer Transaction mode)
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { env } from '@/lib/env';
 import * as schema from './schema';
 
-const client = postgres(process.env.DATABASE_URL!, { prepare: false }); // prepare: false required
+const client = postgres(env.DATABASE_POOLED_URL, { prepare: false }); // prepare: false required for the pooler
 export const db = drizzle(client, { schema });
 ```
+`drizzle.config.ts` reads `DATABASE_URL` (the direct/unpooled URL) for DDL.
 
 ### Key Schema Facts
 - All tables use `uuid().defaultRandom().primaryKey()`
@@ -365,7 +366,7 @@ src/
 │   │   └── schemas/[feature].ts          # Zod schemas for AI output
 │   ├── domain/l1/                        # L1 domain JSON files
 │   ├── auth/utils.ts                     # requireAdmin, requireAuth, handleAPIError
-│   ├── supabase/storage.ts               # Supabase storage client (files only)
+│   ├── storage/blob.ts                   # Vercel Blob client (artifact files only)
 │   ├── hooks/use-role.ts                 # Truly cross-cutting hooks only
 │   └── api/utils.ts                      # parseJSON for route handlers
 └── modules/                              # 🎯 Client-side domain code
@@ -444,10 +445,10 @@ The Settings page must be built in Phase 0. It's a dependency for all AI feature
 
 ## 🚨 CRITICAL GOTCHAS
 
-1. **`prepare: false`** on postgres client — required for Supabase connection pooler (Transaction mode)
+1. **`prepare: false`** on postgres client — required for the Neon pooler (PgBouncer Transaction mode)
 2. **`await params`** in every dynamic API route — Next.js 16 breaking change
 3. **`useChat` uses `sendMessage`** not `append` — AI SDK v4 API change
-4. **Supabase new API keys** — use `publishable` key as `NEXT_PUBLIC_SUPABASE_URL` companion, `secret` key as `SUPABASE_SERVICE_ROLE_KEY`; no anon key needed since we're server-side only for storage
+4. **Vercel Blob URLs are public** — `put({ access: 'public' })` is the only supported option. The artifacts GET returns a same-origin `/download` URL which streams the blob server-side after `requireUserId()`; never return the raw blob URL to the client.
 5. **Capture page bypasses layout** — uses `fixed inset-0`, not inside `(dashboard)` layout
 6. **Suggestions must never crash capture** — if `NO_API_KEY` or any error on suggestions route, return `{ suggestions: [] }` silently
 7. **Both transcript AND notes** feed into every synthesis call — never omit either

@@ -12,7 +12,7 @@ vi.mock('drizzle-orm/postgres-js', () => ({
 }))
 
 vi.mock('@/lib/env', () => ({
-  env: { DATABASE_URL: 'postgresql://test:test@localhost:6543/test' },
+  env: { DATABASE_POOLED_URL: 'postgresql://test:test@localhost:6543/test' },
 }))
 
 describe('DB client', () => {
@@ -37,7 +37,7 @@ describe('DB client', () => {
       },
     }))
     vi.doMock('@/lib/env', () => ({
-      env: { DATABASE_URL: 'postgresql://test:test@localhost:6543/test' },
+      env: { DATABASE_POOLED_URL: 'postgresql://test:test@localhost:6543/test' },
     }))
 
     await import('@/lib/db/index')

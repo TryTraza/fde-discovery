@@ -2,23 +2,26 @@ import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserId, requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { getArtifactById, softDeleteArtifact } from '@/lib/db/queries/artifacts'
-import { getSignedUrl, deleteFile } from '@/lib/supabase/storage'
+import { deleteFile } from '@/lib/storage/blob'
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string; processId: string; artifactId: string }> }
 ) {
   try {
     await requireUserId()
-    const { artifactId } = await params
+    const { id, processId, artifactId } = await params
     const artifact = await getArtifactById(artifactId)
 
     if (!artifact) {
       return NextResponse.json({ error: 'Artifact not found' }, { status: 404 })
     }
 
-    const url = await getSignedUrl('artifacts', artifact.storagePath)
-    return NextResponse.json({ ...artifact, downloadUrl: url })
+    const downloadUrl = new URL(
+      `/api/clients/${id}/processes/${processId}/artifacts/${artifactId}/download`,
+      req.url
+    ).toString()
+    return NextResponse.json({ ...artifact, downloadUrl })
   } catch (error) {
     return handleAPIError(error)
   }

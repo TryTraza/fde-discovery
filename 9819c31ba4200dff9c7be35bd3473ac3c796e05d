@@ -1,0 +1,45 @@
+src/lib/ai/features/email-draft.ts
+  fd955c16e7741b85 3-10,19
+src/lib/ai/gateway-local.ts
+  fd955c16e7741b85 1-52
+src/__tests__/api/sessions-email-draft.test.ts
+  fd955c16e7741b85 2,12-14,19,96,98,146,159,168-169,172,181-185
+src/__tests__/ai/templates/email-draft.test.ts
+  fd955c16e7741b85 18,21-24,26,29,33-34,45,48,58,63-89
+src/lib/ai/gateway-factory.ts
+  fd955c16e7741b85 1-16
+src/__tests__/ai/gateway-local.test.ts
+  fd955c16e7741b85 1-82
+src/lib/ai/gateway.ts
+  fd955c16e7741b85 1-38
+src/lib/ai/features/types.ts
+  fd955c16e7741b85 22-26,29-38
+src/__tests__/api/viewer-enforcement.test.ts
+  fd955c16e7741b85 66-67
+src/lib/ai/templates/email-draft.ts
+  fd955c16e7741b85 9-15,27,29-32,37-40,43,48,52-53
+src/app/api/sessions/[sessionId]/email-draft/route.ts
+  fd955c16e7741b85 9-32,63,65,67-74,78
+src/__tests__/ai/gateway-parity.test.ts
+  fd955c16e7741b85 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "9819c31ba4200dff9c7be35bd3473ac3c796e05d",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 374,
+      "total_deletions": 91,
+      "accepted_lines": 374,
+      "overriden_lines": 0
+    }
+  }
+}

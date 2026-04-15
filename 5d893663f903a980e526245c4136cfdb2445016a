@@ -1,0 +1,68 @@
+.agents/skills/langfuse/SKILL.md
+  6b21916ece6aa2c0 1-128
+.agents/skills/vercel-blob/README.md
+  6b21916ece6aa2c0 1-104
+.agents/skills/langfuse/references/prompt-migration.md
+  6b21916ece6aa2c0 1-234
+.agents/skills/vercel-blob/references/example-reference.md
+  6b21916ece6aa2c0 1-26
+.agents/skills/langfuse/references/instrumentation.md
+  6b21916ece6aa2c0 1-140
+.agents/skills/vercel-blob/SKILL.md
+  6b21916ece6aa2c0 2-4,6-8,10,12-15,19,21,23-26,28,30,32-33,35-51,54-58,61,63-69,71,74,76,79-84,87,89,91,93,95-96,98-101,103-105,107-111,113-117,120-122,124,126-128,130,132,136-140,142,144-169,171,175,177,179-180,182-186,188,190-195,197,200-205,211,213,215,217-220,222,225,227-238,240-245,248,250,252,254-256,258,260,262-265,267,269-272,275,277,279-282,284-294,296-301,306,308,310,312,314,316,318,320,322,324,326,328,330,332-338,342-404,406,408,410,412-416,420,422-423,428,430,432-433,435,437-438,440-443,445-449,451-455,457-458,460,464-465,467,469-470,472-474,476,478-481,483-489,491-493,495,497-513,519,521-522,524-526,528,530,532-545,551,553-556,558,560,562-563,565-566,568-587,591,593-596
+.agents/skills/vercel-blob/templates/file-list-manager.tsx
+  6b21916ece6aa2c0 1-318
+.agents/skills/langfuse/references/user-feedback.md
+  6b21916ece6aa2c0 1-88
+.agents/skills/vercel-blob/templates/package.json
+  6b21916ece6aa2c0 1-23
+.agents/skills/neon-postgres/SKILL.md
+  6b21916ece6aa2c0 1-186
+.agents/skills/langfuse/references/skill-feedback.md
+  6b21916ece6aa2c0 1-52
+.agents/skills/vercel-blob/scripts/example-script.sh
+  6b21916ece6aa2c0 1-15
+.agents/skills/vercel-blob/assets/example-template.txt
+  6b21916ece6aa2c0 1-14
+.agents/skills/langfuse/references/sdk-upgrade.md
+  6b21916ece6aa2c0 1-181
+.agents/skills/vercel-blob/templates/drag-drop-upload.tsx
+  6b21916ece6aa2c0 1-327
+.agents/skills/langfuse/references/cli.md
+  6b21916ece6aa2c0 1-49
+.agents/skills/vercel-blob/templates/avatar-upload-flow.tsx
+  6b21916ece6aa2c0 1-347
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "5d893663f903a980e526245c4136cfdb2445016a",
+  "prompts": {
+    "0ca0cb6a1501c4c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9dac85b2-7f82-469a-903f-51437de4825d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 144,
+      "total_deletions": 54,
+      "accepted_lines": 144,
+      "overriden_lines": 0
+    },
+    "6b21916ece6aa2c0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ba0ea344-dab6-4d09-887b-3d4872702f2d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 2843,
+      "total_deletions": 2133,
+      "accepted_lines": 2843,
+      "overriden_lines": 0
+    }
+  }
+}

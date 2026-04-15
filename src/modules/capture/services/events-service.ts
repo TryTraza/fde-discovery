@@ -19,10 +19,7 @@ class EventsService {
   }
 
   async batchSync(sessionId: string, events: EventPayload[]): Promise<BatchSyncResponse> {
-    return apiClient.post<BatchSyncResponse>(
-      `/api/sessions/${sessionId}/events/batch`,
-      { events }
-    )
+    return apiClient.post<BatchSyncResponse>(`/api/sessions/${sessionId}/events/batch`, { events })
   }
 
   async updateField(

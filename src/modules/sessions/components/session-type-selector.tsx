@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import { Users, Route, Eye, FileText, Monitor } from 'lucide-react';
+import { Users, Route, Eye, FileText, Monitor } from 'lucide-react'
 
 const SESSION_TYPES = [
   {
@@ -33,10 +33,10 @@ const SESSION_TYPES = [
     description: 'Watch system demonstrations',
     icon: Monitor,
   },
-] as const;
+] as const
 
 interface SessionTypeSelectorProps {
-  onSelect: (type: string) => void;
+  onSelect: (type: string) => void
 }
 
 export function SessionTypeSelector({ onSelect }: SessionTypeSelectorProps) {
@@ -59,5 +59,5 @@ export function SessionTypeSelector({ onSelect }: SessionTypeSelectorProps) {
         </button>
       ))}
     </div>
-  );
+  )
 }

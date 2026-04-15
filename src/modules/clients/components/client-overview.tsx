@@ -92,8 +92,8 @@ export function ClientOverview({ clientId }: { clientId: string }) {
                 <DialogHeader>
                   <DialogTitle>Delete client</DialogTitle>
                   <DialogDescription>
-                    This will soft-delete <strong>{client.name}</strong> and all associated
-                    contacts and processes. This action cannot be easily undone.
+                    This will soft-delete <strong>{client.name}</strong> and all associated contacts
+                    and processes. This action cannot be easily undone.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

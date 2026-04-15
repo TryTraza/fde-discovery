@@ -138,13 +138,7 @@ function InlineField({
   )
 }
 
-function InlineTextarea({
-  value,
-  onBlur,
-}: {
-  value: string
-  onBlur: (val: string) => void
-}) {
+function InlineTextarea({ value, onBlur }: { value: string; onBlur: (val: string) => void }) {
   const [localValue, setLocalValue] = useState(value)
 
   return (

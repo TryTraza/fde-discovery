@@ -1,109 +1,108 @@
-'use client';
+'use client'
 
-import { useState, useCallback } from 'react';
-import Link from 'next/link';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { sessionsService } from '@/modules/sessions/services/sessions-service';
-import { ApiError, ApiKeyMissingError } from '@/lib/api-client';
+import { useState, useCallback } from 'react'
+import Link from 'next/link'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
+import { sessionsService } from '@/modules/sessions/services/sessions-service'
+import { ApiError, ApiKeyMissingError } from '@/lib/api-client'
 
 interface InterviewStepProps {
-  processId: string;
-  sessionType: string;
-  onComplete: (answers: { question: string; answer: string }[]) => void;
-  onSkip: () => void;
+  processId: string
+  sessionType: string
+  onComplete: (answers: { question: string; answer: string }[]) => void
+  onSkip: () => void
 }
 
-export function InterviewStep({
-  processId,
-  sessionType,
-  onComplete,
-  onSkip,
-}: InterviewStepProps) {
-  const [answers, setAnswers] = useState<{ question: string; answer: string }[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
-  const [currentContext, setCurrentContext] = useState<string | null>(null);
-  const [currentAnswer, setCurrentAnswer] = useState('');
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isApiKeyError, setIsApiKeyError] = useState(false);
-  const [started, setStarted] = useState(false);
+export function InterviewStep({ processId, sessionType, onComplete, onSkip }: InterviewStepProps) {
+  const [answers, setAnswers] = useState<{ question: string; answer: string }[]>([])
+  const [currentQuestion, setCurrentQuestion] = useState<string | null>(null)
+  const [currentContext, setCurrentContext] = useState<string | null>(null)
+  const [currentAnswer, setCurrentAnswer] = useState('')
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isApiKeyError, setIsApiKeyError] = useState(false)
+  const [started, setStarted] = useState(false)
 
-  const fetchQuestion = useCallback(async (index: number, prevAnswers: { question: string; answer: string }[]) => {
-    setIsLoading(true);
-    setError(null);
-    setIsApiKeyError(false);
-    try {
-      const data = (await sessionsService.interview({
-        processId,
-        sessionType,
-        previousAnswers: prevAnswers,
-        questionIndex: index,
-      })) as { done?: boolean; question?: string; context?: string };
+  const fetchQuestion = useCallback(
+    async (index: number, prevAnswers: { question: string; answer: string }[]) => {
+      setIsLoading(true)
+      setError(null)
+      setIsApiKeyError(false)
+      try {
+        const data = (await sessionsService.interview({
+          processId,
+          sessionType,
+          previousAnswers: prevAnswers,
+          questionIndex: index,
+        })) as { done?: boolean; question?: string; context?: string }
 
-      if (data.done) {
-        onComplete(prevAnswers);
-        return;
+        if (data.done) {
+          onComplete(prevAnswers)
+          return
+        }
+
+        setCurrentQuestion(data.question ?? null)
+        setCurrentContext(data.context ?? null)
+        setCurrentAnswer('')
+      } catch (err) {
+        if (err instanceof ApiKeyMissingError) {
+          setError(
+            'No API key configured. Add your Anthropic API key in Settings to use AI features.'
+          )
+          setIsApiKeyError(true)
+        } else if (err instanceof ApiError && err.status === 403) {
+          setError('You need admin permissions to use AI features. Contact your administrator.')
+        } else if (err instanceof ApiError) {
+          const body = err.body as { error?: string } | null
+          setError(body?.error ?? 'Failed to generate question')
+        } else {
+          setError('Network error')
+        }
+      } finally {
+        setIsLoading(false)
       }
-
-      setCurrentQuestion(data.question ?? null);
-      setCurrentContext(data.context ?? null);
-      setCurrentAnswer('');
-    } catch (err) {
-      if (err instanceof ApiKeyMissingError) {
-        setError(
-          'No API key configured. Add your Anthropic API key in Settings to use AI features.'
-        );
-        setIsApiKeyError(true);
-      } else if (err instanceof ApiError && err.status === 403) {
-        setError(
-          'You need admin permissions to use AI features. Contact your administrator.'
-        );
-      } else if (err instanceof ApiError) {
-        const body = err.body as { error?: string } | null;
-        setError(body?.error ?? 'Failed to generate question');
-      } else {
-        setError('Network error');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [processId, sessionType, onComplete]);
+    },
+    [processId, sessionType, onComplete]
+  )
 
   const handleStart = () => {
-    setStarted(true);
-    fetchQuestion(0, []);
-  };
+    setStarted(true)
+    fetchQuestion(0, [])
+  }
 
   const handleNextQuestion = () => {
-    if (!currentQuestion || !currentAnswer.trim()) return;
+    if (!currentQuestion || !currentAnswer.trim()) return
 
-    const newAnswers = [...answers, { question: currentQuestion, answer: currentAnswer.trim() }];
-    setAnswers(newAnswers);
-    const nextIndex = questionIndex + 1;
-    setQuestionIndex(nextIndex);
+    const newAnswers = [...answers, { question: currentQuestion, answer: currentAnswer.trim() }]
+    setAnswers(newAnswers)
+    const nextIndex = questionIndex + 1
+    setQuestionIndex(nextIndex)
 
     if (nextIndex >= 3) {
-      onComplete(newAnswers);
+      onComplete(newAnswers)
     } else {
-      fetchQuestion(nextIndex, newAnswers);
+      fetchQuestion(nextIndex, newAnswers)
     }
-  };
+  }
 
   if (!started) {
     return (
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Answer 3 quick questions about your goals for this session. AI will use your answers to generate a tailored prep brief with refined questions and approaches.
+          Answer 3 quick questions about your goals for this session. AI will use your answers to
+          generate a tailored prep brief with refined questions and approaches.
         </p>
         <div className="flex gap-2">
           <Button onClick={handleStart}>Start Interview</Button>
-          <Button variant="outline" onClick={onSkip}>Skip</Button>
+          <Button variant="outline" onClick={onSkip}>
+            Skip
+          </Button>
         </div>
       </div>
-    );
+    )
   }
 
   if (isLoading) {
@@ -114,7 +113,7 @@ export function InterviewStep({
         <Skeleton className="h-4 w-1/2" />
         <Skeleton className="h-20 w-full" />
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -133,7 +132,11 @@ export function InterviewStep({
             </>
           ) : (
             <>
-              <Button variant="outline" size="sm" onClick={() => fetchQuestion(questionIndex, answers)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchQuestion(questionIndex, answers)}
+              >
                 Retry
               </Button>
               <Button variant="outline" size="sm" onClick={onSkip}>
@@ -143,16 +146,14 @@ export function InterviewStep({
           )}
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">Question {questionIndex + 1} of 3</p>
       <p className="text-sm font-medium">{currentQuestion}</p>
-      {currentContext && (
-        <p className="text-xs text-muted-foreground">{currentContext}</p>
-      )}
+      {currentContext && <p className="text-xs text-muted-foreground">{currentContext}</p>}
       <Textarea
         value={currentAnswer}
         onChange={(e) => setCurrentAnswer(e.target.value)}
@@ -160,10 +161,7 @@ export function InterviewStep({
         rows={3}
       />
       <div className="flex gap-2">
-        <Button
-          onClick={handleNextQuestion}
-          disabled={!currentAnswer.trim()}
-        >
+        <Button onClick={handleNextQuestion} disabled={!currentAnswer.trim()}>
           {questionIndex >= 2 ? 'Finish' : 'Next Question'}
         </Button>
         <Button variant="outline" onClick={() => onComplete(answers)}>
@@ -171,5 +169,5 @@ export function InterviewStep({
         </Button>
       </div>
     </div>
-  );
+  )
 }

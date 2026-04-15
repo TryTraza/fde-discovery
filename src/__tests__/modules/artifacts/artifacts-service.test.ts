@@ -23,9 +23,7 @@ describe('artifactsService', () => {
   it('list GETs the nested artifacts endpoint', async () => {
     mockGet.mockResolvedValue([])
     await artifactsService.list('client-1', 'process-1')
-    expect(mockGet).toHaveBeenCalledWith(
-      '/api/clients/client-1/processes/process-1/artifacts'
-    )
+    expect(mockGet).toHaveBeenCalledWith('/api/clients/client-1/processes/process-1/artifacts')
   })
 
   it('getDownloadUrl GETs single artifact endpoint', async () => {
@@ -69,8 +67,8 @@ describe('artifactsService', () => {
       json: async () => ({ error: 'too big' }),
     } as unknown as Response)
 
-    await expect(
-      artifactsService.upload('c', 'p', new File(['x'], 'x'), 'input')
-    ).rejects.toThrow('too big')
+    await expect(artifactsService.upload('c', 'p', new File(['x'], 'x'), 'input')).rejects.toThrow(
+      'too big'
+    )
   })
 })

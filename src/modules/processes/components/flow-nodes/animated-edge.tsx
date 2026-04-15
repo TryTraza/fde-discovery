@@ -1,22 +1,19 @@
-import { memo, useMemo } from 'react';
-import {
-  getSmoothStepPath,
-  type EdgeProps,
-} from '@xyflow/react';
+import { memo, useMemo } from 'react'
+import { getSmoothStepPath, type EdgeProps } from '@xyflow/react'
 
 /**
  * Take a smooth SVG path and add subtle hand-drawn jitter.
  * We parse the path commands and offset each coordinate slightly.
  */
 function wobblyPath(path: string, seed: number): string {
-  let i = 0;
+  let i = 0
   return path.replace(/-?\d+(\.\d+)?/g, (match) => {
-    const val = parseFloat(match);
+    const val = parseFloat(match)
     // Deterministic jitter based on seed + index
-    const jitter = Math.sin(seed * 127.1 + i * 311.7) * 1.2;
-    i++;
-    return (val + jitter).toFixed(2);
-  });
+    const jitter = Math.sin(seed * 127.1 + i * 311.7) * 1.2
+    i++
+    return (val + jitter).toFixed(2)
+  })
 }
 
 function AnimatedEdgeComponent({
@@ -36,18 +33,18 @@ function AnimatedEdgeComponent({
     sourcePosition,
     targetPosition,
     borderRadius: 20,
-  });
+  })
 
   // Stable seed from the edge id
   const seed = useMemo(() => {
-    let h = 0;
+    let h = 0
     for (let c = 0; c < id.length; c++) {
-      h = (h * 31 + id.charCodeAt(c)) | 0;
+      h = (h * 31 + id.charCodeAt(c)) | 0
     }
-    return h;
-  }, [id]);
+    return h
+  }, [id])
 
-  const handDrawnPath = useMemo(() => wobblyPath(basePath, seed), [basePath, seed]);
+  const handDrawnPath = useMemo(() => wobblyPath(basePath, seed), [basePath, seed])
 
   return (
     <>
@@ -77,7 +74,7 @@ function AnimatedEdgeComponent({
         <animateMotion dur="3.5s" repeatCount="indefinite" path={basePath} />
       </circle>
     </>
-  );
+  )
 }
 
-export const AnimatedEdge = memo(AnimatedEdgeComponent);
+export const AnimatedEdge = memo(AnimatedEdgeComponent)

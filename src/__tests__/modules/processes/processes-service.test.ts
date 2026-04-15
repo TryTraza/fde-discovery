@@ -53,18 +53,13 @@ describe('processesService', () => {
   it('regenerateHypothesis POSTs the hypothesis endpoint', async () => {
     mockPost.mockResolvedValue({})
     await processesService.regenerateHypothesis('c1', 'p1')
-    expect(mockPost).toHaveBeenCalledWith(
-      '/api/clients/c1/processes/p1/hypothesis'
-    )
+    expect(mockPost).toHaveBeenCalledWith('/api/clients/c1/processes/p1/hypothesis')
   })
 
   it('updateSteps PATCHes /api/clients/:c/processes/:p/steps', async () => {
     mockPatch.mockResolvedValue({})
     const steps = [{ id: 's1', name: 'a', order: 1 }]
     await processesService.updateSteps('c1', 'p1', steps)
-    expect(mockPatch).toHaveBeenCalledWith(
-      '/api/clients/c1/processes/p1/steps',
-      { steps }
-    )
+    expect(mockPatch).toHaveBeenCalledWith('/api/clients/c1/processes/p1/steps', { steps })
   })
 })

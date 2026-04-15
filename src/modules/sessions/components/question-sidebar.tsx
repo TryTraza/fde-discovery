@@ -1,13 +1,13 @@
-'use client';
+'use client'
 
-import { MessageSquare, Check, TriangleAlert } from 'lucide-react';
-import type { PrepQuestion } from '@/lib/ai/schemas/prep-brief';
+import { MessageSquare, Check, TriangleAlert } from 'lucide-react'
+import type { PrepQuestion } from '@/lib/ai/schemas/prep-brief'
 
 interface QuestionSidebarProps {
-  questions: PrepQuestion[];
-  questionsAsked: boolean[];
-  onToggleQuestion: (index: number) => void;
-  watchFor: string[];
+  questions: PrepQuestion[]
+  questionsAsked: boolean[]
+  onToggleQuestion: (index: number) => void
+  watchFor: string[]
 }
 
 export function QuestionSidebar({
@@ -16,10 +16,10 @@ export function QuestionSidebar({
   onToggleQuestion,
   watchFor,
 }: QuestionSidebarProps) {
-  const total = questions.length;
-  const coveredCount = questionsAsked.filter(Boolean).length;
-  const uncoveredCount = total - coveredCount;
-  const allCovered = uncoveredCount === 0;
+  const total = questions.length
+  const coveredCount = questionsAsked.filter(Boolean).length
+  const uncoveredCount = total - coveredCount
+  const allCovered = uncoveredCount === 0
 
   return (
     <div className="sticky top-4 space-y-4">
@@ -43,7 +43,7 @@ export function QuestionSidebar({
         ) : (
           <div className="space-y-2">
             {questions.map((q, i) => {
-              if (questionsAsked[i]) return null;
+              if (questionsAsked[i]) return null
               return (
                 <div key={i} className="flex items-start gap-2">
                   <button
@@ -57,7 +57,7 @@ export function QuestionSidebar({
                     {q.question}
                   </span>
                 </div>
-              );
+              )
             })}
           </div>
         )}
@@ -83,5 +83,5 @@ export function QuestionSidebar({
         </div>
       )}
     </div>
-  );
+  )
 }

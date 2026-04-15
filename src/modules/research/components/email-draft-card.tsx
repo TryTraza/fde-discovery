@@ -89,12 +89,7 @@ export function EmailDraftCard({ sessionId }: EmailDraftCardProps) {
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? 'Copied' : 'Copy'}
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleGenerate}
-                disabled={isLoading}
-              >
+              <Button size="sm" variant="outline" onClick={handleGenerate} disabled={isLoading}>
                 Regenerate
               </Button>
             </div>

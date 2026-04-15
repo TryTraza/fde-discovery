@@ -1,33 +1,33 @@
-'use client';
+'use client'
 
-import useSWR from 'swr';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { getEventTypeConfig, EVENT_TYPE_CONFIG } from '@/lib/capture/event-types';
-import type { EventType } from '@/lib/db/schema';
-import { sessionsService } from '@/modules/sessions/services/sessions-service';
-import { SESSION_KEYS } from '@/modules/sessions/lib/swr-keys';
+import useSWR from 'swr'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { getEventTypeConfig, EVENT_TYPE_CONFIG } from '@/lib/capture/event-types'
+import type { EventType } from '@/lib/db/schema'
+import { sessionsService } from '@/modules/sessions/services/sessions-service'
+import { SESSION_KEYS } from '@/modules/sessions/lib/swr-keys'
 
 interface ServerEvent {
-  id: string;
-  sessionId: string;
-  timestamp: string;
-  type: EventType;
-  label: string | null;
-  detail: string | null;
-  suggestionUsed: boolean;
+  id: string
+  sessionId: string
+  timestamp: string
+  type: EventType
+  label: string | null
+  detail: string | null
+  suggestionUsed: boolean
 }
 
 interface ReadOnlyEventLogProps {
-  sessionId: string;
-  footer?: React.ReactNode;
+  sessionId: string
+  footer?: React.ReactNode
 }
 
 export function ReadOnlyEventLog({ sessionId, footer }: ReadOnlyEventLogProps) {
   const { data: events, isLoading } = useSWR<ServerEvent[]>(
     SESSION_KEYS.events(sessionId),
     () => sessionsService.listEvents(sessionId) as Promise<ServerEvent[]>
-  );
+  )
 
   if (isLoading) {
     return (
@@ -41,7 +41,7 @@ export function ReadOnlyEventLog({ sessionId, footer }: ReadOnlyEventLogProps) {
           ))}
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (!events || events.length === 0) {
@@ -53,18 +53,16 @@ export function ReadOnlyEventLog({ sessionId, footer }: ReadOnlyEventLogProps) {
         <CardContent>
           <p className="text-sm text-muted-foreground">No events recorded for this session.</p>
         </CardContent>
-        {footer && (
-          <div className="border-t px-4 py-3">{footer}</div>
-        )}
+        {footer && <div className="border-t px-4 py-3">{footer}</div>}
       </Card>
-    );
+    )
   }
 
   // Summary stats
   const typeCounts = EVENT_TYPE_CONFIG.map((config) => ({
     ...config,
     count: events.filter((e) => e.type === config.id).length,
-  })).filter((t) => t.count > 0);
+  })).filter((t) => t.count > 0)
 
   return (
     <Card>
@@ -83,17 +81,23 @@ export function ReadOnlyEventLog({ sessionId, footer }: ReadOnlyEventLogProps) {
       <CardContent>
         <div className="max-h-[400px] overflow-y-auto space-y-0">
           {events.map((event) => {
-            const config = getEventTypeConfig(event.type);
-            const ts = new Date(event.timestamp);
-            const timeStr = `${String(ts.getHours()).padStart(2, '0')}:${String(ts.getMinutes()).padStart(2, '0')}:${String(ts.getSeconds()).padStart(2, '0')}`;
+            const config = getEventTypeConfig(event.type)
+            const ts = new Date(event.timestamp)
+            const timeStr = `${String(ts.getHours()).padStart(2, '0')}:${String(ts.getMinutes()).padStart(2, '0')}:${String(ts.getSeconds()).padStart(2, '0')}`
 
-            let displayText = event.label ?? '';
-            if (event.type === 'IMPLICIT' && !event.label) displayText = '[unlabeled implicit]';
-            if (event.type === 'QUESTION') displayText = event.detail ?? '[question]';
-            if (event.type === 'SYSTEM') displayText = event.label ? `${event.label}${event.detail ? ` — ${event.detail}` : ''}` : '';
+            let displayText = event.label ?? ''
+            if (event.type === 'IMPLICIT' && !event.label) displayText = '[unlabeled implicit]'
+            if (event.type === 'QUESTION') displayText = event.detail ?? '[question]'
+            if (event.type === 'SYSTEM')
+              displayText = event.label
+                ? `${event.label}${event.detail ? ` — ${event.detail}` : ''}`
+                : ''
 
             return (
-              <div key={event.id} className="flex items-center gap-2 py-1.5 px-1 rounded-md text-sm">
+              <div
+                key={event.id}
+                className="flex items-center gap-2 py-1.5 px-1 rounded-md text-sm"
+              >
                 <span className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                   {timeStr}
                 </span>
@@ -103,13 +107,11 @@ export function ReadOnlyEventLog({ sessionId, footer }: ReadOnlyEventLogProps) {
                 </span>
                 <span className="text-sm">{displayText}</span>
               </div>
-            );
+            )
           })}
         </div>
       </CardContent>
-      {footer && (
-        <div className="border-t px-4 py-3">{footer}</div>
-      )}
+      {footer && <div className="border-t px-4 py-3">{footer}</div>}
     </Card>
-  );
+  )
 }

@@ -1,7 +1,7 @@
-import type { CaptureContext } from '@/lib/ai/context/capture-context';
+import type { CaptureContext } from '@/lib/ai/context/capture-context'
 
 export function buildCapturePrompt(ctx: CaptureContext, activeType: 'STEP' | 'EDGE'): string {
-  const typeLabel = activeType === 'STEP' ? 'process steps' : 'edge cases';
+  const typeLabel = activeType === 'STEP' ? 'process steps' : 'edge cases'
 
   return `You are assisting an FDE (Forward Deployed Engineer) during a live shadowing session.
 They are observing someone perform a real business process and need quick suggestions for ${typeLabel} to log.
@@ -20,5 +20,5 @@ Generate 3-5 short suggestions for the NEXT likely ${typeLabel} the FDE might ob
 Each suggestion should be 3-8 words — short enough to tap quickly on a tablet.
 Base suggestions on: what typically comes next in this process type, what hasn't been logged yet, and the domain patterns.
 
-Return suggestions ranked by likelihood (most likely first).`;
+Return suggestions ranked by likelihood (most likely first).`
 }

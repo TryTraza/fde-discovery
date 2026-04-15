@@ -1,25 +1,25 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useSessions } from '@/modules/sessions/hooks/use-sessions';
-import { useProcess } from '@/modules/processes/hooks/use-processes';
-import { getSessionTypeLabel } from '@/lib/utils/session-labels';
-import { SessionStatusBadge } from './session-status-badge';
-import { CreateSessionDialog } from './create-session-dialog';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Plus, CalendarDays } from 'lucide-react';
+import { useState } from 'react'
+import Link from 'next/link'
+import { useSessions } from '@/modules/sessions/hooks/use-sessions'
+import { useProcess } from '@/modules/processes/hooks/use-processes'
+import { getSessionTypeLabel } from '@/lib/utils/session-labels'
+import { SessionStatusBadge } from './session-status-badge'
+import { CreateSessionDialog } from './create-session-dialog'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ArrowLeft, Plus, CalendarDays } from 'lucide-react'
 
 interface SessionsListPageProps {
-  clientId: string;
-  processId: string;
+  clientId: string
+  processId: string
 }
 
 export function SessionsListPage({ clientId, processId }: SessionsListPageProps) {
-  const { sessions, isLoading, error, mutateSessions } = useSessions(processId);
-  const { process } = useProcess(clientId, processId);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const { sessions, isLoading, error, mutateSessions } = useSessions(processId)
+  const { process } = useProcess(clientId, processId)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   if (isLoading) {
     return (
@@ -31,7 +31,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -45,9 +45,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
             <ArrowLeft className="size-4" />
           </Link>
           <h1 className="text-2xl font-bold">Sessions</h1>
-          {process && (
-            <span className="text-muted-foreground text-sm">— {process.name}</span>
-          )}
+          {process && <span className="text-muted-foreground text-sm">— {process.name}</span>}
         </div>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="mr-1.5 size-4" />
@@ -69,7 +67,9 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
         </div>
       ) : sessions.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground mb-4">No sessions yet. Create one to start gathering data.</p>
+          <p className="text-muted-foreground mb-4">
+            No sessions yet. Create one to start gathering data.
+          </p>
           <Button variant="outline" onClick={() => setDialogOpen(true)}>
             <Plus className="mr-1.5 size-4" />
             Create Session
@@ -109,5 +109,5 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
         onCreated={() => mutateSessions()}
       />
     </div>
-  );
+  )
 }

@@ -1,25 +1,26 @@
-'use client';
+'use client'
 
-import type { SuggestionsOutput } from '@/lib/ai/schemas/suggestions';
+import type { SuggestionsOutput } from '@/lib/ai/schemas/suggestions'
 
 interface SuggestionChipsProps {
-  suggestions: SuggestionsOutput['suggestions'];
-  isLoading: boolean;
-  onSelectSuggestion: (text: string) => void;
+  suggestions: SuggestionsOutput['suggestions']
+  isLoading: boolean
+  onSelectSuggestion: (text: string) => void
 }
 
-export function SuggestionChips({ suggestions, isLoading, onSelectSuggestion }: SuggestionChipsProps) {
-  if (!isLoading && suggestions.length === 0) return null;
+export function SuggestionChips({
+  suggestions,
+  isLoading,
+  onSelectSuggestion,
+}: SuggestionChipsProps) {
+  if (!isLoading && suggestions.length === 0) return null
 
   return (
     <div className="flex gap-2 px-4 py-2 border-b overflow-x-auto min-w-0">
       {isLoading && suggestions.length === 0 && (
         <>
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-8 w-24 rounded-full bg-muted animate-pulse flex-shrink-0"
-            />
+            <div key={i} className="h-8 w-24 rounded-full bg-muted animate-pulse flex-shrink-0" />
           ))}
         </>
       )}
@@ -37,5 +38,5 @@ export function SuggestionChips({ suggestions, isLoading, onSelectSuggestion }: 
         </button>
       ))}
     </div>
-  );
+  )
 }

@@ -1,16 +1,16 @@
-import { memo } from 'react';
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Play, Square } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { memo } from 'react'
+import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { Play, Square } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface TerminalNodeData {
-  label: 'Start' | 'End';
-  [key: string]: unknown;
+  label: 'Start' | 'End'
+  [key: string]: unknown
 }
 
 function TerminalNodeComponent({ data }: NodeProps) {
-  const { label } = data as TerminalNodeData;
-  const isStart = label === 'Start';
+  const { label } = data as TerminalNodeData
+  const isStart = label === 'Start'
 
   return (
     <div
@@ -49,7 +49,7 @@ function TerminalNodeComponent({ data }: NodeProps) {
         </>
       )}
     </div>
-  );
+  )
 }
 
-export const TerminalNode = memo(TerminalNodeComponent);
+export const TerminalNode = memo(TerminalNodeComponent)

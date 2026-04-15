@@ -27,9 +27,7 @@ class ArtifactsService {
     processId: string,
     artifactId: string
   ): Promise<{ downloadUrl: string }> {
-    return apiClient.get<{ downloadUrl: string }>(
-      `${basePath(clientId, processId)}/${artifactId}`
-    )
+    return apiClient.get<{ downloadUrl: string }>(`${basePath(clientId, processId)}/${artifactId}`)
   }
 
   async delete(clientId: string, processId: string, artifactId: string): Promise<void> {
@@ -58,8 +56,7 @@ class ArtifactsService {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      const message =
-        (body as { error?: string }).error || res.statusText || 'Upload failed'
+      const message = (body as { error?: string }).error || res.statusText || 'Upload failed'
       throw new Error(message)
     }
 

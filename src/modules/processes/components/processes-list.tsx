@@ -1,21 +1,21 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { useProcesses } from '@/modules/processes/hooks/use-processes';
-import { useClient } from '@/modules/clients/hooks/use-clients';
-import { ProcessStatusBadge } from './process-status-badge';
-import { CreateProcessDialog } from './create-process-dialog';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Plus } from 'lucide-react';
+import Link from 'next/link'
+import { useProcesses } from '@/modules/processes/hooks/use-processes'
+import { useClient } from '@/modules/clients/hooks/use-clients'
+import { ProcessStatusBadge } from './process-status-badge'
+import { CreateProcessDialog } from './create-process-dialog'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ArrowLeft, Plus } from 'lucide-react'
 
 interface ProcessesListProps {
-  clientId: string;
+  clientId: string
 }
 
 export function ProcessesList({ clientId }: ProcessesListProps) {
-  const { processes, isLoading, error, mutateProcesses } = useProcesses(clientId);
-  const { client } = useClient(clientId);
+  const { processes, isLoading, error, mutateProcesses } = useProcesses(clientId)
+  const { client } = useClient(clientId)
 
   if (isLoading) {
     return (
@@ -27,7 +27,7 @@ export function ProcessesList({ clientId }: ProcessesListProps) {
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -41,9 +41,7 @@ export function ProcessesList({ clientId }: ProcessesListProps) {
             <ArrowLeft className="size-4" />
           </Link>
           <h1 className="text-2xl font-bold">Processes</h1>
-          {client && (
-            <span className="text-muted-foreground text-sm">— {client.name}</span>
-          )}
+          {client && <span className="text-muted-foreground text-sm">— {client.name}</span>}
         </div>
         <CreateProcessDialog clientId={clientId} onCreated={() => mutateProcesses()}>
           <Button>
@@ -67,7 +65,9 @@ export function ProcessesList({ clientId }: ProcessesListProps) {
         </div>
       ) : processes.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground mb-4">No processes yet. Create one to start mapping.</p>
+          <p className="text-muted-foreground mb-4">
+            No processes yet. Create one to start mapping.
+          </p>
           <CreateProcessDialog clientId={clientId} onCreated={() => mutateProcesses()}>
             <Button variant="outline">
               <Plus className="mr-1.5 size-4" />
@@ -98,5 +98,5 @@ export function ProcessesList({ clientId }: ProcessesListProps) {
         </div>
       )}
     </div>
-  );
+  )
 }

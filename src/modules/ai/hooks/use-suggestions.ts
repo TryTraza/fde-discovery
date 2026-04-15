@@ -6,11 +6,7 @@ import type { SuggestionsOutput } from '@/lib/ai/schemas/suggestions'
 interface UseSuggestionsReturn {
   suggestions: SuggestionsOutput['suggestions']
   isLoading: boolean
-  fetchSuggestions: (
-    sessionId: string,
-    activeType: 'STEP' | 'EDGE',
-    eventCount: number
-  ) => void
+  fetchSuggestions: (sessionId: string, activeType: 'STEP' | 'EDGE', eventCount: number) => void
   clearSuggestions: () => void
 }
 

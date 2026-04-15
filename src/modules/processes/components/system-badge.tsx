@@ -1,12 +1,12 @@
 interface SystemEntry {
-  name: string;
-  confirmed: boolean;
-  detailNotes: string;
+  name: string
+  confirmed: boolean
+  detailNotes: string
 }
 
 interface SystemBadgeProps {
-  systemName: string;
-  entry?: SystemEntry;
+  systemName: string
+  entry?: SystemEntry
 }
 
 export function SystemBadge({ systemName, entry }: SystemBadgeProps) {
@@ -16,9 +16,7 @@ export function SystemBadge({ systemName, entry }: SystemBadgeProps) {
       title={entry?.detailNotes || undefined}
     >
       {systemName}
-      {entry?.confirmed && (
-        <span className="text-green-600">&#10003;</span>
-      )}
+      {entry?.confirmed && <span className="text-green-600">&#10003;</span>}
     </span>
-  );
+  )
 }

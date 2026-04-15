@@ -1,64 +1,64 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
-import type { EventLog } from '@/lib/db/schema';
-import type { DebriefItem } from '@/lib/db/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
+import type { EventLog } from '@/lib/db/schema'
+import type { DebriefItem } from '@/lib/db/types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
-import { debriefService, type DebriefItemPayload } from '@/modules/debrief/services/debrief-service';
-import { sessionsService } from '@/modules/sessions/services/sessions-service';
-import { ApiError } from '@/lib/api-client';
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react'
+import { debriefService, type DebriefItemPayload } from '@/modules/debrief/services/debrief-service'
+import { sessionsService } from '@/modules/sessions/services/sessions-service'
+import { ApiError } from '@/lib/api-client'
 
 interface DebriefPanelProps {
-  sessionId: string;
-  processId: string;
-  onComplete: () => void;
+  sessionId: string
+  processId: string
+  onComplete: () => void
 }
 
-type Resolution = DebriefItem['resolution'];
-type Priority = NonNullable<DebriefItem['priority']>;
+type Resolution = DebriefItem['resolution']
+type Priority = NonNullable<DebriefItem['priority']>
 
 interface AnswerState {
-  resolution: Resolution;
-  answer?: string;
-  description?: string;
-  priority?: Priority;
+  resolution: Resolution
+  answer?: string
+  description?: string
+  priority?: Priority
 }
 
 export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelProps) {
-  const [debriefEvents, setDebriefEvents] = useState<EventLog[]>([]);
-  const [allEvents, setAllEvents] = useState<EventLog[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Map<string, AnswerState>>(new Map());
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showReview, setShowReview] = useState(false);
+  const [debriefEvents, setDebriefEvents] = useState<EventLog[]>([])
+  const [allEvents, setAllEvents] = useState<EventLog[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [answers, setAnswers] = useState<Map<string, AnswerState>>(new Map())
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showReview, setShowReview] = useState(false)
 
   // Data loss prevention
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (answers.size > 0) {
-        e.preventDefault();
-        e.returnValue = '';
+        e.preventDefault()
+        e.returnValue = ''
       }
-    };
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, [answers.size]);
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [answers.size])
 
   // Fetch events on mount
   useEffect(() => {
@@ -67,48 +67,48 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
         const [debriefData, allData] = await Promise.all([
           debriefService.get<EventLog[]>(sessionId),
           sessionsService.listEvents(sessionId) as Promise<EventLog[]>,
-        ]);
+        ])
 
-        setAllEvents(allData);
+        setAllEvents(allData)
 
         if (debriefData.length === 0) {
           // Auto-skip: no debrief items
-          await debriefService.save(sessionId, { items: [] });
-          onComplete();
-          return;
+          await debriefService.save(sessionId, { items: [] })
+          onComplete()
+          return
         }
 
-        setDebriefEvents(debriefData);
+        setDebriefEvents(debriefData)
       } catch (err) {
         if (err instanceof ApiError) {
-          const body = err.body as { error?: string } | null;
-          setError(body?.error ?? 'Failed to load debrief events');
+          const body = err.body as { error?: string } | null
+          setError(body?.error ?? 'Failed to load debrief events')
         } else {
-          setError(err instanceof Error ? err.message : 'Failed to load debrief events');
+          setError(err instanceof Error ? err.message : 'Failed to load debrief events')
         }
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
-    load();
-  }, [sessionId, onComplete]);
+    load()
+  }, [sessionId, onComplete])
 
   const updateAnswer = useCallback((eventId: string, updates: Partial<AnswerState>) => {
-    setAnswers(prev => {
-      const next = new Map(prev);
-      const current = next.get(eventId) ?? { resolution: 'skipped' as Resolution };
-      next.set(eventId, { ...current, ...updates });
-      return next;
-    });
-  }, []);
+    setAnswers((prev) => {
+      const next = new Map(prev)
+      const current = next.get(eventId) ?? { resolution: 'skipped' as Resolution }
+      next.set(eventId, { ...current, ...updates })
+      return next
+    })
+  }, [])
 
   const handleSubmit = async () => {
-    setSubmitting(true);
-    setError(null);
+    setSubmitting(true)
+    setError(null)
     try {
-      const items: DebriefItemPayload[] = debriefEvents.map(event => {
-        const answer = answers.get(event.id);
-        const type = event.type === 'QUESTION' ? 'question' : 'implicit';
+      const items: DebriefItemPayload[] = debriefEvents.map((event) => {
+        const answer = answers.get(event.id)
+        const type = event.type === 'QUESTION' ? 'question' : 'implicit'
         return {
           eventLogId: event.id,
           type,
@@ -116,23 +116,23 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
           ...(answer?.answer && { answer: answer.answer }),
           ...(answer?.description && { description: answer.description }),
           ...(answer?.priority && { priority: answer.priority }),
-        };
-      });
+        }
+      })
 
-      await debriefService.save(sessionId, { items });
-      toast.success('Debrief saved successfully');
-      onComplete();
+      await debriefService.save(sessionId, { items })
+      toast.success('Debrief saved successfully')
+      onComplete()
     } catch (err) {
       if (err instanceof ApiError) {
-        const body = err.body as { error?: string } | null;
-        setError(body?.error ?? 'Failed to save debrief. Please try again.');
+        const body = err.body as { error?: string } | null
+        setError(body?.error ?? 'Failed to save debrief. Please try again.')
       } else {
-        setError('Failed to save debrief. Please try again.');
+        setError('Failed to save debrief. Please try again.')
       }
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -142,7 +142,7 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
           <span className="text-sm text-muted-foreground">Loading debrief items...</span>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (error && debriefEvents.length === 0) {
@@ -155,7 +155,7 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
           </Button>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (debriefEvents.length === 0) {
@@ -165,15 +165,21 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
           <p className="text-sm text-muted-foreground">No items to review.</p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   // Review screen
   if (showReview) {
-    const answered = Array.from(answers.values()).filter(a => a.resolution === 'asked_answered').length;
-    const described = Array.from(answers.values()).filter(a => a.resolution === 'described').length;
-    const openQ = Array.from(answers.values()).filter(a => a.resolution === 'open_question').length;
-    const skipped = debriefEvents.length - answered - described - openQ;
+    const answered = Array.from(answers.values()).filter(
+      (a) => a.resolution === 'asked_answered'
+    ).length
+    const described = Array.from(answers.values()).filter(
+      (a) => a.resolution === 'described'
+    ).length
+    const openQ = Array.from(answers.values()).filter(
+      (a) => a.resolution === 'open_question'
+    ).length
+    const skipped = debriefEvents.length - answered - described - openQ
 
     return (
       <Card>
@@ -185,30 +191,47 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2 text-sm">
-            {answered > 0 && <Badge variant="outline" className="bg-emerald-50 text-emerald-700">{answered} answered</Badge>}
-            {described > 0 && <Badge variant="outline" className="bg-blue-50 text-blue-700">{described} described</Badge>}
-            {openQ > 0 && <Badge variant="outline" className="bg-amber-50 text-amber-700">{openQ} open questions</Badge>}
+            {answered > 0 && (
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700">
+                {answered} answered
+              </Badge>
+            )}
+            {described > 0 && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                {described} described
+              </Badge>
+            )}
+            {openQ > 0 && (
+              <Badge variant="outline" className="bg-amber-50 text-amber-700">
+                {openQ} open questions
+              </Badge>
+            )}
             {skipped > 0 && <Badge variant="outline">{skipped} skipped</Badge>}
           </div>
 
           <div className="divide-y">
             {debriefEvents.map((event, i) => {
-              const answer = answers.get(event.id);
+              const answer = answers.get(event.id)
               return (
                 <button
                   key={event.id}
                   className="w-full text-left py-3 px-2 hover:bg-muted/50 rounded transition-colors"
-                  onClick={() => { setCurrentIndex(i); setShowReview(false); }}
+                  onClick={() => {
+                    setCurrentIndex(i)
+                    setShowReview(false)
+                  }}
                 >
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">{event.type}</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {event.type}
+                    </Badge>
                     <span className="text-sm flex-1 truncate">{event.label || event.detail}</span>
                     <Badge variant="outline" className="text-xs capitalize">
                       {(answer?.resolution ?? 'skipped').replace('_', ' ')}
                     </Badge>
                   </div>
                 </button>
-              );
+              )
             })}
           </div>
 
@@ -232,30 +255,28 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
           </div>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   // Sequential card view
-  const event = debriefEvents[currentIndex];
-  const answer = answers.get(event.id);
-  const isQuestion = event.type === 'QUESTION';
+  const event = debriefEvents[currentIndex]
+  const answer = answers.get(event.id)
+  const isQuestion = event.type === 'QUESTION'
 
   // Find previous event for context
-  const eventTimestamp = new Date(event.timestamp).getTime();
+  const eventTimestamp = new Date(event.timestamp).getTime()
   const prevEvent = allEvents
-    .filter(e => new Date(e.timestamp).getTime() < eventTimestamp)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    .filter((e) => new Date(e.timestamp).getTime() < eventTimestamp)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
 
-  const isLast = currentIndex === debriefEvents.length - 1;
+  const isLast = currentIndex === debriefEvents.length - 1
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant={isQuestion ? 'default' : 'secondary'}>
-              {event.type}
-            </Badge>
+            <Badge variant={isQuestion ? 'default' : 'secondary'}>{event.type}</Badge>
             <span className="text-xs text-muted-foreground">
               {new Date(event.timestamp).toLocaleTimeString()}
             </span>
@@ -291,7 +312,7 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
                 ...(value !== 'asked_answered' && { answer: undefined }),
                 ...(value !== 'described' && { description: undefined }),
                 ...(value !== 'open_question' && { priority: undefined }),
-              });
+              })
             }}
           >
             {isQuestion ? (
@@ -349,7 +370,9 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
           {answer?.resolution === 'open_question' && (
             <Select
               value={answer.priority ?? ''}
-              onValueChange={(value: string | null) => value && updateAnswer(event.id, { priority: value as Priority })}
+              onValueChange={(value: string | null) =>
+                value && updateAnswer(event.id, { priority: value as Priority })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select priority" />
@@ -367,7 +390,7 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
         <div className="flex justify-between pt-4 border-t">
           <Button
             variant="outline"
-            onClick={() => setCurrentIndex(i => i - 1)}
+            onClick={() => setCurrentIndex((i) => i - 1)}
             disabled={currentIndex === 0}
           >
             <ArrowLeft className="size-4 mr-1.5" />
@@ -379,10 +402,7 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
               Review &amp; Save
             </Button>
           ) : (
-            <Button
-              onClick={() => setCurrentIndex(i => i + 1)}
-              disabled={!answer?.resolution}
-            >
+            <Button onClick={() => setCurrentIndex((i) => i + 1)} disabled={!answer?.resolution}>
               Next
               <ArrowRight className="size-4 ml-1.5" />
             </Button>
@@ -390,5 +410,5 @@ export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelP
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

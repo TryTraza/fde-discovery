@@ -1,12 +1,12 @@
-import { parseProcessSteps } from '@/lib/validations/process';
-import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
+import { parseProcessSteps } from '@/lib/validations/process'
+import { Button } from '@/components/ui/button'
+import { Pencil } from 'lucide-react'
 
 interface MetadataStripProps {
-  process: any;
-  sessionCount: number;
-  completedSessionCount: number;
-  onEditClick: () => void;
+  process: any
+  sessionCount: number
+  completedSessionCount: number
+  onEditClick: () => void
 }
 
 export function MetadataStrip({
@@ -15,10 +15,10 @@ export function MetadataStrip({
   completedSessionCount,
   onEditClick,
 }: MetadataStripProps) {
-  const steps = parseProcessSteps(process.processModel?.steps);
-  const confirmed = steps.filter((s) => s.confidence === 'confirmed').length;
-  const inferred = steps.filter((s) => s.confidence === 'inferred').length;
-  const missing = steps.filter((s) => s.confidence === 'missing').length;
+  const steps = parseProcessSteps(process.processModel?.steps)
+  const confirmed = steps.filter((s) => s.confidence === 'confirmed').length
+  const inferred = steps.filter((s) => s.confidence === 'inferred').length
+  const missing = steps.filter((s) => s.confidence === 'missing').length
 
   return (
     <div className="flex items-center gap-4 flex-wrap rounded-lg bg-muted/50 px-4 py-2.5 text-sm">
@@ -53,7 +53,9 @@ export function MetadataStrip({
 
       <div className="flex items-center gap-1.5">
         <span className="text-xs text-muted-foreground">Sessions:</span>
-        <span className="font-medium text-xs">{completedSessionCount} / {sessionCount}</span>
+        <span className="font-medium text-xs">
+          {completedSessionCount} / {sessionCount}
+        </span>
       </div>
 
       <Button
@@ -67,9 +69,9 @@ export function MetadataStrip({
         Edit details
       </Button>
     </div>
-  );
+  )
 }
 
 function Separator() {
-  return <div className="h-4 w-px bg-border" />;
+  return <div className="h-4 w-px bg-border" />
 }

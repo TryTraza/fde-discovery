@@ -49,8 +49,7 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
     setMessages([])
   }
 
-  const isApiKeyError =
-    error?.message?.includes('422') || error?.message?.includes('No API key')
+  const isApiKeyError = error?.message?.includes('422') || error?.message?.includes('No API key')
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -90,8 +89,7 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
                       <ReactMarkdown>
                         {message.parts
                           ?.filter(
-                            (part): part is { type: 'text'; text: string } =>
-                              part.type === 'text'
+                            (part): part is { type: 'text'; text: string } => part.type === 'text'
                           )
                           .map((part) => part.text)
                           .join('') ?? ''}

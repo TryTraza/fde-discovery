@@ -1,29 +1,29 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useClients } from '@/lib/hooks/use-clients';
-import { ClientCard } from './client-card';
-import { ClientFilters } from './client-filters';
-import { CreateClientDialog } from './create-client-dialog';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ApiKeyBanner } from '@/components/shared/api-key-banner';
-import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react'
+import { useClients } from '@/lib/hooks/use-clients'
+import { ClientCard } from './client-card'
+import { ClientFilters } from './client-filters'
+import { CreateClientDialog } from './create-client-dialog'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ApiKeyBanner } from '@/components/shared/api-key-banner'
+import { Plus } from 'lucide-react'
 
 export function ClientList() {
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchInput, setSearchInput] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchInput), 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+    const timer = setTimeout(() => setDebouncedSearch(searchInput), 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
 
   const { clients, isLoading, mutateClients } = useClients({
     search: debouncedSearch || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
-  });
+  })
 
   return (
     <div className="space-y-6">
@@ -63,5 +63,5 @@ export function ClientList() {
         </div>
       )}
     </div>
-  );
+  )
 }

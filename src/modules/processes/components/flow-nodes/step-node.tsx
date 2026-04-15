@@ -1,7 +1,7 @@
-import { memo, useMemo } from 'react';
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { cn } from '@/lib/utils';
-import type { ProcessStepParsed } from '@/lib/validations/process';
+import { memo, useMemo } from 'react'
+import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { cn } from '@/lib/utils'
+import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const confidenceConfig = {
   confirmed: {
@@ -22,34 +22,34 @@ const confidenceConfig = {
     badge: 'bg-red-200/80 text-red-800 dark:bg-red-900/80 dark:text-red-300',
     accent: '#f87171',
   },
-};
+}
 
 interface StepNodeData {
-  step: ProcessStepParsed;
-  index: number;
-  [key: string]: unknown;
+  step: ProcessStepParsed
+  index: number
+  [key: string]: unknown
 }
 
 /** Generate a stable slightly-irregular border-radius to feel hand-drawn */
 function useSketchyRadius(seed: number) {
   return useMemo(() => {
-    const s = Math.sin(seed * 9301 + 49297) * 233280;
+    const s = Math.sin(seed * 9301 + 49297) * 233280
     const r = (i: number) => {
-      const v = Math.abs(Math.sin(s + i * 127.1)) * 6;
-      return 8 + v; // 8–14px range
-    };
-    return `${r(0)}px ${r(1)}px ${r(2)}px ${r(3)}px`;
-  }, [seed]);
+      const v = Math.abs(Math.sin(s + i * 127.1)) * 6
+      return 8 + v // 8–14px range
+    }
+    return `${r(0)}px ${r(1)}px ${r(2)}px ${r(3)}px`
+  }, [seed])
 }
 
 function StepNodeComponent({ data, selected }: NodeProps) {
-  const { step, index } = data as StepNodeData;
-  const conf = confidenceConfig[step.confidence];
-  const isMissing = step.confidence === 'missing';
-  const systemsToShow = step.systems.slice(0, 4);
-  const extraCount = step.systems.length - 4;
+  const { step, index } = data as StepNodeData
+  const conf = confidenceConfig[step.confidence]
+  const isMissing = step.confidence === 'missing'
+  const systemsToShow = step.systems.slice(0, 4)
+  const extraCount = step.systems.length - 4
 
-  const borderRadius = useSketchyRadius(index);
+  const borderRadius = useSketchyRadius(index)
 
   return (
     <div
@@ -59,7 +59,8 @@ function StepNodeComponent({ data, selected }: NodeProps) {
         'hover:shadow-[3px_4px_0px_0px_rgba(0,0,0,0.12)] hover:-translate-y-0.5',
         conf.border,
         conf.bg,
-        selected && 'shadow-[3px_4px_0px_0px_rgba(0,0,0,0.15)] -translate-y-0.5 ring-2 ring-primary/30',
+        selected &&
+          'shadow-[3px_4px_0px_0px_rgba(0,0,0,0.15)] -translate-y-0.5 ring-2 ring-primary/30',
         isMissing && 'border-dashed'
       )}
       style={{
@@ -77,15 +78,11 @@ function StepNodeComponent({ data, selected }: NodeProps) {
       <div className="px-3.5 py-3 space-y-2" style={{ fontFamily: 'var(--font-hand), cursive' }}>
         {/* Row 1: step number + name */}
         <div className="flex items-start gap-2 min-w-0">
-          <span
-            className="flex-shrink-0 text-base font-bold text-muted-foreground/70 tabular-nums leading-none mt-0.5"
-          >
+          <span className="flex-shrink-0 text-base font-bold text-muted-foreground/70 tabular-nums leading-none mt-0.5">
             {index + 1}.
           </span>
           <span className="text-[17px] font-semibold leading-snug line-clamp-2 flex-1">
-            {step.name || (
-              <span className="text-muted-foreground/50 italic">Unnamed step</span>
-            )}
+            {step.name || <span className="text-muted-foreground/50 italic">Unnamed step</span>}
           </span>
         </div>
 
@@ -125,7 +122,7 @@ function StepNodeComponent({ data, selected }: NodeProps) {
         className="!w-3 !h-3 !bg-background !border-[1.5px] !border-muted-foreground/50 !rounded-full !-bottom-[7px]"
       />
     </div>
-  );
+  )
 }
 
-export const StepNode = memo(StepNodeComponent);
+export const StepNode = memo(StepNodeComponent)

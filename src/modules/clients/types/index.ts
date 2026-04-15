@@ -1,8 +1,4 @@
-export type {
-  Client,
-  NewClient,
-  ClientStatus,
-} from '@/lib/db/schema'
+export type { Client, NewClient, ClientStatus } from '@/lib/db/schema'
 export { CLIENT_STATUSES } from '@/lib/db/schema'
 
 export interface ClientFilters {

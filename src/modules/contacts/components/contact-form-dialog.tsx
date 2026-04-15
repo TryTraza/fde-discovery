@@ -130,9 +130,7 @@ export function ContactFormDialog({
               onChange={(e) => setFormData((d) => ({ ...d, name: e.target.value }))}
               required
             />
-            {fieldErrors.name && (
-              <p className="text-xs text-destructive">{fieldErrors.name[0]}</p>
-            )}
+            {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name[0]}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">

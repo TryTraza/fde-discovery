@@ -1,64 +1,56 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, ChevronDown, ChevronRight, X, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import type { ProcessStepParsed } from '@/lib/validations/process';
+import { useState } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical, Trash2, ChevronDown, ChevronRight, X, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const confidenceColors = {
   confirmed: 'bg-green-100 text-green-700',
   inferred: 'bg-yellow-100 text-yellow-700',
   missing: 'bg-gray-100 text-gray-500',
-};
+}
 
 interface StepCardProps {
-  step: ProcessStepParsed;
-  index: number;
-  onUpdate: (id: string, field: keyof ProcessStepParsed, value: unknown) => void;
-  onDelete: (id: string) => void;
+  step: ProcessStepParsed
+  index: number
+  onUpdate: (id: string, field: keyof ProcessStepParsed, value: unknown) => void
+  onDelete: (id: string) => void
 }
 
 export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
-  const [expanded, setExpanded] = useState(false);
-  const [newSystem, setNewSystem] = useState('');
+  const [expanded, setExpanded] = useState(false)
+  const [newSystem, setNewSystem] = useState('')
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: step.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: step.id,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  };
+  }
 
   const addSystem = () => {
-    const name = newSystem.trim();
-    if (!name) return;
-    if (step.systems.some((s) => s.name.toLowerCase() === name.toLowerCase())) return;
-    onUpdate(step.id, 'systems', [
-      ...step.systems,
-      { name, confirmed: false, detailNotes: '' },
-    ]);
-    setNewSystem('');
-  };
+    const name = newSystem.trim()
+    if (!name) return
+    if (step.systems.some((s) => s.name.toLowerCase() === name.toLowerCase())) return
+    onUpdate(step.id, 'systems', [...step.systems, { name, confirmed: false, detailNotes: '' }])
+    setNewSystem('')
+  }
 
   const removeSystem = (systemName: string) => {
     onUpdate(
       step.id,
       'systems',
       step.systems.filter((s) => s.name !== systemName)
-    );
-  };
+    )
+  }
 
   return (
     <div ref={setNodeRef} style={style} className="border rounded-lg p-4 bg-background">
@@ -125,7 +117,10 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
               </span>
             ))}
             <form
-              onSubmit={(e) => { e.preventDefault(); addSystem(); }}
+              onSubmit={(e) => {
+                e.preventDefault()
+                addSystem()
+              }}
               className="inline-flex items-center gap-1"
             >
               <Input
@@ -171,7 +166,9 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
                   <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
                   <ul className="text-sm list-disc list-inside">
                     {step.edgeCases.map((ec: any, i: number) => (
-                      <li key={i}>{typeof ec === 'string' ? ec : ec.description ?? JSON.stringify(ec)}</li>
+                      <li key={i}>
+                        {typeof ec === 'string' ? ec : (ec.description ?? JSON.stringify(ec))}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -192,5 +189,5 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
         </Button>
       </div>
     </div>
-  );
+  )
 }

@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import type { ToolRegistryEntry } from '@/lib/ai/types';
+import { z } from 'zod'
+import type { ToolRegistryEntry } from '@/lib/ai/types'
 
 const toolRegistry: Record<string, ToolRegistryEntry> = {
   'web-search': {
@@ -9,21 +9,19 @@ const toolRegistry: Record<string, ToolRegistryEntry> = {
     optionsSchema: z.object({ maxSteps: z.number().int().positive().optional() }).optional(),
     factory: (anthropic, _options) => {
       if (!anthropic?.tools?.webSearch_20250305) {
-        throw new Error('Web search requires an Anthropic provider instance');
+        throw new Error('Web search requires an Anthropic provider instance')
       }
-      return anthropic.tools.webSearch_20250305();
+      return anthropic.tools.webSearch_20250305()
     },
   },
-};
+}
 
 export function getTool(slug: string): ToolRegistryEntry {
-  const entry = toolRegistry[slug];
+  const entry = toolRegistry[slug]
   if (!entry) {
-    throw new Error(
-      `Unknown tool: "${slug}". Available: ${Object.keys(toolRegistry).join(', ')}`
-    );
+    throw new Error(`Unknown tool: "${slug}". Available: ${Object.keys(toolRegistry).join(', ')}`)
   }
-  return entry;
+  return entry
 }
 
 export function listAvailableTools(): Array<{ slug: string; label: string; description: string }> {
@@ -31,5 +29,5 @@ export function listAvailableTools(): Array<{ slug: string; label: string; descr
     slug,
     label,
     description,
-  }));
+  }))
 }

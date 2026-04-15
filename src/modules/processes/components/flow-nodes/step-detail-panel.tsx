@@ -1,35 +1,30 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { ChevronUp, ChevronDown, Trash2, Plus, X } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import type { ProcessStepParsed } from '@/lib/validations/process';
+import { useState } from 'react'
+import { ChevronUp, ChevronDown, Trash2, Plus, X } from 'lucide-react'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const confidenceBadgeColors = {
   confirmed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
   inferred: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   missing: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
-};
+}
 
 interface StepDetailPanelProps {
-  open: boolean;
-  step: ProcessStepParsed | null;
-  stepIndex: number;
-  totalSteps: number;
-  onUpdate: (id: string, field: keyof ProcessStepParsed, value: unknown) => void;
-  onDelete: (id: string) => void;
-  onMoveUp: (id: string) => void;
-  onMoveDown: (id: string) => void;
-  onClose: () => void;
+  open: boolean
+  step: ProcessStepParsed | null
+  stepIndex: number
+  totalSteps: number
+  onUpdate: (id: string, field: keyof ProcessStepParsed, value: unknown) => void
+  onDelete: (id: string) => void
+  onMoveUp: (id: string) => void
+  onMoveDown: (id: string) => void
+  onClose: () => void
 }
 
 export function StepDetailPanel({
@@ -43,33 +38,35 @@ export function StepDetailPanel({
   onMoveDown,
   onClose,
 }: StepDetailPanelProps) {
-  const [newSystem, setNewSystem] = useState('');
+  const [newSystem, setNewSystem] = useState('')
 
-  if (!step) return null;
+  if (!step) return null
 
-  const isMissing = step.confidence === 'missing';
+  const isMissing = step.confidence === 'missing'
 
   const addSystem = () => {
-    const name = newSystem.trim();
-    if (!name) return;
-    if (step.systems.some((s) => s.name.toLowerCase() === name.toLowerCase())) return;
-    onUpdate(step.id, 'systems', [
-      ...step.systems,
-      { name, confirmed: false, detailNotes: '' },
-    ]);
-    setNewSystem('');
-  };
+    const name = newSystem.trim()
+    if (!name) return
+    if (step.systems.some((s) => s.name.toLowerCase() === name.toLowerCase())) return
+    onUpdate(step.id, 'systems', [...step.systems, { name, confirmed: false, detailNotes: '' }])
+    setNewSystem('')
+  }
 
   const removeSystem = (systemName: string) => {
     onUpdate(
       step.id,
       'systems',
       step.systems.filter((s) => s.name !== systemName)
-    );
-  };
+    )
+  }
 
   return (
-    <Sheet open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+    <Sheet
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose()
+      }}
+    >
       <SheetContent className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center justify-between pr-2">
@@ -98,7 +95,10 @@ export function StepDetailPanel({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => { onDelete(step.id); onClose(); }}
+                onClick={() => {
+                  onDelete(step.id)
+                  onClose()
+                }}
                 className="text-muted-foreground hover:text-destructive"
                 title="Delete step"
               >
@@ -170,7 +170,10 @@ export function StepDetailPanel({
                 </span>
               ))}
               <form
-                onSubmit={(e) => { e.preventDefault(); addSystem(); }}
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  addSystem()
+                }}
                 className="inline-flex items-center gap-1"
               >
                 <Input
@@ -207,7 +210,7 @@ export function StepDetailPanel({
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (
                   <li key={i}>
-                    {typeof ec === 'string' ? ec : ec.description ?? JSON.stringify(ec)}
+                    {typeof ec === 'string' ? ec : (ec.description ?? JSON.stringify(ec))}
                   </li>
                 ))}
               </ul>
@@ -223,5 +226,5 @@ export function StepDetailPanel({
         </div>
       </SheetContent>
     </Sheet>
-  );
+  )
 }

@@ -1,19 +1,22 @@
-import type { SessionContext } from '../context';
+import type { SessionContext } from '../context'
 
 export function buildShadowingSynthesisPrompt(ctx: SessionContext): string {
   // Group SYSTEM events by system name for detail note aggregation
   const systemEvents = (ctx.events ?? [])
-    .filter(e => e.type === 'SYSTEM')
-    .reduce((acc, e) => {
-      const name = e.label ?? 'Unknown System';
-      if (!acc[name]) acc[name] = [];
-      if (e.detail) acc[name].push(e.detail);
-      return acc;
-    }, {} as Record<string, string[]>);
+    .filter((e) => e.type === 'SYSTEM')
+    .reduce(
+      (acc, e) => {
+        const name = e.label ?? 'Unknown System'
+        if (!acc[name]) acc[name] = []
+        if (e.detail) acc[name].push(e.detail)
+        return acc
+      },
+      {} as Record<string, string[]>
+    )
 
   const modelSection = ctx.process.model
     ? `Current ProcessModel: ${JSON.stringify(ctx.process.model)}`
-    : 'No existing process model. Generate from scratch. All steps: changeType "new", stepId null.';
+    : 'No existing process model. Generate from scratch. All steps: changeType "new", stepId null.'
 
   return `You are analyzing a shadowing session for the FDE Discovery Tool.
 
@@ -60,5 +63,5 @@ Produce a structured synthesis with these sections:
 5. **openQuestions**: From unresolved debrief items, missing steps, unconfirmed systems. With priority.
 
 IMPORTANT: stepId values must exactly match existing model step IDs. Use null for new.
-Use priority values: critical, important, nice_to_have.`;
+Use priority values: critical, important, nice_to_have.`
 }

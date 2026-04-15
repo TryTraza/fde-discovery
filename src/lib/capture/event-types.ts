@@ -1,13 +1,13 @@
-import type { EventType } from '@/lib/db/schema';
+import type { EventType } from '@/lib/db/schema'
 
 export interface EventTypeConfig {
-  id: EventType;
-  label: string;
-  description: string;
-  color: string;
-  dotColor: string;
-  shortcutKey?: string;
-  behavior: 'input_panel' | 'system_picker' | 'instant_log';
+  id: EventType
+  label: string
+  description: string
+  color: string
+  dotColor: string
+  shortcutKey?: string
+  behavior: 'input_panel' | 'system_picker' | 'instant_log'
 }
 
 export const EVENT_TYPE_CONFIG: EventTypeConfig[] = [
@@ -56,14 +56,21 @@ export const EVENT_TYPE_CONFIG: EventTypeConfig[] = [
     shortcutKey: 'q',
     behavior: 'instant_log',
   },
-];
+]
 
 export const DEFAULT_SYSTEM_OPTIONS = [
-  'Email', 'Excel', 'SharePoint', 'SAP', 'ERP', 'Browser', 'Phone', 'Other',
-] as const;
+  'Email',
+  'Excel',
+  'SharePoint',
+  'SAP',
+  'ERP',
+  'Browser',
+  'Phone',
+  'Other',
+] as const
 
 export function getEventTypeConfig(type: EventType): EventTypeConfig {
-  const config = EVENT_TYPE_CONFIG.find((c) => c.id === type);
-  if (!config) throw new Error(`Unknown event type: ${type}`);
-  return config;
+  const config = EVENT_TYPE_CONFIG.find((c) => c.id === type)
+  if (!config) throw new Error(`Unknown event type: ${type}`)
+  return config
 }

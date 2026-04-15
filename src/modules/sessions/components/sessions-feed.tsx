@@ -1,38 +1,38 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { CalendarDays, Plus, ArrowRight } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { getSessionTypeLabel } from '@/lib/utils/session-labels';
-import { CreateSessionDialog } from '@/components/sessions/create-session-dialog';
-import { SuggestedNextSession } from './suggested-next-session';
-import type { ProcessStepParsed } from '@/lib/validations/process';
+import { useState } from 'react'
+import Link from 'next/link'
+import { CalendarDays, Plus, ArrowRight } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { getSessionTypeLabel } from '@/lib/utils/session-labels'
+import { CreateSessionDialog } from '@/components/sessions/create-session-dialog'
+import { SuggestedNextSession } from './suggested-next-session'
+import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   completed: 'bg-emerald-500',
   synthesis_done: 'bg-emerald-500',
   in_progress: 'bg-blue-500',
   planned: 'bg-violet-500',
-};
+}
 
 const STATUS_LABELS: Record<string, string> = {
   completed: 'Done',
   synthesis_done: 'Done',
   in_progress: 'Active',
   planned: 'Planned',
-};
+}
 
 interface SessionsFeedProps {
-  clientId: string;
-  processId: string;
-  sessions: any[];
-  isLoading: boolean;
-  error: any;
-  mutateSessions: () => void;
-  steps: ProcessStepParsed[];
-  processStatus: string;
+  clientId: string
+  processId: string
+  sessions: any[]
+  isLoading: boolean
+  error: any
+  mutateSessions: () => void
+  steps: ProcessStepParsed[]
+  processStatus: string
 }
 
 export function SessionsFeed({
@@ -45,7 +45,7 @@ export function SessionsFeed({
   steps,
   processStatus,
 }: SessionsFeedProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
     <>
@@ -132,5 +132,5 @@ export function SessionsFeed({
         onCreated={() => mutateSessions()}
       />
     </>
-  );
+  )
 }

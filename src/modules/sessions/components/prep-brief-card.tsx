@@ -1,59 +1,58 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { CollapsibleCard } from '@/components/shared/collapsible-card';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { CollapsibleCard } from '@/components/shared/collapsible-card'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from '@/components/ui/collapsible';
-import { Sparkles, RefreshCw, ChevronRight, MessageSquare, Target, AlertTriangle, Lightbulb } from 'lucide-react';
-import type { PrepBrief } from '@/lib/ai/schemas/prep-brief';
-import { sessionsService } from '@/modules/sessions/services/sessions-service';
-import { ApiError, ApiKeyMissingError } from '@/lib/api-client';
+  Sparkles,
+  RefreshCw,
+  ChevronRight,
+  MessageSquare,
+  Target,
+  AlertTriangle,
+  Lightbulb,
+} from 'lucide-react'
+import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
+import { sessionsService } from '@/modules/sessions/services/sessions-service'
+import { ApiError, ApiKeyMissingError } from '@/lib/api-client'
 
 interface PrepBriefCardProps {
-  sessionId: string;
-  prepBrief: PrepBrief | null;
-  mutateSession: () => void;
+  sessionId: string
+  prepBrief: PrepBrief | null
+  mutateSession: () => void
 }
 
 export function PrepBriefCard({ sessionId, prepBrief, mutateSession }: PrepBriefCardProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleGenerate = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      await sessionsService.generatePrepBrief(sessionId);
-      mutateSession();
-      toast.success('Prep brief generated');
+      await sessionsService.generatePrepBrief(sessionId)
+      mutateSession()
+      toast.success('Prep brief generated')
     } catch (error) {
       if (error instanceof ApiKeyMissingError) {
-        toast.error('Set your Anthropic API key in Settings to use AI features.');
+        toast.error('Set your Anthropic API key in Settings to use AI features.')
       } else if (error instanceof ApiError) {
-        const body = error.body as { error?: string } | null;
-        toast.error(body?.error ?? 'Failed to generate prep brief');
+        const body = error.body as { error?: string } | null
+        toast.error(body?.error ?? 'Failed to generate prep brief')
       } else {
-        toast.error('Network error');
+        toast.error('Network error')
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <CollapsibleCard
       title="Prep Brief"
       actions={
         prepBrief ? (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleGenerate}
-            disabled={isLoading}
-          >
+          <Button variant="ghost" size="icon-sm" onClick={handleGenerate} disabled={isLoading}>
             <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         ) : undefined
@@ -62,14 +61,10 @@ export function PrepBriefCard({ sessionId, prepBrief, mutateSession }: PrepBrief
       {!prepBrief ? (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Generate an AI prep brief with tailored questions, approaches, and focus areas for this session.
+            Generate an AI prep brief with tailored questions, approaches, and focus areas for this
+            session.
           </p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleGenerate}
-            disabled={isLoading}
-          >
+          <Button size="sm" variant="outline" onClick={handleGenerate} disabled={isLoading}>
             <Sparkles className="mr-1.5 size-3.5" />
             {isLoading ? 'Generating...' : 'Generate Prep Brief'}
           </Button>
@@ -80,11 +75,16 @@ export function PrepBriefCard({ sessionId, prepBrief, mutateSession }: PrepBrief
           <p className="text-muted-foreground">{prepBrief.summary}</p>
 
           {/* Questions to Ask */}
-          <PrepSection icon={MessageSquare} title={`Questions to Ask (${prepBrief.questionsToAsk.length})`}>
+          <PrepSection
+            icon={MessageSquare}
+            title={`Questions to Ask (${prepBrief.questionsToAsk.length})`}
+          >
             <ol className="space-y-3">
               {prepBrief.questionsToAsk.map((q, i) => (
                 <li key={i} className="space-y-1">
-                  <p className="font-medium">{i + 1}. {q.question}</p>
+                  <p className="font-medium">
+                    {i + 1}. {q.question}
+                  </p>
                   <p className="text-xs text-muted-foreground">{q.rationale}</p>
                   <p className="text-xs text-muted-foreground italic">Follow-up: {q.followUp}</p>
                 </li>
@@ -124,7 +124,7 @@ export function PrepBriefCard({ sessionId, prepBrief, mutateSession }: PrepBrief
         </div>
       )}
     </CollapsibleCard>
-  );
+  )
 }
 
 function PrepSection({
@@ -132,11 +132,11 @@ function PrepSection({
   title,
   children,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  children: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  children: React.ReactNode
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(true)
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -145,9 +145,7 @@ function PrepSection({
         <Icon className="size-3.5" />
         {title}
       </CollapsibleTrigger>
-      <CollapsibleContent className="pt-2 pl-5">
-        {children}
-      </CollapsibleContent>
+      <CollapsibleContent className="pt-2 pl-5">{children}</CollapsibleContent>
     </Collapsible>
-  );
+  )
 }

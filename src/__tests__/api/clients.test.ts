@@ -1,19 +1,19 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockAuth, mockClerkClient, setupClerkMocks } from '../mocks/clerk';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockAuth, mockClerkClient, setupClerkMocks } from '../mocks/clerk'
 
 // --- Mocks ---
 
 vi.mock('@clerk/nextjs/server', () => ({
   auth: (...args: unknown[]) => mockAuth(...args),
   clerkClient: (...args: unknown[]) => mockClerkClient(...args),
-}));
+}))
 
 vi.mock('@/lib/db/queries/clients', () => ({
   listClients: vi.fn(),
   createClient: vi.fn(),
   updateClient: vi.fn(),
-}));
+}))
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
   getAIConfig: vi.fn().mockResolvedValue({
@@ -21,17 +21,17 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
     modelId: 'claude-sonnet-4-6',
     anthropic: {},
   }),
-}));
+}))
 
-const mockExecuteAI = vi.fn();
+const mockExecuteAI = vi.fn()
 vi.mock('@/lib/ai/builder', () => ({
   executeAI: (...args: unknown[]) => mockExecuteAI(...args),
-}));
+}))
 
 // --- Imports (after mocks) ---
 
-import { GET, POST } from '@/app/api/clients/route';
-import { listClients, createClient } from '@/lib/db/queries/clients';
+import { GET, POST } from '@/app/api/clients/route'
+import { listClients, createClient } from '@/lib/db/queries/clients'
 
 // --- Helpers ---
 
@@ -40,7 +40,7 @@ function createRequest(method: string, url: string, body?: unknown): Request {
     method,
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
-  });
+  })
 }
 
 function createBadJsonRequest(method: string, url: string): Request {
@@ -48,145 +48,145 @@ function createBadJsonRequest(method: string, url: string): Request {
     method,
     headers: { 'Content-Type': 'application/json' },
     body: '{ invalid json',
-  });
+  })
 }
 
 // --- Tests ---
 
 describe('GET /api/clients', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks())
 
   it('returns 401 when unauthenticated', async () => {
-    setupClerkMocks({ isAuthenticated: false });
-    const req = createRequest('GET', 'http://localhost/api/clients');
-    const res = await GET(req);
-    expect(res.status).toBe(401);
-  });
+    setupClerkMocks({ isAuthenticated: false })
+    const req = createRequest('GET', 'http://localhost/api/clients')
+    const res = await GET(req)
+    expect(res.status).toBe(401)
+  })
 
   it('returns client list', async () => {
-    setupClerkMocks({ isAuthenticated: true });
+    setupClerkMocks({ isAuthenticated: true })
     const mockClients = [
       { id: 'c1', name: 'Acme Corp' },
       { id: 'c2', name: 'Globex Inc' },
-    ];
-    vi.mocked(listClients).mockResolvedValue(mockClients as any);
+    ]
+    vi.mocked(listClients).mockResolvedValue(mockClients as any)
 
-    const req = createRequest('GET', 'http://localhost/api/clients');
-    const res = await GET(req);
-    const data = await res.json();
+    const req = createRequest('GET', 'http://localhost/api/clients')
+    const res = await GET(req)
+    const data = await res.json()
 
-    expect(res.status).toBe(200);
-    expect(data).toEqual(mockClients);
-  });
+    expect(res.status).toBe(200)
+    expect(data).toEqual(mockClients)
+  })
 
   it('passes search/status/industry filters to listClients', async () => {
-    setupClerkMocks({ isAuthenticated: true });
-    vi.mocked(listClients).mockResolvedValue([]);
+    setupClerkMocks({ isAuthenticated: true })
+    vi.mocked(listClients).mockResolvedValue([])
 
     const req = createRequest(
       'GET',
       'http://localhost/api/clients?search=acme&status=active_poc&industry=Tech'
-    );
-    await GET(req);
+    )
+    await GET(req)
 
     expect(listClients).toHaveBeenCalledWith({
       search: 'acme',
       status: ['active_poc'],
       industry: ['Tech'],
-    });
-  });
-});
+    })
+  })
+})
 
 describe('POST /api/clients', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockExecuteAI.mockResolvedValue({ text: '', meta: {} });
-  });
+    vi.clearAllMocks()
+    mockExecuteAI.mockResolvedValue({ text: '', meta: {} })
+  })
 
   it('returns 401 when unauthenticated', async () => {
-    setupClerkMocks({ isAuthenticated: false });
+    setupClerkMocks({ isAuthenticated: false })
     const req = createRequest('POST', 'http://localhost/api/clients', {
       name: 'Test',
       industry: 'Tech',
-    });
-    const res = await POST(req);
-    expect(res.status).toBe(401);
-  });
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+  })
 
   it('returns 403 for viewer role', async () => {
-    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'viewer' } });
+    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'viewer' } })
     const req = createRequest('POST', 'http://localhost/api/clients', {
       name: 'Test',
       industry: 'Tech',
-    });
-    const res = await POST(req);
-    expect(res.status).toBe(403);
-  });
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+  })
 
   it('returns 400 for invalid body (missing name)', async () => {
-    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } });
+    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     const req = createRequest('POST', 'http://localhost/api/clients', {
       industry: 'Tech',
-    });
-    const res = await POST(req);
-    const data = await res.json();
+    })
+    const res = await POST(req)
+    const data = await res.json()
 
-    expect(res.status).toBe(400);
-    expect(data).toHaveProperty('error');
-    expect(data).toHaveProperty('details');
-  });
+    expect(res.status).toBe(400)
+    expect(data).toHaveProperty('error')
+    expect(data).toHaveProperty('details')
+  })
 
   it('returns 201 with created client for valid body', async () => {
-    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } });
+    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     const newClient = {
       id: 'c-new',
       name: 'New Corp',
       industry: 'Finance',
       website: 'https://newcorp.com',
-    };
-    vi.mocked(createClient).mockResolvedValue(newClient as any);
+    }
+    vi.mocked(createClient).mockResolvedValue(newClient as any)
 
     const req = createRequest('POST', 'http://localhost/api/clients', {
       name: 'New Corp',
       industry: 'Finance',
       website: 'https://newcorp.com',
-    });
-    const res = await POST(req);
-    const data = await res.json();
+    })
+    const res = await POST(req)
+    const data = await res.json()
 
-    expect(res.status).toBe(201);
-    expect(data).toEqual(newClient);
-  });
+    expect(res.status).toBe(201)
+    expect(data).toEqual(newClient)
+  })
 
   it('triggers executeAI fire-and-forget after creation', async () => {
-    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } });
+    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     const newClient = {
       id: 'c-new',
       name: 'New Corp',
       industry: 'Finance',
       website: 'https://newcorp.com',
-    };
-    vi.mocked(createClient).mockResolvedValue(newClient as any);
+    }
+    vi.mocked(createClient).mockResolvedValue(newClient as any)
 
     const req = createRequest('POST', 'http://localhost/api/clients', {
       name: 'New Corp',
       industry: 'Finance',
       website: 'https://newcorp.com',
-    });
-    const res = await POST(req);
+    })
+    const res = await POST(req)
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(201)
     // Fire-and-forget: the route calls getAIConfig then executeAI asynchronously
     // We just verify the response was returned successfully
-  });
+  })
 
   it('returns 400 for malformed JSON body', async () => {
-    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } });
-    const req = createBadJsonRequest('POST', 'http://localhost/api/clients');
-    const res = await POST(req);
-    const data = await res.json();
+    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
+    const req = createBadJsonRequest('POST', 'http://localhost/api/clients')
+    const res = await POST(req)
+    const data = await res.json()
 
-    expect(res.status).toBe(400);
-    expect(data).toEqual({ error: 'Invalid JSON' });
-  });
-});
+    expect(res.status).toBe(400)
+    expect(data).toEqual({ error: 'Invalid JSON' })
+  })
+})

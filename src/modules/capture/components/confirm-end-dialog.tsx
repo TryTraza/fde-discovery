@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import {
   AlertDialog,
@@ -9,13 +9,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/alert-dialog'
 
 interface ConfirmEndDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  unsyncedCount: number;
-  onConfirm: () => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  unsyncedCount: number
+  onConfirm: () => void
 }
 
 export function ConfirmEndDialog({
@@ -42,5 +42,5 @@ export function ConfirmEndDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-import { useReactFlow } from '@xyflow/react';
-import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useReactFlow } from '@xyflow/react'
+import { ZoomIn, ZoomOut, Maximize } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const btnClass =
-  'w-8 h-8 rounded-lg bg-background/90 border-[1.5px] border-border text-muted-foreground hover:text-foreground hover:bg-background transition-colors shadow-[1px_2px_0px_0px_rgba(0,0,0,0.06)]';
+  'w-8 h-8 rounded-lg bg-background/90 border-[1.5px] border-border text-muted-foreground hover:text-foreground hover:bg-background transition-colors shadow-[1px_2px_0px_0px_rgba(0,0,0,0.06)]'
 
 export function FlowControls() {
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView } = useReactFlow()
 
   return (
     <div
@@ -41,5 +41,5 @@ export function FlowControls() {
         <Maximize className="size-4" />
       </Button>
     </div>
-  );
+  )
 }

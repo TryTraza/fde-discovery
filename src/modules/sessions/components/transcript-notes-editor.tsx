@@ -1,17 +1,17 @@
-'use client';
+'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { sessionsService } from '@/modules/sessions/services/sessions-service';
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { sessionsService } from '@/modules/sessions/services/sessions-service'
 
 interface TranscriptNotesEditorProps {
-  sessionId: string;
-  initialTranscript: string | null;
-  initialNotes: string | null;
-  sessionStatus: string;
-  mutateSession: () => void;
+  sessionId: string
+  initialTranscript: string | null
+  initialNotes: string | null
+  sessionStatus: string
+  mutateSession: () => void
 }
 
 export function TranscriptNotesEditor({
@@ -21,83 +21,91 @@ export function TranscriptNotesEditor({
   sessionStatus,
   mutateSession,
 }: TranscriptNotesEditorProps) {
-  const [localTranscript, setLocalTranscript] = useState(initialTranscript ?? '');
-  const [localNotes, setLocalNotes] = useState(initialNotes ?? '');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [localTranscript, setLocalTranscript] = useState(initialTranscript ?? '')
+  const [localNotes, setLocalNotes] = useState(initialNotes ?? '')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const latestTranscriptRef = useRef(localTranscript);
-  const latestNotesRef = useRef(localNotes);
-  const statusRef = useRef(sessionStatus);
-  const isMountedRef = useRef(true);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const latestTranscriptRef = useRef(localTranscript)
+  const latestNotesRef = useRef(localNotes)
+  const statusRef = useRef(sessionStatus)
+  const isMountedRef = useRef(true)
   const lastSavedRef = useRef({
     transcript: initialTranscript ?? '',
     notes: initialNotes ?? '',
-  });
+  })
 
-  useEffect(() => { latestTranscriptRef.current = localTranscript; }, [localTranscript]);
-  useEffect(() => { latestNotesRef.current = localNotes; }, [localNotes]);
-  useEffect(() => { statusRef.current = sessionStatus; }, [sessionStatus]);
   useEffect(() => {
-    isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
-  }, []);
+    latestTranscriptRef.current = localTranscript
+  }, [localTranscript])
+  useEffect(() => {
+    latestNotesRef.current = localNotes
+  }, [localNotes])
+  useEffect(() => {
+    statusRef.current = sessionStatus
+  }, [sessionStatus])
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   // Sync with server only when data changed externally
   useEffect(() => {
-    const serverTranscript = initialTranscript ?? '';
-    const serverNotes = initialNotes ?? '';
+    const serverTranscript = initialTranscript ?? ''
+    const serverNotes = initialNotes ?? ''
     if (serverTranscript !== lastSavedRef.current.transcript) {
-      setLocalTranscript(serverTranscript);
-      lastSavedRef.current.transcript = serverTranscript;
+      setLocalTranscript(serverTranscript)
+      lastSavedRef.current.transcript = serverTranscript
     }
     if (serverNotes !== lastSavedRef.current.notes) {
-      setLocalNotes(serverNotes);
-      lastSavedRef.current.notes = serverNotes;
+      setLocalNotes(serverNotes)
+      lastSavedRef.current.notes = serverNotes
     }
-  }, [initialTranscript, initialNotes]);
+  }, [initialTranscript, initialNotes])
 
   const scheduleSave = useCallback(() => {
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    setSaveStatus('saving');
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    setSaveStatus('saving')
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        const transcript = latestTranscriptRef.current || null;
-        const notes = latestNotesRef.current || null;
+        const transcript = latestTranscriptRef.current || null
+        const notes = latestNotesRef.current || null
 
         const patchBody: Record<string, unknown> = {
           transcriptText: transcript,
           notes: notes,
-        };
+        }
 
         // Auto-transition planned → in_progress
         if (statusRef.current === 'planned') {
-          patchBody.status = 'in_progress';
+          patchBody.status = 'in_progress'
         }
 
-        await sessionsService.update(sessionId, patchBody);
-        if (!isMountedRef.current) return;
+        await sessionsService.update(sessionId, patchBody)
+        if (!isMountedRef.current) return
 
         lastSavedRef.current = {
           transcript: transcript ?? '',
           notes: notes ?? '',
-        };
+        }
 
-        setSaveStatus('saved');
-        mutateSession();
+        setSaveStatus('saved')
+        mutateSession()
       } catch {
-        if (!isMountedRef.current) return;
-        setSaveStatus('error');
+        if (!isMountedRef.current) return
+        setSaveStatus('error')
       }
-    }, 2000);
-  }, [sessionId, mutateSession]);
+    }, 2000)
+  }, [sessionId, mutateSession])
 
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, []);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    }
+  }, [])
 
   return (
     <div className="space-y-4">
@@ -107,7 +115,10 @@ export function TranscriptNotesEditor({
           <Textarea
             className="min-h-[300px] mt-1 resize-y"
             value={localTranscript}
-            onChange={(e) => { setLocalTranscript(e.target.value); scheduleSave(); }}
+            onChange={(e) => {
+              setLocalTranscript(e.target.value)
+              scheduleSave()
+            }}
             placeholder="Paste or type your session transcript here..."
           />
         </div>
@@ -116,7 +127,10 @@ export function TranscriptNotesEditor({
           <Textarea
             className="min-h-[200px] mt-1 resize-y"
             value={localNotes}
-            onChange={(e) => { setLocalNotes(e.target.value); scheduleSave(); }}
+            onChange={(e) => {
+              setLocalNotes(e.target.value)
+              scheduleSave()
+            }}
             placeholder="Your personal notes about this session..."
           />
         </div>
@@ -136,5 +150,5 @@ export function TranscriptNotesEditor({
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -1,75 +1,67 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, X, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import type { ProcessStepParsed } from '@/lib/validations/process';
+import { useState } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical, Trash2, X, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const confidenceBadgeColors = {
   confirmed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
   inferred: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   missing: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
-};
+}
 
 const confidenceBarColors = {
   confirmed: 'bg-emerald-500',
   inferred: 'bg-amber-400',
   missing: 'bg-red-400',
-};
+}
 
 interface ProcessStepRowProps {
-  step: ProcessStepParsed;
-  index: number;
-  onUpdate: (id: string, field: keyof ProcessStepParsed, value: unknown) => void;
-  onDelete: (id: string) => void;
+  step: ProcessStepParsed
+  index: number
+  onUpdate: (id: string, field: keyof ProcessStepParsed, value: unknown) => void
+  onDelete: (id: string) => void
 }
 
 export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepRowProps) {
-  const [expanded, setExpanded] = useState(false);
-  const [newSystem, setNewSystem] = useState('');
+  const [expanded, setExpanded] = useState(false)
+  const [newSystem, setNewSystem] = useState('')
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: step.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: step.id,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  };
+  }
 
   const addSystem = () => {
-    const name = newSystem.trim();
-    if (!name) return;
-    if (step.systems.some((s) => s.name.toLowerCase() === name.toLowerCase())) return;
-    onUpdate(step.id, 'systems', [
-      ...step.systems,
-      { name, confirmed: false, detailNotes: '' },
-    ]);
-    setNewSystem('');
-  };
+    const name = newSystem.trim()
+    if (!name) return
+    if (step.systems.some((s) => s.name.toLowerCase() === name.toLowerCase())) return
+    onUpdate(step.id, 'systems', [...step.systems, { name, confirmed: false, detailNotes: '' }])
+    setNewSystem('')
+  }
 
   const removeSystem = (systemName: string) => {
     onUpdate(
       step.id,
       'systems',
       step.systems.filter((s) => s.name !== systemName)
-    );
-  };
+    )
+  }
 
-  const isMissing = step.confidence === 'missing';
-  const systemsToShow = step.systems.slice(0, 3);
-  const extraCount = step.systems.length - 3;
+  const isMissing = step.confidence === 'missing'
+  const systemsToShow = step.systems.slice(0, 3)
+  const extraCount = step.systems.length - 3
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -94,7 +86,9 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
         </button>
 
         {/* Confidence bar */}
-        <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${confidenceBarColors[step.confidence]}`} />
+        <div
+          className={`w-1 self-stretch rounded-full flex-shrink-0 ${confidenceBarColors[step.confidence]}`}
+        />
 
         {/* Step number */}
         <span className="text-xs text-muted-foreground flex-shrink-0 w-5 text-center">
@@ -116,13 +110,13 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
               {sys.name}
             </span>
           ))}
-          {extraCount > 0 && (
-            <span className="text-xs text-muted-foreground">+{extraCount}</span>
-          )}
+          {extraCount > 0 && <span className="text-xs text-muted-foreground">+{extraCount}</span>}
         </div>
 
         {/* Confidence badge */}
-        <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${confidenceBadgeColors[step.confidence]}`}>
+        <span
+          className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${confidenceBadgeColors[step.confidence]}`}
+        >
           {step.confidence}
         </span>
 
@@ -130,7 +124,10 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={(e) => { e.stopPropagation(); onDelete(step.id); }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(step.id)
+          }}
           className="flex-shrink-0 text-muted-foreground hover:text-destructive"
           aria-label="Delete step"
         >
@@ -140,10 +137,12 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
       {/* Expanded panel */}
       {expanded && (
-        <div className={cn(
-          'border border-t-0 rounded-b-lg px-4 py-3 space-y-3 bg-background',
-          isMissing && 'border-dashed border-red-300 dark:border-red-800'
-        )}>
+        <div
+          className={cn(
+            'border border-t-0 rounded-b-lg px-4 py-3 space-y-3 bg-background',
+            isMissing && 'border-dashed border-red-300 dark:border-red-800'
+          )}
+        >
           {/* Name input */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Name</label>
@@ -202,7 +201,10 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
                 </span>
               ))}
               <form
-                onSubmit={(e) => { e.preventDefault(); addSystem(); }}
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  addSystem()
+                }}
                 className="inline-flex items-center gap-1"
               >
                 <Input
@@ -238,7 +240,9 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
               <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (
-                  <li key={i}>{typeof ec === 'string' ? ec : ec.description ?? JSON.stringify(ec)}</li>
+                  <li key={i}>
+                    {typeof ec === 'string' ? ec : (ec.description ?? JSON.stringify(ec))}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -253,5 +257,5 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
         </div>
       )}
     </div>
-  );
+  )
 }

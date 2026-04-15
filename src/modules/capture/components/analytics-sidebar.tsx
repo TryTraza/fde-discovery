@@ -1,19 +1,19 @@
-'use client';
+'use client'
 
-import { EVENT_TYPE_CONFIG } from '@/lib/capture/event-types';
-import type { LocalEvent } from '@/lib/hooks/use-event-sync';
+import { EVENT_TYPE_CONFIG } from '@/lib/capture/event-types'
+import type { LocalEvent } from '@/lib/hooks/use-event-sync'
 
 interface AnalyticsSidebarProps {
-  events: LocalEvent[];
+  events: LocalEvent[]
 }
 
 export function AnalyticsSidebar({ events }: AnalyticsSidebarProps) {
-  const totalEvents = events.length;
+  const totalEvents = events.length
 
   const typeCounts = EVENT_TYPE_CONFIG.map((config) => ({
     ...config,
     count: events.filter((e) => e.type === config.id).length,
-  })).filter((t) => t.count > 0);
+  })).filter((t) => t.count > 0)
 
   return (
     <div className="w-full space-y-4">
@@ -42,5 +42,5 @@ export function AnalyticsSidebar({ events }: AnalyticsSidebarProps) {
         </div>
       )}
     </div>
-  );
+  )
 }

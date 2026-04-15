@@ -64,11 +64,7 @@ export function ArtifactsPanel({ clientId, processId, isAdmin }: ArtifactsPanelP
 
   async function handleDownload(artifactId: string) {
     try {
-      const { downloadUrl } = await artifactsService.getDownloadUrl(
-        clientId,
-        processId,
-        artifactId
-      )
+      const { downloadUrl } = await artifactsService.getDownloadUrl(clientId, processId, artifactId)
       window.open(downloadUrl, '_blank')
     } catch {
       toast.error('Download failed')
@@ -121,12 +117,7 @@ export function ArtifactsPanel({ clientId, processId, isAdmin }: ArtifactsPanelP
                 <Upload className="h-4 w-4" />
               )}
             </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleUpload}
-            />
+            <input ref={fileInputRef} type="file" className="hidden" onChange={handleUpload} />
           </div>
         )}
       </CardHeader>

@@ -1,5 +1,5 @@
-import { Button, buttonVariants } from '@/components/ui/button';
-import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default function ClientNotFound() {
   return (
@@ -12,5 +12,5 @@ export default function ClientNotFound() {
         Back to Clients
       </Link>
     </div>
-  );
+  )
 }

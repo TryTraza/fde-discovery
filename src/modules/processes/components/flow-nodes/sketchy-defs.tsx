@@ -26,5 +26,5 @@ export function SketchyDefs() {
         </filter>
       </defs>
     </svg>
-  );
+  )
 }

@@ -99,9 +99,7 @@ export function CreateClientDialog({ onCreated, children }: CreateClientDialogPr
               onChange={(e) => setFormData((d) => ({ ...d, name: e.target.value }))}
               required
             />
-            {fieldErrors.name && (
-              <p className="text-xs text-destructive">{fieldErrors.name[0]}</p>
-            )}
+            {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="industry">Industry *</Label>

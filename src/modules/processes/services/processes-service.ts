@@ -62,11 +62,7 @@ class ProcessesService {
     return apiClient.post(`${basePath(clientId)}/${processId}/hypothesis`)
   }
 
-  async updateSteps(
-    clientId: string,
-    processId: string,
-    steps: unknown[]
-  ): Promise<unknown> {
+  async updateSteps(clientId: string, processId: string, steps: unknown[]): Promise<unknown> {
     return apiClient.patch(`${basePath(clientId)}/${processId}/steps`, { steps })
   }
 }

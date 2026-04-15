@@ -1,99 +1,99 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { processesService } from '@/modules/processes/services/processes-service';
-import { ApiError, ApiKeyMissingError } from '@/lib/api-client';
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { RefreshCw, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { processesService } from '@/modules/processes/services/processes-service'
+import { ApiError, ApiKeyMissingError } from '@/lib/api-client'
 
 interface HypothesisCardProps {
-  process: any;
-  clientId: string;
-  mutateProcess: () => Promise<any>;
+  process: any
+  clientId: string
+  mutateProcess: () => Promise<any>
 }
 
 export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisCardProps) {
-  const [isPolling, setIsPolling] = useState(false);
-  const [timedOut, setTimedOut] = useState(false);
-  const [justRegenerated, setJustRegenerated] = useState(false);
-  const [showFull, setShowFull] = useState(false);
+  const [isPolling, setIsPolling] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
+  const [justRegenerated, setJustRegenerated] = useState(false)
+  const [showFull, setShowFull] = useState(false)
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const pollingActiveRef = useRef(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const pollingActiveRef = useRef(false)
 
   const stopPolling = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    intervalRef.current = null;
-    timeoutRef.current = null;
-    pollingActiveRef.current = false;
-    setIsPolling(false);
-    setJustRegenerated(false);
-  }, []);
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    intervalRef.current = null
+    timeoutRef.current = null
+    pollingActiveRef.current = false
+    setIsPolling(false)
+    setJustRegenerated(false)
+  }, [])
 
-  const startPolling = useCallback((checkFn: (data: any) => boolean) => {
-    if (pollingActiveRef.current) return;
-    pollingActiveRef.current = true;
-    setIsPolling(true);
-    setTimedOut(false);
+  const startPolling = useCallback(
+    (checkFn: (data: any) => boolean) => {
+      if (pollingActiveRef.current) return
+      pollingActiveRef.current = true
+      setIsPolling(true)
+      setTimedOut(false)
 
-    intervalRef.current = setInterval(async () => {
-      if (!pollingActiveRef.current) return;
-      try {
-        const updated = await mutateProcess();
-        if (updated && checkFn(updated)) {
-          stopPolling();
+      intervalRef.current = setInterval(async () => {
+        if (!pollingActiveRef.current) return
+        try {
+          const updated = await mutateProcess()
+          if (updated && checkFn(updated)) {
+            stopPolling()
+          }
+        } catch {
+          // Swallow — will retry on next interval
         }
-      } catch {
-        // Swallow — will retry on next interval
-      }
-    }, 2000);
+      }, 2000)
 
-    timeoutRef.current = setTimeout(() => {
-      stopPolling();
-      setTimedOut(true);
-    }, 30000);
-  }, [mutateProcess, stopPolling]);
+      timeoutRef.current = setTimeout(() => {
+        stopPolling()
+        setTimedOut(true)
+      }, 30000)
+    },
+    [mutateProcess, stopPolling]
+  )
 
   // Cleanup on unmount
-  useEffect(() => stopPolling, [stopPolling]);
+  useEffect(() => stopPolling, [stopPolling])
 
   // Auto-poll when hypothesis is null on a fresh draft or after regeneration
   useEffect(() => {
     const shouldAutoPoll =
-      (!process.hypothesisText && process.status === 'draft') ||
-      justRegenerated;
+      (!process.hypothesisText && process.status === 'draft') || justRegenerated
 
-    if (!shouldAutoPoll) return;
-    startPolling((data) => !!data.hypothesisText);
-  }, [process.hypothesisText, process.status, justRegenerated, startPolling]);
+    if (!shouldAutoPoll) return
+    startPolling((data) => !!data.hypothesisText)
+  }, [process.hypothesisText, process.status, justRegenerated, startPolling])
 
   const handleRegenerate = useCallback(async () => {
     try {
-      await processesService.regenerateHypothesis(clientId, process.id);
+      await processesService.regenerateHypothesis(clientId, process.id)
     } catch (error) {
       if (error instanceof ApiKeyMissingError) {
-        toast.error('Configure your API key in Settings');
-        return;
+        toast.error('Configure your API key in Settings')
+        return
       }
       if (error instanceof ApiError) {
-        toast.error('Failed to regenerate hypothesis');
-        return;
+        toast.error('Failed to regenerate hypothesis')
+        return
       }
-      toast.error('Failed to regenerate hypothesis');
-      return;
+      toast.error('Failed to regenerate hypothesis')
+      return
     }
 
-    toast.success('Hypothesis generation started');
-    setJustRegenerated(true);
-    const previousHypothesis = process.hypothesisText;
-    startPolling((data) =>
-      !!data.hypothesisText && data.hypothesisText !== previousHypothesis
-    );
-  }, [clientId, process.id, process.hypothesisText, startPolling]);
+    toast.success('Hypothesis generation started')
+    setJustRegenerated(true)
+    const previousHypothesis = process.hypothesisText
+    startPolling((data) => !!data.hypothesisText && data.hypothesisText !== previousHypothesis)
+  }, [clientId, process.id, process.hypothesisText, startPolling])
 
   return (
     <div>
@@ -150,5 +150,5 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
         </p>
       )}
     </div>
-  );
+  )
 }

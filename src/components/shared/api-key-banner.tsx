@@ -1,17 +1,17 @@
-'use client';
+'use client'
 
-import { useUser } from '@clerk/nextjs';
-import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { KeyRound } from 'lucide-react';
+import { useUser } from '@clerk/nextjs'
+import Link from 'next/link'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { KeyRound } from 'lucide-react'
 export function ApiKeyBanner() {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useUser()
 
-  if (!isLoaded) return null;
+  if (!isLoaded) return null
 
-  const hasApiKey = (user?.publicMetadata as Record<string, unknown>)?.hasApiKey;
+  const hasApiKey = (user?.publicMetadata as Record<string, unknown>)?.hasApiKey
 
-  if (hasApiKey) return null;
+  if (hasApiKey) return null
 
   return (
     <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
@@ -29,5 +29,5 @@ export function ApiKeyBanner() {
         </Link>
       </AlertDescription>
     </Alert>
-  );
+  )
 }

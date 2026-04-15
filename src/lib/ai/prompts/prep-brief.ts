@@ -1,29 +1,35 @@
-import { getSessionTypeLabel } from '@/lib/utils/session-labels';
-import type { SessionContext } from '@/lib/ai/context';
+import { getSessionTypeLabel } from '@/lib/utils/session-labels'
+import type { SessionContext } from '@/lib/ai/context'
 
 export function buildPrepBriefPrompt(ctx: SessionContext): string {
-  const typeLabel = getSessionTypeLabel(ctx.session.type);
+  const typeLabel = getSessionTypeLabel(ctx.session.type)
 
   const modelSection = ctx.process.model
     ? `Current process model:\nSteps: ${JSON.stringify(ctx.process.model.steps)}\nSystems: ${JSON.stringify(ctx.process.model.systems)}\nEdge Cases: ${JSON.stringify(ctx.process.model.edgeCases)}`
-    : 'No process model yet — this is one of the first sessions.';
+    : 'No process model yet — this is one of the first sessions.'
 
-  const priorContext = ctx.priorSessions.length > 0
-    ? ctx.priorSessions.map(s => {
-        const summary = (s.synthesisOutput as any)?.summary;
-        const interviewGoals = s.interviewAnswers?.questions?.map((q: any) => q.answer).join('; ');
-        return `- ${getSessionTypeLabel(s.type)}: "${s.title}" (${s.date})${summary ? ` — ${summary}` : ''}${interviewGoals ? `\n  Goals: ${interviewGoals}` : ''}`;
-      }).join('\n')
-    : 'No prior sessions.';
+  const priorContext =
+    ctx.priorSessions.length > 0
+      ? ctx.priorSessions
+          .map((s) => {
+            const summary = (s.synthesisOutput as any)?.summary
+            const interviewGoals = s.interviewAnswers?.questions
+              ?.map((q: any) => q.answer)
+              .join('; ')
+            return `- ${getSessionTypeLabel(s.type)}: "${s.title}" (${s.date})${summary ? ` — ${summary}` : ''}${interviewGoals ? `\n  Goals: ${interviewGoals}` : ''}`
+          })
+          .join('\n')
+      : 'No prior sessions.'
 
-  const interviewAnswers = ctx.session.interviewAnswers?.questions;
+  const interviewAnswers = ctx.session.interviewAnswers?.questions
   const interviewContext = interviewAnswers?.length
     ? `FDE's session goals (from pre-session interview):\n${interviewAnswers.map((qa: any) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n')}`
-    : 'No pre-session interview answers available.';
+    : 'No pre-session interview answers available.'
 
-  const contactsContext = ctx.sessionContacts.length > 0
-    ? `Session participants:\n${ctx.sessionContacts.map(c => `- ${c.name}${c.role ? ` (${c.role})` : ''}${c.department ? `, ${c.department}` : ''}`).join('\n')}`
-    : 'No contacts assigned.';
+  const contactsContext =
+    ctx.sessionContacts.length > 0
+      ? `Session participants:\n${ctx.sessionContacts.map((c) => `- ${c.name}${c.role ? ` (${c.role})` : ''}${c.department ? `, ${c.department}` : ''}`).join('\n')}`
+      : 'No contacts assigned.'
 
   return `You are preparing an actionable session brief for an FDE (Field Discovery Engineer) who is about to run a "${typeLabel}" session for the process "${ctx.process.name}".
 
@@ -57,5 +63,5 @@ Based on the FDE's goals, the company context, the process model, and any gaps f
 4. areasToProbe: 3-5 specific areas where the FDE should push for deeper answers, evidence, or demonstrations
 5. watchFor: 2-3 red flags or signals that might indicate hidden complexity, workarounds, or pain points
 
-Be specific to this company, industry, and process context. Avoid generic advice — every item should be actionable and relevant.`;
+Be specific to this company, industry, and process context. Avoid generic advice — every item should be actionable and relevant.`
 }

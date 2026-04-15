@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 interface CaptureStatusBarProps {
-  startTime: number;
-  isOnline: boolean;
-  unsyncedCount: number;
-  eventCount: number;
-  onEndSession: () => void;
+  startTime: number
+  isOnline: boolean
+  unsyncedCount: number
+  eventCount: number
+  onEndSession: () => void
 }
 
 export function CaptureStatusBar({
@@ -19,16 +19,16 @@ export function CaptureStatusBar({
   eventCount,
   onEndSession,
 }: CaptureStatusBarProps) {
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
-    const id = setInterval(() => setElapsed(Date.now() - startTime), 1000);
-    return () => clearInterval(id);
-  }, [startTime]);
+    const id = setInterval(() => setElapsed(Date.now() - startTime), 1000)
+    return () => clearInterval(id)
+  }, [startTime])
 
-  const minutes = Math.floor(elapsed / 60_000);
-  const seconds = Math.floor((elapsed % 60_000) / 1000);
-  const timerDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const minutes = Math.floor(elapsed / 60_000)
+  const seconds = Math.floor((elapsed % 60_000) / 1000)
+  const timerDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 
   return (
     <Card className="flex items-center justify-between px-4 py-2">
@@ -43,9 +43,7 @@ export function CaptureStatusBar({
           {isOnline ? 'Online' : 'Offline'}
         </span>
         {unsyncedCount > 0 && (
-          <span className="text-xs text-muted-foreground">
-            {unsyncedCount} pending
-          </span>
+          <span className="text-xs text-muted-foreground">{unsyncedCount} pending</span>
         )}
       </div>
       <div className="flex items-center gap-3">
@@ -57,5 +55,5 @@ export function CaptureStatusBar({
         )}
       </div>
     </Card>
-  );
+  )
 }

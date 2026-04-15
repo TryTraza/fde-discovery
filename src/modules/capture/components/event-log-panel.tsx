@@ -1,17 +1,17 @@
-'use client';
+'use client'
 
-import { useEffect, useRef, useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { getEventTypeConfig } from '@/lib/capture/event-types';
-import { X, Pencil, Check } from 'lucide-react';
-import type { LocalEvent } from '@/lib/hooks/use-event-sync';
+import { useEffect, useRef, useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { getEventTypeConfig } from '@/lib/capture/event-types'
+import { X, Pencil, Check } from 'lucide-react'
+import type { LocalEvent } from '@/lib/hooks/use-event-sync'
 
 interface EventLogPanelProps {
-  events: LocalEvent[];
-  onUpdateEventField: (localId: string, field: 'label' | 'detail', value: string) => void;
-  onRemoveEvent?: (localId: string) => void;
-  readOnly?: boolean;
+  events: LocalEvent[]
+  onUpdateEventField: (localId: string, field: 'label' | 'detail', value: string) => void
+  onRemoveEvent?: (localId: string) => void
+  readOnly?: boolean
 }
 
 function EventLogEntry({
@@ -20,51 +20,51 @@ function EventLogEntry({
   onRemove,
   readOnly,
 }: {
-  event: LocalEvent;
-  onUpdateField: (localId: string, field: 'label' | 'detail', value: string) => void;
-  onRemove?: (localId: string) => void;
-  readOnly?: boolean;
+  event: LocalEvent
+  onUpdateField: (localId: string, field: 'label' | 'detail', value: string) => void
+  onRemove?: (localId: string) => void
+  readOnly?: boolean
 }) {
-  const config = getEventTypeConfig(event.type);
-  const ts = new Date(event.timestamp);
-  const timeStr = `${String(ts.getHours()).padStart(2, '0')}:${String(ts.getMinutes()).padStart(2, '0')}:${String(ts.getSeconds()).padStart(2, '0')}`;
+  const config = getEventTypeConfig(event.type)
+  const ts = new Date(event.timestamp)
+  const timeStr = `${String(ts.getHours()).padStart(2, '0')}:${String(ts.getMinutes()).padStart(2, '0')}:${String(ts.getSeconds()).padStart(2, '0')}`
 
   // Determine the editable field and its current value
-  const editableField: 'label' | 'detail' = event.type === 'QUESTION' ? 'detail' : 'label';
-  const currentValue = event.type === 'QUESTION' ? (event.detail ?? '') : (event.label ?? '');
+  const editableField: 'label' | 'detail' = event.type === 'QUESTION' ? 'detail' : 'label'
+  const currentValue = event.type === 'QUESTION' ? (event.detail ?? '') : (event.label ?? '')
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(currentValue);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(currentValue)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // For IMPLICIT and QUESTION, start in editing mode if empty
-  const isInstantType = event.type === 'IMPLICIT' || event.type === 'QUESTION';
+  const isInstantType = event.type === 'IMPLICIT' || event.type === 'QUESTION'
 
   useEffect(() => {
-    if (isEditing) inputRef.current?.focus();
-  }, [isEditing]);
+    if (isEditing) inputRef.current?.focus()
+  }, [isEditing])
 
   function getDisplayText() {
     if (event.type === 'SYSTEM') {
-      return event.label
-        ? `${event.label}${event.detail ? ` — ${event.detail}` : ''}`
-        : '';
+      return event.label ? `${event.label}${event.detail ? ` — ${event.detail}` : ''}` : ''
     }
-    if (event.type === 'QUESTION') return event.detail || '';
-    return event.label || '';
+    if (event.type === 'QUESTION') return event.detail || ''
+    return event.label || ''
   }
 
-  const displayText = getDisplayText();
+  const displayText = getDisplayText()
   const placeholder = isInstantType
-    ? (event.type === 'QUESTION' ? 'What do you want to ask?' : 'Add a label...')
-    : 'Edit...';
+    ? event.type === 'QUESTION'
+      ? 'What do you want to ask?'
+      : 'Add a label...'
+    : 'Edit...'
 
   function handleSave() {
-    const trimmed = editValue.trim();
+    const trimmed = editValue.trim()
     if (trimmed !== currentValue) {
-      onUpdateField(event.localId, editableField, trimmed);
+      onUpdateField(event.localId, editableField, trimmed)
     }
-    setIsEditing(false);
+    setIsEditing(false)
   }
 
   return (
@@ -78,7 +78,9 @@ function EventLogEntry({
       </span>
       <div className="flex-1 min-w-0">
         {readOnly ? (
-          <span className="text-sm">{displayText || <span className="text-muted-foreground italic">—</span>}</span>
+          <span className="text-sm">
+            {displayText || <span className="text-muted-foreground italic">—</span>}
+          </span>
         ) : isEditing ? (
           <div className="flex items-center gap-1">
             <Input
@@ -86,8 +88,11 @@ function EventLogEntry({
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave();
-                if (e.key === 'Escape') { setEditValue(currentValue); setIsEditing(false); }
+                if (e.key === 'Enter') handleSave()
+                if (e.key === 'Escape') {
+                  setEditValue(currentValue)
+                  setIsEditing(false)
+                }
               }}
               onBlur={handleSave}
               placeholder={placeholder}
@@ -96,7 +101,10 @@ function EventLogEntry({
           </div>
         ) : (
           <button
-            onClick={() => { setEditValue(currentValue); setIsEditing(true); }}
+            onClick={() => {
+              setEditValue(currentValue)
+              setIsEditing(true)
+            }}
             className="text-sm text-left w-full truncate hover:underline decoration-dashed underline-offset-2 cursor-text"
           >
             {displayText || <span className="text-muted-foreground italic">{placeholder}</span>}
@@ -109,7 +117,10 @@ function EventLogEntry({
             variant="ghost"
             size="icon"
             className="h-6 w-6"
-            onClick={() => { setEditValue(currentValue); setIsEditing(true); }}
+            onClick={() => {
+              setEditValue(currentValue)
+              setIsEditing(true)
+            }}
           >
             <Pencil className="size-3" />
           </Button>
@@ -126,17 +137,22 @@ function EventLogEntry({
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export function EventLogPanel({ events, onUpdateEventField, onRemoveEvent, readOnly }: EventLogPanelProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+export function EventLogPanel({
+  events,
+  onUpdateEventField,
+  onRemoveEvent,
+  readOnly,
+}: EventLogPanelProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [events.length]);
+  }, [events.length])
 
   if (events.length === 0) {
     return (
@@ -144,7 +160,7 @@ export function EventLogPanel({ events, onUpdateEventField, onRemoveEvent, readO
         <p>No events yet</p>
         <p className="text-xs">Select an event type above to start logging</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -159,5 +175,5 @@ export function EventLogPanel({ events, onUpdateEventField, onRemoveEvent, readO
         />
       ))}
     </div>
-  );
+  )
 }

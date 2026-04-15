@@ -1,23 +1,23 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useRole } from '@/lib/hooks/use-role';
-import { toast } from 'sonner';
-import { useSession } from '@/modules/sessions/hooks/use-sessions';
-import { getSessionTypeLabel } from '@/lib/utils/session-labels';
-import { sessionsService } from '@/modules/sessions/services/sessions-service';
-import { ApiError, ApiKeyMissingError } from '@/lib/api-client';
-import type { SessionStatus } from '@/lib/db/schema';
-import { SessionStatusBadge } from './session-status-badge';
-import { EmailDraftCard } from '@/modules/research/components/email-draft-card';
-import { TranscriptNotesEditor } from './transcript-notes-editor';
-import { PrepBriefPanel } from './prep-brief-panel';
-import { QuestionSidebar } from './question-sidebar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useRole } from '@/lib/hooks/use-role'
+import { toast } from 'sonner'
+import { useSession } from '@/modules/sessions/hooks/use-sessions'
+import { getSessionTypeLabel } from '@/lib/utils/session-labels'
+import { sessionsService } from '@/modules/sessions/services/sessions-service'
+import { ApiError, ApiKeyMissingError } from '@/lib/api-client'
+import type { SessionStatus } from '@/lib/db/schema'
+import { SessionStatusBadge } from './session-status-badge'
+import { EmailDraftCard } from '@/modules/research/components/email-draft-card'
+import { TranscriptNotesEditor } from './transcript-notes-editor'
+import { PrepBriefPanel } from './prep-brief-panel'
+import { QuestionSidebar } from './question-sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   ArrowLeft,
   Trash2,
@@ -35,162 +35,162 @@ import {
   ClipboardList,
   PenLine,
   Sparkles,
-} from 'lucide-react';
-import { ShadowingCapturePanel } from './shadowing-capture-panel';
-import { SynthesisPanels } from './synthesis-panels';
-import { DebriefPanel } from '@/modules/debrief/components/debrief-panel';
-import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis';
-import type { PrepBrief } from '@/lib/ai/schemas/prep-brief';
-import type { DebriefAnswers } from '@/lib/db/types';
+} from 'lucide-react'
+import { ShadowingCapturePanel } from './shadowing-capture-panel'
+import { SynthesisPanels } from './synthesis-panels'
+import { DebriefPanel } from '@/modules/debrief/components/debrief-panel'
+import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
+import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
+import type { DebriefAnswers } from '@/lib/db/types'
 
 interface SessionOverviewProps {
-  clientId: string;
-  processId: string;
-  sessionId: string;
+  clientId: string
+  processId: string
+  sessionId: string
 }
 
 const sections = [
   { id: 'preparation', label: 'Preparation', icon: ClipboardList },
   { id: 'capture', label: 'Session Capture', icon: PenLine },
   { id: 'results', label: 'Synthesis', icon: Sparkles },
-] as const;
+] as const
 
-type SectionId = (typeof sections)[number]['id'];
+type SectionId = (typeof sections)[number]['id']
 
 export function SessionOverview({ clientId, processId, sessionId }: SessionOverviewProps) {
-  const { session, isLoading, error, mutateSession } = useSession(sessionId);
-  const { isAdmin } = useRole();
-  const router = useRouter();
-  const [activeSection, setActiveSection] = useState<SectionId>('preparation');
-  const [isCompleting, setIsCompleting] = useState(false);
-  const [isSynthesizing, setIsSynthesizing] = useState(false);
-  const [showWarning, setShowWarning] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const autoGenTriggered = useRef(false);
+  const { session, isLoading, error, mutateSession } = useSession(sessionId)
+  const { isAdmin } = useRole()
+  const router = useRouter()
+  const [activeSection, setActiveSection] = useState<SectionId>('preparation')
+  const [isCompleting, setIsCompleting] = useState(false)
+  const [isSynthesizing, setIsSynthesizing] = useState(false)
+  const [showWarning, setShowWarning] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const autoGenTriggered = useRef(false)
 
   // questionsAsked state + auto-save
-  const [questionsAsked, setQuestionsAsked] = useState<boolean[]>([]);
-  const qaTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const qaInitialized = useRef(false);
+  const [questionsAsked, setQuestionsAsked] = useState<boolean[]>([])
+  const qaTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const qaInitialized = useRef(false)
 
-  const prepBrief = session?.prepBrief as PrepBrief | null;
+  const prepBrief = session?.prepBrief as PrepBrief | null
 
   // Initialize questionsAsked from session data
   useEffect(() => {
-    if (!session || qaInitialized.current) return;
+    if (!session || qaInitialized.current) return
     if (session.questionsAsked) {
-      setQuestionsAsked(session.questionsAsked as boolean[]);
-      qaInitialized.current = true;
+      setQuestionsAsked(session.questionsAsked as boolean[])
+      qaInitialized.current = true
     } else if (prepBrief?.questionsToAsk) {
-      setQuestionsAsked(new Array(prepBrief.questionsToAsk.length).fill(false));
-      qaInitialized.current = true;
+      setQuestionsAsked(new Array(prepBrief.questionsToAsk.length).fill(false))
+      qaInitialized.current = true
     }
-  }, [session, prepBrief]);
+  }, [session, prepBrief])
 
   const scheduleQASave = useCallback(
     (newQA: boolean[]) => {
-      if (qaTimeoutRef.current) clearTimeout(qaTimeoutRef.current);
+      if (qaTimeoutRef.current) clearTimeout(qaTimeoutRef.current)
       qaTimeoutRef.current = setTimeout(async () => {
         try {
           await sessionsService.update(sessionId, {
             questionsAsked: newQA,
-          } as Parameters<typeof sessionsService.update>[1]);
+          } as Parameters<typeof sessionsService.update>[1])
         } catch {
           // silent — non-critical save
         }
-      }, 2000);
+      }, 2000)
     },
     [sessionId]
-  );
+  )
 
   const toggleQuestion = useCallback(
     (index: number) => {
       setQuestionsAsked((prev) => {
-        const next = [...prev];
-        next[index] = !next[index];
-        scheduleQASave(next);
-        return next;
-      });
+        const next = [...prev]
+        next[index] = !next[index]
+        scheduleQASave(next)
+        return next
+      })
     },
     [scheduleQASave]
-  );
+  )
 
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
-      if (qaTimeoutRef.current) clearTimeout(qaTimeoutRef.current);
-    };
-  }, []);
+      if (qaTimeoutRef.current) clearTimeout(qaTimeoutRef.current)
+    }
+  }, [])
 
   // Auto-generate prep brief if interview answers exist but no prep brief yet
   useEffect(() => {
-    if (!session || autoGenTriggered.current) return;
+    if (!session || autoGenTriggered.current) return
     if (session.interviewAnswers && !session.prepBrief) {
-      autoGenTriggered.current = true;
+      autoGenTriggered.current = true
       sessionsService
         .generatePrepBrief(sessionId)
         .then(() => mutateSession())
-        .catch(() => {});
+        .catch(() => {})
     }
-  }, [session, sessionId, mutateSession]);
+  }, [session, sessionId, mutateSession])
 
   const onDelete = async () => {
-    setDeleting(true);
+    setDeleting(true)
     try {
-      await sessionsService.delete(sessionId);
-      toast.success('Session deleted');
-      router.push(`/clients/${clientId}/processes/${processId}/sessions`);
+      await sessionsService.delete(sessionId)
+      toast.success('Session deleted')
+      router.push(`/clients/${clientId}/processes/${processId}/sessions`)
     } catch (error) {
       const message =
         error instanceof ApiError && typeof (error.body as { error?: string })?.error === 'string'
           ? (error.body as { error: string }).error
-          : 'Failed to delete session';
-      toast.error(message);
+          : 'Failed to delete session'
+      toast.error(message)
     } finally {
-      setDeleting(false);
-      setDeleteOpen(false);
+      setDeleting(false)
+      setDeleteOpen(false)
     }
-  };
+  }
 
   const handleMarkCompleted = async () => {
     if (!session?.transcriptText && !session?.notes) {
-      setShowWarning(true);
-      return;
+      setShowWarning(true)
+      return
     }
-    await doComplete();
-  };
+    await doComplete()
+  }
 
   const handleRunSynthesis = async () => {
-    setIsSynthesizing(true);
+    setIsSynthesizing(true)
     try {
-      await sessionsService.synthesize(sessionId);
-      mutateSession();
-      toast.success('Synthesis complete');
+      await sessionsService.synthesize(sessionId)
+      mutateSession()
+      toast.success('Synthesis complete')
     } catch (error) {
       if (error instanceof ApiKeyMissingError) {
-        toast.error('Set your Anthropic API key in Settings to use AI features.');
+        toast.error('Set your Anthropic API key in Settings to use AI features.')
       } else {
-        toast.error('Failed to run synthesis');
+        toast.error('Failed to run synthesis')
       }
     } finally {
-      setIsSynthesizing(false);
+      setIsSynthesizing(false)
     }
-  };
+  }
 
   const doComplete = async () => {
-    setShowWarning(false);
-    setIsCompleting(true);
+    setShowWarning(false)
+    setIsCompleting(true)
     try {
-      await sessionsService.update(sessionId, { status: 'completed' });
-      mutateSession();
-      toast.success('Session marked as completed');
+      await sessionsService.update(sessionId, { status: 'completed' })
+      mutateSession()
+      toast.success('Session marked as completed')
     } catch {
-      toast.error('Failed to update session status');
+      toast.error('Failed to update session status')
     } finally {
-      setIsCompleting(false);
+      setIsCompleting(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -199,7 +199,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
         <Skeleton className="h-4 w-96" />
         <Skeleton className="h-[400px]" />
       </div>
-    );
+    )
   }
 
   if (error || !session) {
@@ -216,15 +216,15 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           Back to sessions
         </Link>
       </div>
-    );
+    )
   }
 
-  const status = session.status as SessionStatus;
-  const canComplete = status === 'planned' || status === 'in_progress';
-  const canSynthesize = status === 'completed';
+  const status = session.status as SessionStatus
+  const canComplete = status === 'planned' || status === 'in_progress'
+  const canSynthesize = status === 'completed'
   const interviewAnswers = (session.interviewAnswers as any)?.questions as
     | { question: string; answer: string }[]
-    | undefined;
+    | undefined
 
   return (
     <div className="space-y-6 min-w-0">
@@ -267,7 +267,6 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
             </span>
           )}
         </div>
-
       </div>
 
       {/* Section Nav — underline tabs */}
@@ -405,11 +404,14 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           <DialogHeader>
             <DialogTitle>Complete without data?</DialogTitle>
             <DialogDescription>
-              Both transcript and notes are empty. Are you sure you want to mark this session as completed?
+              Both transcript and notes are empty. Are you sure you want to mark this session as
+              completed?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowWarning(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowWarning(false)}>
+              Cancel
+            </Button>
             <Button onClick={doComplete} disabled={isCompleting}>
               {isCompleting ? 'Completing...' : 'Complete Anyway'}
             </Button>
@@ -423,11 +425,14 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           <DialogHeader>
             <DialogTitle>Delete session?</DialogTitle>
             <DialogDescription>
-              This will permanently delete <strong>{session.title}</strong>. This action cannot be undone.
+              This will permanently delete <strong>{session.title}</strong>. This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+              Cancel
+            </Button>
             <Button variant="destructive" onClick={onDelete} disabled={deleting}>
               {deleting ? 'Deleting...' : 'Delete'}
             </Button>
@@ -435,22 +440,24 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }
 
 function DebriefSummaryBadge({ answers }: { answers: DebriefAnswers }) {
-  const items = answers.items ?? [];
-  const answered = items.filter(i => i.resolution === 'asked_answered').length;
-  const described = items.filter(i => i.resolution === 'described').length;
-  const open = items.filter(i => i.resolution === 'open_question').length;
-  const skipped = items.filter(i => i.resolution === 'skipped').length;
+  const items = answers.items ?? []
+  const answered = items.filter((i) => i.resolution === 'asked_answered').length
+  const described = items.filter((i) => i.resolution === 'described').length
+  const open = items.filter((i) => i.resolution === 'open_question').length
+  const skipped = items.filter((i) => i.resolution === 'skipped').length
 
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground">
       <Badge variant="outline" className="bg-emerald-50 text-emerald-700">
         Debrief complete
       </Badge>
-      <span>{answered} answered, {described} described, {open} open, {skipped} skipped</span>
+      <span>
+        {answered} answered, {described} described, {open} open, {skipped} skipped
+      </span>
     </div>
-  );
+  )
 }

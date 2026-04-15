@@ -3,9 +3,9 @@ export const AVAILABLE_MODELS = [
   { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet 4.5' },
   { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
   { value: 'claude-haiku-4-5-20241022', label: 'Claude Haiku 4.5' },
-] as const;
+] as const
 
-export type AIFeature = 'research' | 'hypothesis' | 'suggestions' | 'synthesis' | 'interview';
+export type AIFeature = 'research' | 'hypothesis' | 'suggestions' | 'synthesis' | 'interview'
 
 export const DEFAULT_MODELS: Record<AIFeature, string> = {
   research: 'claude-sonnet-4-6',
@@ -13,10 +13,10 @@ export const DEFAULT_MODELS: Record<AIFeature, string> = {
   suggestions: 'claude-haiku-4-5-20241022',
   synthesis: 'claude-sonnet-4-6',
   interview: 'claude-sonnet-4-6',
-};
+}
 
 export function getModelLabel(value: string): string {
-  return AVAILABLE_MODELS.find((m) => m.value === value)?.label ?? value;
+  return AVAILABLE_MODELS.find((m) => m.value === value)?.label ?? value
 }
 
 export const AI_FEATURE_LABELS: Record<AIFeature, string> = {
@@ -25,4 +25,4 @@ export const AI_FEATURE_LABELS: Record<AIFeature, string> = {
   suggestions: 'Quick Suggestions',
   synthesis: 'Synthesis Report',
   interview: 'Interview Assistant',
-};
+}

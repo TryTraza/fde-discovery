@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useUser } from '@clerk/nextjs';
-import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { useUser } from '@clerk/nextjs'
+import Link from 'next/link'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 export function ApiKeyGuard({ children }: { children: React.ReactNode }) {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useUser()
 
-  if (!isLoaded) return null;
+  if (!isLoaded) return null
 
-  const hasApiKey = (user?.publicMetadata as Record<string, unknown>)?.hasApiKey;
+  const hasApiKey = (user?.publicMetadata as Record<string, unknown>)?.hasApiKey
 
   if (!hasApiKey) {
     return (
@@ -24,8 +24,8 @@ export function ApiKeyGuard({ children }: { children: React.ReactNode }) {
           </Link>
         </AlertDescription>
       </Alert>
-    );
+    )
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }

@@ -1,24 +1,24 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useSessions } from '@/lib/hooks/use-sessions';
-import { getSessionTypeLabel } from '@/lib/utils/session-labels';
-import { SessionStatusBadge } from './session-status-badge';
-import { CollapsibleCard } from '@/components/shared/collapsible-card';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, CalendarDays, ArrowRight } from 'lucide-react';
-import { CreateSessionDialog } from './create-session-dialog';
+import { useState } from 'react'
+import Link from 'next/link'
+import { useSessions } from '@/lib/hooks/use-sessions'
+import { getSessionTypeLabel } from '@/lib/utils/session-labels'
+import { SessionStatusBadge } from './session-status-badge'
+import { CollapsibleCard } from '@/components/shared/collapsible-card'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Plus, CalendarDays, ArrowRight } from 'lucide-react'
+import { CreateSessionDialog } from './create-session-dialog'
 
 interface SessionsListProps {
-  clientId: string;
-  processId: string;
+  clientId: string
+  processId: string
 }
 
 export function SessionsList({ clientId, processId }: SessionsListProps) {
-  const { sessions, isLoading, error, mutateSessions } = useSessions(processId);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const { sessions, isLoading, error, mutateSessions } = useSessions(processId)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
     <>
@@ -72,9 +72,7 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium truncate">
-                      {session.title}
-                    </span>
+                    <span className="text-sm font-medium truncate">{session.title}</span>
                     <SessionStatusBadge status={session.status} />
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
@@ -101,5 +99,5 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
         onCreated={() => mutateSessions()}
       />
     </>
-  );
+  )
 }

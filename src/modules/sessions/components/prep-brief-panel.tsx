@@ -1,13 +1,9 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   Sparkles,
   RefreshCw,
@@ -18,22 +14,22 @@ import {
   ChevronDown,
   Check,
   Crosshair,
-} from 'lucide-react';
-import { getSessionTypeLabel } from '@/lib/utils/session-labels';
-import type { PrepBrief } from '@/lib/ai/schemas/prep-brief';
-import { InterviewStep } from './interview-step';
-import { sessionsService } from '@/modules/sessions/services/sessions-service';
-import { ApiError, ApiKeyMissingError } from '@/lib/api-client';
+} from 'lucide-react'
+import { getSessionTypeLabel } from '@/lib/utils/session-labels'
+import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
+import { InterviewStep } from './interview-step'
+import { sessionsService } from '@/modules/sessions/services/sessions-service'
+import { ApiError, ApiKeyMissingError } from '@/lib/api-client'
 
 interface PrepBriefPanelProps {
-  sessionId: string;
-  processId: string;
-  prepBrief: PrepBrief | null;
-  mutateSession: () => void;
-  interviewAnswers?: { question: string; answer: string }[];
-  questionsAsked: boolean[];
-  onToggleQuestion: (index: number) => void;
-  sessionType: string;
+  sessionId: string
+  processId: string
+  prepBrief: PrepBrief | null
+  mutateSession: () => void
+  interviewAnswers?: { question: string; answer: string }[]
+  questionsAsked: boolean[]
+  onToggleQuestion: (index: number) => void
+  sessionType: string
 }
 
 export function PrepBriefPanel({
@@ -46,52 +42,52 @@ export function PrepBriefPanel({
   onToggleQuestion,
   sessionType,
 }: PrepBriefPanelProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [contextExpanded, setContextExpanded] = useState(false);
-  const [showInterview, setShowInterview] = useState(false);
-  const [isSavingAnswers, setIsSavingAnswers] = useState(false);
-  const [areasExpanded, setAreasExpanded] = useState(false);
-  const [expandedApproach, setExpandedApproach] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false)
+  const [contextExpanded, setContextExpanded] = useState(false)
+  const [showInterview, setShowInterview] = useState(false)
+  const [isSavingAnswers, setIsSavingAnswers] = useState(false)
+  const [areasExpanded, setAreasExpanded] = useState(false)
+  const [expandedApproach, setExpandedApproach] = useState<number | null>(null)
 
   const handleGenerate = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      await sessionsService.generatePrepBrief(sessionId);
-      mutateSession();
-      toast.success('Prep brief generated');
+      await sessionsService.generatePrepBrief(sessionId)
+      mutateSession()
+      toast.success('Prep brief generated')
     } catch (error) {
       if (error instanceof ApiKeyMissingError) {
-        toast.error('Set your Anthropic API key in Settings to use AI features.');
+        toast.error('Set your Anthropic API key in Settings to use AI features.')
       } else if (error instanceof ApiError) {
-        const body = error.body as { error?: string } | null;
-        toast.error(body?.error ?? 'Failed to generate prep brief');
+        const body = error.body as { error?: string } | null
+        toast.error(body?.error ?? 'Failed to generate prep brief')
       } else {
-        toast.error('Network error');
+        toast.error('Network error')
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleInterviewComplete = async (answers: { question: string; answer: string }[]) => {
-    setIsSavingAnswers(true);
+    setIsSavingAnswers(true)
     try {
       await sessionsService.update(sessionId, {
         interviewAnswers: { questions: answers },
-      } as Parameters<typeof sessionsService.update>[1]);
-      setShowInterview(false);
-      mutateSession();
-      toast.success('Interview answers saved');
+      } as Parameters<typeof sessionsService.update>[1])
+      setShowInterview(false)
+      mutateSession()
+      toast.success('Interview answers saved')
     } catch {
-      toast.error('Failed to save interview answers');
+      toast.error('Failed to save interview answers')
     } finally {
-      setIsSavingAnswers(false);
+      setIsSavingAnswers(false)
     }
-  };
+  }
 
   const handleInterviewSkip = () => {
-    setShowInterview(false);
-  };
+    setShowInterview(false)
+  }
 
   // Interview step
   if (showInterview && !interviewAnswers) {
@@ -113,12 +109,12 @@ export function PrepBriefPanel({
           <p className="text-xs text-muted-foreground text-center">Saving answers...</p>
         )}
       </div>
-    );
+    )
   }
 
   // Empty state
   if (!prepBrief) {
-    const hasAnswers = interviewAnswers && interviewAnswers.length > 0;
+    const hasAnswers = interviewAnswers && interviewAnswers.length > 0
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
         {isLoading ? (
@@ -157,15 +153,13 @@ export function PrepBriefPanel({
           </>
         )}
       </div>
-    );
+    )
   }
 
-  const totalQuestions = prepBrief.questionsToAsk.length;
-  const coveredCount = questionsAsked.filter(Boolean).length;
-  const visibleAreas = areasExpanded
-    ? prepBrief.areasToProbe
-    : prepBrief.areasToProbe.slice(0, 4);
-  const hasContext = interviewAnswers && interviewAnswers.length > 0;
+  const totalQuestions = prepBrief.questionsToAsk.length
+  const coveredCount = questionsAsked.filter(Boolean).length
+  const visibleAreas = areasExpanded ? prepBrief.areasToProbe : prepBrief.areasToProbe.slice(0, 4)
+  const hasContext = interviewAnswers && interviewAnswers.length > 0
 
   return (
     <div className="space-y-4 min-w-0">
@@ -247,7 +241,7 @@ export function PrepBriefPanel({
             </div>
             <div className="divide-y">
               {prepBrief.questionsToAsk.map((q, i) => {
-                const isChecked = questionsAsked[i];
+                const isChecked = questionsAsked[i]
                 return (
                   <Collapsible key={i}>
                     <div className={`flex items-start gap-3 py-2.5 ${i === 0 ? 'pt-0' : ''}`}>
@@ -289,7 +283,7 @@ export function PrepBriefPanel({
                       </div>
                     </div>
                   </Collapsible>
-                );
+                )
               })}
             </div>
           </div>
@@ -307,9 +301,7 @@ export function PrepBriefPanel({
               {prepBrief.approaches.map((a, i) => (
                 <button
                   key={i}
-                  onClick={() =>
-                    setExpandedApproach(expandedApproach === i ? null : i)
-                  }
+                  onClick={() => setExpandedApproach(expandedApproach === i ? null : i)}
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
                     expandedApproach === i
                       ? 'bg-teal-200 dark:bg-teal-800 border-teal-400 dark:border-teal-600'
@@ -346,9 +338,7 @@ export function PrepBriefPanel({
                 onClick={() => setAreasExpanded(!areasExpanded)}
                 className="text-xs text-muted-foreground hover:text-foreground cursor-pointer mt-2"
               >
-                {areasExpanded
-                  ? 'Show less'
-                  : `Show ${prepBrief.areasToProbe.length - 4} more`}
+                {areasExpanded ? 'Show less' : `Show ${prepBrief.areasToProbe.length - 4} more`}
               </button>
             )}
           </div>
@@ -373,5 +363,5 @@ export function PrepBriefPanel({
         </div>
       </div>
     </div>
-  );
+  )
 }

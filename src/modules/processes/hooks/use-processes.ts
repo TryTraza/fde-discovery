@@ -30,9 +30,7 @@ export function useProcess(clientId: string, processId: string) {
   const key = enabled ? PROCESS_KEYS.detail(clientId, processId) : null
   const result = useSWR<LooseProcess>(
     key,
-    enabled
-      ? () => processesService.getById(clientId, processId) as Promise<LooseProcess>
-      : null,
+    enabled ? () => processesService.getById(clientId, processId) as Promise<LooseProcess> : null,
     { revalidateOnFocus: false }
   )
 

@@ -1,14 +1,21 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useUser, UserButton } from '@clerk/nextjs';
-import useSWR from 'swr';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useUser, UserButton } from '@clerk/nextjs'
+import useSWR from 'swr'
 import {
-  Users, Settings, Compass, LifeBuoy,
-  ArrowLeft, LayoutDashboard, FolderKanban, FileText,
-  Bot, Sparkles,
-} from 'lucide-react';
+  Users,
+  Settings,
+  Compass,
+  LifeBuoy,
+  ArrowLeft,
+  LayoutDashboard,
+  FolderKanban,
+  FileText,
+  Bot,
+  Sparkles,
+} from 'lucide-react'
 
 import {
   Sidebar,
@@ -23,47 +30,45 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
-} from '@/components/ui/sidebar';
+} from '@/components/ui/sidebar'
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const secondaryNavItems = [
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: 'https://docs.anthropic.com', label: 'Support', icon: LifeBuoy, external: true },
-];
+]
 
 /** Parse the pathname to extract client/process/session context */
 function useRouteContext(pathname: string) {
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname.split('/').filter(Boolean)
 
   const clientId =
-    segments[0] === 'clients' && segments[1] && UUID_RE.test(segments[1])
-      ? segments[1]
-      : null;
+    segments[0] === 'clients' && segments[1] && UUID_RE.test(segments[1]) ? segments[1] : null
 
   const processId =
     clientId && segments[2] === 'processes' && segments[3] && UUID_RE.test(segments[3])
       ? segments[3]
-      : null;
+      : null
 
   const sessionId =
     processId && segments[4] === 'sessions' && segments[5] && UUID_RE.test(segments[5])
       ? segments[5]
-      : null;
+      : null
 
-  return { clientId, processId, sessionId };
+  return { clientId, processId, sessionId }
 }
 
 export function AppSidebar() {
-  const pathname = usePathname();
-  const { user } = useUser();
-  const { clientId, processId, sessionId } = useRouteContext(pathname);
+  const pathname = usePathname()
+  const { user } = useUser()
+  const { clientId, processId, sessionId } = useRouteContext(pathname)
 
-  const { data: clientData } = useSWR(clientId ? `/api/clients/${clientId}` : null);
+  const { data: clientData } = useSWR(clientId ? `/api/clients/${clientId}` : null)
   const { data: processData } = useSWR(
     clientId && processId ? `/api/clients/${clientId}/processes/${processId}` : null
-  );
-  const { data: sessionData } = useSWR(sessionId ? `/api/sessions/${sessionId}` : null);
+  )
+  const { data: sessionData } = useSWR(sessionId ? `/api/sessions/${sessionId}` : null)
 
   return (
     <Sidebar collapsible="icon">
@@ -157,10 +162,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={<Link href="/clients" />}
-                      tooltip="All Clients"
-                    >
+                    <SidebarMenuButton render={<Link href="/clients" />} tooltip="All Clients">
                       <ArrowLeft />
                       <span>All Clients</span>
                     </SidebarMenuButton>
@@ -222,7 +224,9 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      render={<Link href={`/clients/${clientId}/processes/${processId}/sessions`} />}
+                      render={
+                        <Link href={`/clients/${clientId}/processes/${processId}/sessions`} />
+                      }
                       isActive={pathname === `/clients/${clientId}/processes/${processId}/sessions`}
                       tooltip="Sessions"
                     >
@@ -248,7 +252,9 @@ export function AppSidebar() {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      render={<Link href={`/clients/${clientId}/processes/${processId}/sessions`} />}
+                      render={
+                        <Link href={`/clients/${clientId}/processes/${processId}/sessions`} />
+                      }
                       tooltip="All Sessions"
                     >
                       <ArrowLeft />
@@ -257,8 +263,15 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      render={<Link href={`/clients/${clientId}/processes/${processId}/sessions/${sessionId}`} />}
-                      isActive={pathname === `/clients/${clientId}/processes/${processId}/sessions/${sessionId}`}
+                      render={
+                        <Link
+                          href={`/clients/${clientId}/processes/${processId}/sessions/${sessionId}`}
+                        />
+                      }
+                      isActive={
+                        pathname ===
+                        `/clients/${clientId}/processes/${processId}/sessions/${sessionId}`
+                      }
                       tooltip="Overview"
                     >
                       <LayoutDashboard />
@@ -270,7 +283,6 @@ export function AppSidebar() {
             </SidebarGroup>
           </>
         )}
-
       </SidebarContent>
       <SidebarFooter>
         <SidebarSeparator />
@@ -279,10 +291,9 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {secondaryNavItems.map((item) => {
-                const isActive = !('external' in item) && pathname.startsWith(item.href);
-                const linkProps = 'external' in item
-                  ? { target: '_blank', rel: 'noopener noreferrer' }
-                  : {};
+                const isActive = !('external' in item) && pathname.startsWith(item.href)
+                const linkProps =
+                  'external' in item ? { target: '_blank', rel: 'noopener noreferrer' } : {}
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
@@ -294,7 +305,7 @@ export function AppSidebar() {
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                );
+                )
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -315,5 +326,5 @@ export function AppSidebar() {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  );
+  )
 }

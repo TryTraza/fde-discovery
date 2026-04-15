@@ -14,7 +14,9 @@ const STATUS_CONFIG: Record<
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const config =
-    STATUS_CONFIG[status as ClientStatus] ?? { label: status, variant: 'secondary' as const }
+  const config = STATUS_CONFIG[status as ClientStatus] ?? {
+    label: status,
+    variant: 'secondary' as const,
+  }
   return <Badge variant={config.variant}>{config.label}</Badge>
 }

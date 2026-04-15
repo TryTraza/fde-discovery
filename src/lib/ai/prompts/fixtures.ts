@@ -5,9 +5,9 @@
  */
 
 export interface PromptFixture {
-  name: string;
-  type: 'chat';
-  prompt: Array<{ role: 'system' | 'user'; content: string }>;
+  name: string
+  type: 'chat'
+  prompt: Array<{ role: 'system' | 'user'; content: string }>
 }
 
 export const PROMPTS: PromptFixture[] = [
@@ -282,4 +282,4 @@ Stay focused on FDE research. Be specific and actionable. Flag information that 
       },
     ],
   },
-];
+]

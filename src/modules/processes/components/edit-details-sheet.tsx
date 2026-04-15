@@ -1,33 +1,28 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { ProcessStatusBadge } from './process-status-badge';
-import { VALID_TRANSITIONS, type ProcessStatus } from '@/lib/validations/process';
-import { processesService } from '@/modules/processes/services/processes-service';
-import { ApiError } from '@/lib/api-client';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { ProcessStatusBadge } from './process-status-badge'
+import { VALID_TRANSITIONS, type ProcessStatus } from '@/lib/validations/process'
+import { processesService } from '@/modules/processes/services/processes-service'
+import { ApiError } from '@/lib/api-client'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 
 interface EditDetailsSheetProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  process: any;
-  clientId: string;
-  mutateProcess: (...args: any[]) => any;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  process: any
+  clientId: string
+  mutateProcess: (...args: any[]) => any
 }
 
 export function EditDetailsSheet({
@@ -37,47 +32,47 @@ export function EditDetailsSheet({
   clientId,
   mutateProcess,
 }: EditDetailsSheetProps) {
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false)
 
   const patchField = async (field: string, value: string, originalValue: string) => {
-    if (value === originalValue) return;
-    setSaving(true);
+    if (value === originalValue) return
+    setSaving(true)
     try {
-      await processesService.update(clientId, process.id, { [field]: value || null });
-      mutateProcess();
+      await processesService.update(clientId, process.id, { [field]: value || null })
+      mutateProcess()
     } catch (error) {
       const message =
         error instanceof ApiError && typeof (error.body as { error?: string })?.error === 'string'
           ? (error.body as { error: string }).error
-          : 'Failed to save';
-      toast.error(message);
-      mutateProcess();
+          : 'Failed to save'
+      toast.error(message)
+      mutateProcess()
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleStatusChange = async (newStatus: string) => {
-    if (newStatus === process.status) return;
-    setSaving(true);
+    if (newStatus === process.status) return
+    setSaving(true)
     try {
-      await processesService.update(clientId, process.id, { status: newStatus });
-      mutateProcess();
-      toast.success(`Status updated to ${newStatus}`);
+      await processesService.update(clientId, process.id, { status: newStatus })
+      mutateProcess()
+      toast.success(`Status updated to ${newStatus}`)
     } catch (error) {
       const message =
         error instanceof ApiError && typeof (error.body as { error?: string })?.error === 'string'
           ? (error.body as { error: string }).error
-          : 'Failed to update status';
-      toast.error(message);
-      mutateProcess();
+          : 'Failed to update status'
+      toast.error(message)
+      mutateProcess()
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
-  const currentStatus = process.status as ProcessStatus;
-  const allowedTransitions = VALID_TRANSITIONS[currentStatus] ?? [];
+  const currentStatus = process.status as ProcessStatus
+  const allowedTransitions = VALID_TRANSITIONS[currentStatus] ?? []
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -108,7 +103,9 @@ export function EditDetailsSheet({
                   <SelectContent>
                     <SelectItem value={process.status}>{process.status}</SelectItem>
                     {allowedTransitions.map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -143,7 +140,7 @@ export function EditDetailsSheet({
         </div>
       </SheetContent>
     </Sheet>
-  );
+  )
 }
 
 function InlineField({
@@ -152,12 +149,12 @@ function InlineField({
   onBlur,
   placeholder,
 }: {
-  label: string;
-  value: string;
-  onBlur: (val: string) => void;
-  placeholder?: string;
+  label: string
+  value: string
+  onBlur: (val: string) => void
+  placeholder?: string
 }) {
-  const [localValue, setLocalValue] = useState(value);
+  const [localValue, setLocalValue] = useState(value)
 
   return (
     <div className="space-y-1">
@@ -170,7 +167,7 @@ function InlineField({
         className="h-8"
       />
     </div>
-  );
+  )
 }
 
 function InlineTextarea({
@@ -178,11 +175,11 @@ function InlineTextarea({
   onBlur,
   placeholder,
 }: {
-  value: string;
-  onBlur: (val: string) => void;
-  placeholder?: string;
+  value: string
+  onBlur: (val: string) => void
+  placeholder?: string
 }) {
-  const [localValue, setLocalValue] = useState(value);
+  const [localValue, setLocalValue] = useState(value)
 
   return (
     <Textarea
@@ -192,5 +189,5 @@ function InlineTextarea({
       placeholder={placeholder}
       rows={3}
     />
-  );
+  )
 }

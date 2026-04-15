@@ -1,24 +1,24 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useRole } from '@/lib/hooks/use-role';
-import { toast } from 'sonner';
-import { useProcess } from '@/modules/processes/hooks/use-processes';
-import { useSessions } from '@/lib/hooks/use-sessions';
-import { parseProcessSteps } from '@/lib/validations/process';
-import { HypothesisCard } from './hypothesis-card';
-import { ProcessFlow } from './process-flow';
-import { ProcessStatusBadge } from './process-status-badge';
-import { MetadataStrip } from './metadata-strip';
-import { EditDetailsSheet } from './edit-details-sheet';
-import { SessionsFeed } from '@/components/sessions/sessions-feed';
-import { ArtifactsPanel } from '@/modules/artifacts/components/artifacts-panel';
-import { processesService } from '@/modules/processes/services/processes-service';
-import { ApiError } from '@/lib/api-client';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useRole } from '@/lib/hooks/use-role'
+import { toast } from 'sonner'
+import { useProcess } from '@/modules/processes/hooks/use-processes'
+import { useSessions } from '@/lib/hooks/use-sessions'
+import { parseProcessSteps } from '@/lib/validations/process'
+import { HypothesisCard } from './hypothesis-card'
+import { ProcessFlow } from './process-flow'
+import { ProcessStatusBadge } from './process-status-badge'
+import { MetadataStrip } from './metadata-strip'
+import { EditDetailsSheet } from './edit-details-sheet'
+import { SessionsFeed } from '@/components/sessions/sessions-feed'
+import { ArtifactsPanel } from '@/modules/artifacts/components/artifacts-panel'
+import { processesService } from '@/modules/processes/services/processes-service'
+import { ApiError } from '@/lib/api-client'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -26,40 +26,45 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+} from '@/components/ui/dialog'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 
 interface ProcessOverviewProps {
-  clientId: string;
-  processId: string;
+  clientId: string
+  processId: string
 }
 
 export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
-  const { process, isLoading, error, mutateProcess } = useProcess(clientId, processId);
-  const { sessions, isLoading: sessionsLoading, error: sessionsError, mutateSessions } = useSessions(processId);
-  const { isAdmin } = useRole();
-  const router = useRouter();
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const { process, isLoading, error, mutateProcess } = useProcess(clientId, processId)
+  const {
+    sessions,
+    isLoading: sessionsLoading,
+    error: sessionsError,
+    mutateSessions,
+  } = useSessions(processId)
+  const { isAdmin } = useRole()
+  const router = useRouter()
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const onDelete = async () => {
-    setDeleting(true);
+    setDeleting(true)
     try {
-      await processesService.delete(clientId, processId);
-      toast.success('Process deleted');
-      router.push(`/clients/${clientId}/processes`);
+      await processesService.delete(clientId, processId)
+      toast.success('Process deleted')
+      router.push(`/clients/${clientId}/processes`)
     } catch (error) {
       const message =
         error instanceof ApiError && typeof (error.body as { error?: string })?.error === 'string'
           ? (error.body as { error: string }).error
-          : 'Failed to delete process';
-      toast.error(message);
+          : 'Failed to delete process'
+      toast.error(message)
     } finally {
-      setDeleting(false);
-      setDeleteOpen(false);
+      setDeleting(false)
+      setDeleteOpen(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -68,7 +73,7 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
         <Skeleton className="h-[200px]" />
         <Skeleton className="h-[150px]" />
       </div>
-    );
+    )
   }
 
   if (error || !process) {
@@ -82,18 +87,21 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
           Back to client
         </Link>
       </div>
-    );
+    )
   }
 
   const completedCount = sessions.filter(
     (s: any) => s.status === 'completed' || s.status === 'synthesis_done'
-  ).length;
+  ).length
 
   return (
     <div className="space-y-4 min-w-0 overflow-hidden">
       {/* Header: back + title + status badge + delete */}
       <div className="flex items-center gap-3">
-        <Link href={`/clients/${clientId}`} className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}>
+        <Link
+          href={`/clients/${clientId}`}
+          className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
+        >
           <ArrowLeft className="size-4" />
         </Link>
         <h1 className="text-2xl font-bold truncate">{process.name}</h1>
@@ -122,7 +130,12 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,2fr)] gap-6 items-start">
         <div className="min-w-0 space-y-4">
           <HypothesisCard process={process} clientId={clientId} mutateProcess={mutateProcess} />
-          <ProcessFlow process={process} clientId={clientId} processId={processId} mutateProcess={mutateProcess} />
+          <ProcessFlow
+            process={process}
+            clientId={clientId}
+            processId={processId}
+            mutateProcess={mutateProcess}
+          />
         </div>
         <div className="min-w-0 space-y-4">
           <SessionsFeed
@@ -154,11 +167,14 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
           <DialogHeader>
             <DialogTitle>Delete process?</DialogTitle>
             <DialogDescription>
-              This will permanently delete <strong>{process.name}</strong> and all its sessions. This action cannot be undone.
+              This will permanently delete <strong>{process.name}</strong> and all its sessions.
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+              Cancel
+            </Button>
             <Button variant="destructive" onClick={onDelete} disabled={deleting}>
               {deleting ? 'Deleting...' : 'Delete'}
             </Button>
@@ -166,5 +182,5 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

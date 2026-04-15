@@ -16,8 +16,7 @@ export function useClients(filters?: ClientFilters) {
     // Function matcher — revalidates ALL keys under /api/clients (list, detail, contacts).
     // After creating/deleting a client, the detail page and contacts cache should also refresh.
     // Do NOT narrow this matcher without understanding cross-key dependencies.
-    mutateClients: () =>
-      swrMutate(CLIENT_MATCH.allRelated, undefined, { revalidate: true }),
+    mutateClients: () => swrMutate(CLIENT_MATCH.allRelated, undefined, { revalidate: true }),
   }
 }
 

@@ -1,8 +1,5 @@
 import useSWR from 'swr'
-import {
-  sessionsService,
-  type SessionRecord,
-} from '@/modules/sessions/services/sessions-service'
+import { sessionsService, type SessionRecord } from '@/modules/sessions/services/sessions-service'
 import { SESSION_KEYS } from '@/modules/sessions/lib/swr-keys'
 
 export function useSessions(processId: string | null) {

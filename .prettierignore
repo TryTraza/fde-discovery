@@ -1,0 +1,13 @@
+.next
+node_modules
+dist
+build
+out
+coverage
+test-results
+playwright-report
+public
+*.lock
+package-lock.json
+drizzle
+.vercel

@@ -1,0 +1,61 @@
+src/lib/ai/features/shadowing-synthesis.ts
+  fd955c16e7741b85 1-24
+src/lib/ai/features/capture-suggestions.ts
+  fd955c16e7741b85 1-24
+src/app/api/settings/route.ts
+  fd955c16e7741b85 25-27,43-46
+src/lib/ai/input-builder.ts
+  fd955c16e7741b85 18-19,106-147,160
+src/app/api/ai/research/route.ts
+  fd955c16e7741b85 9,32
+scripts/purge-clerk-ai-models.ts
+  fd955c16e7741b85 1-69
+src/__tests__/ai/features-registry.test.ts
+  fd955c16e7741b85 1-48
+src/__tests__/api/ai-research.test.ts
+  fd955c16e7741b85 133,141,245,257
+src/lib/ai/features/registry.ts
+  fd955c16e7741b85 1-37
+src/lib/ai/features/prep-brief.ts
+  fd955c16e7741b85 1-24
+src/lib/ai/features/company-research.ts
+  fd955c16e7741b85 1-17
+src/lib/ai/features/email-draft.ts
+  fd955c16e7741b85 1-17
+src/lib/ai/features/research-chat.ts
+  fd955c16e7741b85 1-20
+src/__tests__/ai/get-ai-config.test.ts
+  fd955c16e7741b85 40,47
+src/__tests__/api/settings.test.ts
+  fd955c16e7741b85 22,26,33,56,87-88,91,94
+src/lib/ai/features/process-hypothesis.ts
+  fd955c16e7741b85 1-21
+src/lib/ai/features/types.ts
+  fd955c16e7741b85 1-34
+src/lib/ai/features/session-synthesis.ts
+  fd955c16e7741b85 1-24
+src/lib/ai/get-ai-config.ts
+  fd955c16e7741b85 6-14,27
+src/lib/ai/features/session-interview.ts
+  fd955c16e7741b85 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "794dbc615479db10c97ab554ae1074407dee531d",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 457,
+      "total_deletions": 152,
+      "accepted_lines": 457,
+      "overriden_lines": 0
+    }
+  }
+}

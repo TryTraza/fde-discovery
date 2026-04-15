@@ -38,10 +38,10 @@ vi.mock('@/lib/db/queries/artifacts', () => ({
   getArtifactById: vi.fn(),
   softDeleteArtifact: vi.fn(),
 }))
-vi.mock('@/lib/supabase/storage', () => ({
+vi.mock('@/lib/storage/blob', () => ({
   uploadFile: vi.fn(),
   deleteFile: vi.fn(),
-  getSignedUrl: vi.fn(),
+  getFileStream: vi.fn(),
 }))
 vi.mock('@/lib/db', () => ({
   db: { transaction: vi.fn() },

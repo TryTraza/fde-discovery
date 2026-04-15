@@ -2,7 +2,7 @@ import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserId, requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { listArtifactsByProcess, createArtifact } from '@/lib/db/queries/artifacts'
-import { uploadFile } from '@/lib/supabase/storage'
+import { uploadFile } from '@/lib/storage/blob'
 import { randomUUID } from 'crypto'
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB

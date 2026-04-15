@@ -7,31 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Eye, EyeOff } from 'lucide-react'
 import { settingsService } from '@/modules/settings/services/settings-service'
 import { ApiError } from '@/lib/api-client'
-import {
-  AVAILABLE_MODELS,
-  AI_FEATURE_LABELS,
-  DEFAULT_MODELS,
-  getModelLabel,
-  type AIFeature,
-} from '@/lib/ai/models'
-
-type SettingsData = {
-  hasApiKey: boolean
-  aiModels: Record<string, string>
-  role: string
-}
 
 export default function SettingsPage() {
   const { isLoaded, user } = useUser()
@@ -44,16 +24,12 @@ export default function SettingsPage() {
   const [hasApiKey, setHasApiKey] = useState(false)
   const [keyError, setKeyError] = useState('')
 
-  // Model preferences state
-  const [aiModels, setAiModels] = useState<Record<string, string>>({})
-
   // Fetch settings on mount
   useEffect(() => {
     async function fetchSettings() {
       try {
         const data = await settingsService.get()
         setHasApiKey(data.hasApiKey)
-        setAiModels(data.aiModels)
       } catch {
         toast.error('Failed to load settings')
       } finally {
@@ -125,27 +101,6 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleSaveModels() {
-    setInFlight(true)
-    try {
-      await settingsService.updateAiModels(aiModels)
-      await user?.reload()
-      toast.success('Model preferences saved')
-    } catch (err) {
-      const message =
-        err instanceof ApiError && typeof (err.body as { error?: string })?.error === 'string'
-          ? (err.body as { error: string }).error
-          : err instanceof Error
-            ? err.message
-            : 'Failed to save model preferences'
-      toast.error(message)
-    } finally {
-      setInFlight(false)
-    }
-  }
-
-  const features = Object.keys(AI_FEATURE_LABELS) as AIFeature[]
-
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <h1 className="text-2xl font-bold">Settings</h1>
@@ -204,46 +159,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Model Preferences Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Model Preferences</CardTitle>
-          <CardDescription>Choose which Claude model to use for each AI feature.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {features.map((feature) => {
-            const selectedValue = aiModels[feature] || DEFAULT_MODELS[feature]
-            return (
-              <div
-                key={feature}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4"
-              >
-                <Label>{AI_FEATURE_LABELS[feature]}</Label>
-                <Select
-                  value={selectedValue}
-                  onValueChange={(value) => {
-                    if (value) setAiModels((prev) => ({ ...prev, [feature]: value }))
-                  }}
-                >
-                  <SelectTrigger className="w-full sm:w-[200px]">
-                    <span className="truncate">{getModelLabel(selectedValue)}</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AVAILABLE_MODELS.map((model) => (
-                      <SelectItem key={model.value} value={model.value}>
-                        {model.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )
-          })}
-          <Button onClick={handleSaveModels} disabled={inFlight}>
-            Save Model Preferences
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   )
 }

@@ -130,7 +130,7 @@ describe('POST /api/ai/research', () => {
     expect(res.status).toBe(422)
   })
 
-  it('calls streamText with correct model from user preferences', async () => {
+  it('calls streamText with DEFAULT_MODELS.research (ignores any user aiModels)', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
     const req = createRequest({ messages: MESSAGES })
     await POST(req)
@@ -138,7 +138,7 @@ describe('POST /api/ai/research', () => {
     expect(mockCreateAnthropic).toHaveBeenCalledWith({ apiKey: 'sk-ant-test-key' })
     expect(mockStreamText).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: { modelId: 'claude-sonnet-4-20250514' },
+        model: { modelId: 'claude-sonnet-4-6' },
       })
     )
   })
@@ -242,7 +242,7 @@ describe('POST /api/ai/research', () => {
     expect(call.stopWhen).toBeDefined()
   })
 
-  it('falls back to claude-sonnet-4-20250514 when no user model preference', async () => {
+  it('uses the code-defined default model for admin users with no aiModels', async () => {
     setupClerkMocks({
       isAuthenticated: true,
       publicMetadata: { role: 'admin' },
@@ -251,11 +251,10 @@ describe('POST /api/ai/research', () => {
     const req = createRequest({ messages: MESSAGES })
     await POST(req)
 
-    // The provider function should be called with default model
     const providerFn = mockCreateAnthropic.mock.results[0].value
     expect(mockStreamText).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: providerFn('claude-sonnet-4-20250514'),
+        model: providerFn('claude-sonnet-4-6'),
       })
     )
   })

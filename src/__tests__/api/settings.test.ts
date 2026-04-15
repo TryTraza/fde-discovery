@@ -19,18 +19,18 @@ describe('GET /api/settings', () => {
     expect(res.status).toBe(401)
   })
 
-  it('returns hasApiKey, aiModels, role when authenticated', async () => {
+  it('returns hasApiKey and role when authenticated (no aiModels after Phase 2.5)', async () => {
     setupClerkMocks({
       isAuthenticated: true,
       privateMetadata: { anthropicApiKey: 'sk-ant-test' },
-      publicMetadata: { role: 'admin', aiModels: { research: 'claude-sonnet-4-6' } },
+      publicMetadata: { role: 'admin' },
     })
     const res = await GET()
     const data = await res.json()
     expect(res.status).toBe(200)
     expect(data.hasApiKey).toBe(true)
-    expect(data.aiModels).toEqual({ research: 'claude-sonnet-4-6' })
     expect(data.role).toBe('admin')
+    expect(data).not.toHaveProperty('aiModels')
   })
 
   it('does NOT return raw API key in response', async () => {
@@ -52,8 +52,8 @@ describe('GET /api/settings', () => {
     const res = await GET()
     const data = await res.json()
     expect(data.hasApiKey).toBe(false)
-    expect(data.aiModels).toEqual({})
     expect(data.role).toBe('viewer')
+    expect(data).not.toHaveProperty('aiModels')
   })
 })
 
@@ -84,18 +84,14 @@ describe('PATCH /api/settings', () => {
     })
   })
 
-  it('saves model preferences', async () => {
-    const { mockUpdateUserMetadata } = setupClerkMocks({ isAuthenticated: true })
-    const models = { research: 'claude-sonnet-4-6', suggestions: 'claude-haiku-4-5-20241022' }
+  it('rejects aiModels patches (field removed in Phase 2.5)', async () => {
+    setupClerkMocks({ isAuthenticated: true })
     const req = new NextRequest('http://localhost/api/settings', {
       method: 'PATCH',
-      body: JSON.stringify({ aiModels: models }),
+      body: JSON.stringify({ aiModels: { research: 'claude-sonnet-4-6' } }),
     })
     const res = await PATCH(req)
-    expect(res.status).toBe(200)
-    expect(mockUpdateUserMetadata).toHaveBeenCalledWith('user_test123', {
-      publicMetadata: { aiModels: models },
-    })
+    expect(res.status).toBe(422)
   })
 
   it('returns 422 on empty body', async () => {

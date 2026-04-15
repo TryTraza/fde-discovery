@@ -6,6 +6,7 @@ import { createResearchNote } from '@/lib/db/queries/research-notes'
 import { getLayer } from '@/lib/ai/layers/registry'
 import { getLangfuseClient } from '@/lib/ai/observe'
 import { PROMPTS } from '@/lib/ai/prompts/fixtures'
+import { DEFAULT_MODELS } from '@/lib/ai/models'
 
 export const maxDuration = 30
 
@@ -28,11 +29,7 @@ export async function POST(req: Request) {
     }
 
     const anthropic = createAnthropic({ apiKey })
-    const modelPrefs =
-      ((user.publicMetadata as Record<string, unknown>)?.aiModels as
-        | Record<string, string>
-        | undefined) ?? {}
-    const modelId = modelPrefs.research || 'claude-sonnet-4-20250514'
+    const modelId = DEFAULT_MODELS.research
 
     const {
       messages,

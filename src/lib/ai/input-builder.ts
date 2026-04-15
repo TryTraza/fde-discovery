@@ -15,6 +15,8 @@
 import { getAgentBySlug } from '@/lib/db/queries/ai-agents'
 import { getLayer } from '@/lib/ai/layers/registry'
 import { resolveSkills } from '@/lib/ai/skills/resolver'
+import { getFeatureConfig } from '@/lib/ai/features/registry'
+import type { FeatureConfig } from '@/lib/ai/features/types'
 import { EMPTY_SKILLS } from '@/lib/ai/types'
 import type {
   AIAgentConfig,
@@ -102,6 +104,48 @@ export interface BuildAIInputResult {
 }
 
 /**
+ * Feature-first config lookup: static FEATURES map wins; DB fallback only
+ * covers slugs that haven't been ported yet (all 9 are ported as of
+ * Phase 2.5, so the DB branch is just transitional belt-and-suspenders
+ * until Phase 2.11 drops the ai_agents table).
+ */
+async function resolveConfig(slug: string): Promise<AIAgentConfig> {
+  const fromCode = getFeatureConfig(slug)
+  if (fromCode) return featureToAgentConfig(fromCode)
+
+  const fromDb = await getAgentBySlug(slug)
+  if (fromDb) return fromDb
+
+  throw new Error(`Unknown AI agent: "${slug}"`)
+}
+
+function featureToAgentConfig(f: FeatureConfig): AIAgentConfig {
+  // AIAgentConfig carries DB-only metadata (id/version/timestamps) that
+  // the rest of the pipeline reads for tracing. We synthesise stable
+  // sentinel values for code-backed features — they live in tracing
+  // output only and are distinguishable from real DB rows.
+  return {
+    id: `code:${f.slug}`,
+    version: 1,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+    slug: f.slug,
+    label: f.label,
+    description: f.description,
+    mode: f.mode,
+    model: f.model,
+    layers: f.layers,
+    langfusePromptName: f.langfusePromptName,
+    schemaSlug: f.schemaSlug,
+    tools: f.tools,
+    maxOutputTokens: f.maxOutputTokens,
+    skills: f.skills,
+    resilience: f.resilience,
+    enabled: f.enabled,
+  }
+}
+
+/**
  * Resolves layers + skills + overrides for a given agent slug.
  * Zero side-effects beyond reads and observability spans.
  */
@@ -113,8 +157,7 @@ export async function buildAIInput(
     trace?: any
   } = {}
 ): Promise<BuildAIInputResult> {
-  const config = await getAgentBySlug(agentSlug)
-  if (!config) throw new Error(`Unknown AI agent: "${agentSlug}"`)
+  const config = await resolveConfig(agentSlug)
 
   const layerOutcome =
     config.layers.length > 0

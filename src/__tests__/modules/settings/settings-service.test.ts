@@ -26,14 +26,6 @@ describe('settingsService', () => {
     expect(mockPatch).toHaveBeenCalledWith('/api/settings', { anthropicApiKey: 'sk-ant-xyz' })
   })
 
-  it('updateAiModels PATCHes /api/settings with aiModels object', async () => {
-    mockPatch.mockResolvedValue({})
-    await settingsService.updateAiModels({ research: 'claude-sonnet-4' })
-    expect(mockPatch).toHaveBeenCalledWith('/api/settings', {
-      aiModels: { research: 'claude-sonnet-4' },
-    })
-  })
-
   it('testKey POSTs /api/settings/test-key', async () => {
     mockPost.mockResolvedValue({})
     await settingsService.testKey()

@@ -49,9 +49,14 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
         ) : error ? (
           <div className="text-sm text-muted-foreground">
             Failed to load sessions.{' '}
-            <button onClick={() => mutateSessions()} className="underline">
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => mutateSessions()}
+              className="h-auto p-0 underline"
+            >
               Retry
-            </button>
+            </Button>
           </div>
         ) : sessions.length === 0 ? (
           <p className="text-sm text-muted-foreground">

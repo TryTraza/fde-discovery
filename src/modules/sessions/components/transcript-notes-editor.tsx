@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { sessionsService } from '@/modules/sessions/services/sessions-service';
 
 interface TranscriptNotesEditorProps {
@@ -102,8 +104,8 @@ export function TranscriptNotesEditor({
       <div className="space-y-4">
         <div className="space-y-2">
           <Label>Transcript</Label>
-          <textarea
-            className="w-full min-h-[300px] mt-1 p-3 border rounded-md bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          <Textarea
+            className="min-h-[300px] mt-1 resize-y"
             value={localTranscript}
             onChange={(e) => { setLocalTranscript(e.target.value); scheduleSave(); }}
             placeholder="Paste or type your session transcript here..."
@@ -111,8 +113,8 @@ export function TranscriptNotesEditor({
         </div>
         <div className="space-y-2">
           <Label>Notes</Label>
-          <textarea
-            className="w-full min-h-[200px] mt-1 p-3 border rounded-md bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          <Textarea
+            className="min-h-[200px] mt-1 resize-y"
             value={localNotes}
             onChange={(e) => { setLocalNotes(e.target.value); scheduleSave(); }}
             placeholder="Your personal notes about this session..."
@@ -123,9 +125,14 @@ export function TranscriptNotesEditor({
         {saveStatus === 'saving' && 'Saving...'}
         {saveStatus === 'saved' && 'Saved'}
         {saveStatus === 'error' && (
-          <button onClick={scheduleSave} className="text-destructive underline">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={scheduleSave}
+            className="h-auto p-0 text-destructive underline"
+          >
             Error saving — click to retry
-          </button>
+          </Button>
         )}
       </div>
     </div>

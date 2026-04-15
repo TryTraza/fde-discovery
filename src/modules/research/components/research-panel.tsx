@@ -5,6 +5,7 @@ import { DefaultChatTransport } from 'ai'
 import { useResearchContext } from '@/modules/research/hooks/use-research-context'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Trash2, Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { useState, useRef, useEffect, useMemo } from 'react'
@@ -119,11 +120,11 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
 
           <form onSubmit={handleSubmitMessage} className="border-t p-3">
             <div className="flex gap-2">
-              <textarea
+              <Textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask a research question..."
-                className="flex-1 min-h-[40px] max-h-[120px] resize-none rounded-md border px-3 py-2 text-sm"
+                className="flex-1 min-h-[40px] max-h-[120px] resize-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()

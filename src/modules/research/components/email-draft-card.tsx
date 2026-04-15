@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 import { Mail, Copy, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -78,10 +79,10 @@ export function EmailDraftCard({ sessionId }: EmailDraftCardProps) {
 
         {email ? (
           <>
-            <textarea
+            <Textarea
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full min-h-[200px] rounded-md border px-3 py-2 text-sm resize-y"
+              className="min-h-[200px] resize-y"
             />
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={handleCopy}>

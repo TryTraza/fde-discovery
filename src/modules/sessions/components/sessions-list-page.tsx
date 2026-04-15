@@ -58,9 +58,14 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
       {error ? (
         <div className="text-center py-8">
           <p className="text-sm text-muted-foreground mb-2">Failed to load sessions.</p>
-          <button onClick={() => mutateSessions()} className="text-sm text-primary underline">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => mutateSessions()}
+            className="h-auto p-0 underline"
+          >
             Retry
-          </button>
+          </Button>
         </div>
       ) : sessions.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">

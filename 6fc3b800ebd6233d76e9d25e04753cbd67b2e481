@@ -1,0 +1,109 @@
+src/modules/sessions/components/session-status-badge.tsx
+  eb4d5a394f202027 1-24
+src/modules/sessions/components/sessions-list-page.tsx
+  eb4d5a394f202027 1-108
+src/modules/sessions/components/transcript-notes-editor.tsx
+  eb4d5a394f202027 1-133
+src/modules/sessions/components/suggested-next-session.tsx
+  eb4d5a394f202027 1-83
+src/components/sessions/create-session-dialog.tsx
+  eb4d5a394f202027 1-2
+src/modules/sessions/components/synthesis-panels.tsx
+  eb4d5a394f202027 1-282
+src/components/sessions/read-only-event-log.tsx
+  eb4d5a394f202027 1-2
+src/modules/sessions/hooks/use-sessions.ts
+  eb4d5a394f202027 1-38
+src/modules/sessions/components/interview-step.tsx
+  eb4d5a394f202027 1-175
+src/modules/sessions/components/prep-brief-card.tsx
+  eb4d5a394f202027 1-153
+src/components/sessions/sessions-feed.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/suggested-next-session.tsx
+  eb4d5a394f202027 1-2
+src/modules/sessions/components/session-overview.tsx
+  eb4d5a394f202027 1-456
+src/modules/sessions/components/create-session-dialog.tsx
+  eb4d5a394f202027 1-210
+src/modules/sessions/components/prep-brief-panel.tsx
+  eb4d5a394f202027 1-377
+src/__tests__/components/sessions-feed.test.tsx
+  eb4d5a394f202027 3,10-11,15-16
+src/components/sessions/synthesis-panels.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/session-status-badge.tsx
+  eb4d5a394f202027 1-2
+src/__tests__/modules/debrief/debrief-service.test.ts
+  eb4d5a394f202027 1-38
+src/components/sessions/interview-step.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/debrief-panel.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/sessions-list-page.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/transcript-notes-editor.tsx
+  eb4d5a394f202027 1-2
+src/modules/sessions/lib/swr-keys.ts
+  eb4d5a394f202027 1-11
+src/lib/hooks/use-sessions.ts
+  eb4d5a394f202027 1-2
+src/modules/sessions/components/sessions-feed.tsx
+  eb4d5a394f202027 1-131
+src/modules/sessions/components/shadowing-capture-panel.tsx
+  eb4d5a394f202027 1-321
+src/components/sessions/question-sidebar.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/prep-brief-card.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/sessions-list.tsx
+  eb4d5a394f202027 1-2
+src/modules/sessions/services/sessions-service.ts
+  eb4d5a394f202027 1-63
+src/components/sessions/prep-brief-panel.tsx
+  eb4d5a394f202027 1-2
+src/modules/sessions/components/question-sidebar.tsx
+  eb4d5a394f202027 1-87
+src/modules/sessions/components/read-only-event-log.tsx
+  eb4d5a394f202027 1-115
+src/modules/sessions/components/session-type-selector.tsx
+  eb4d5a394f202027 1-63
+src/modules/sessions/components/sessions-list.tsx
+  eb4d5a394f202027 1-100
+src/modules/debrief/components/debrief-panel.tsx
+  eb4d5a394f202027 1-394
+src/modules/sessions/components/session-detail-card.tsx
+  eb4d5a394f202027 1-67
+src/components/sessions/session-detail-card.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/session-type-selector.tsx
+  eb4d5a394f202027 1-2
+src/components/sessions/shadowing-capture-panel.tsx
+  eb4d5a394f202027 1-2
+src/modules/debrief/services/debrief-service.ts
+  eb4d5a394f202027 1-22
+src/__tests__/modules/sessions/sessions-service.test.ts
+  eb4d5a394f202027 1-91
+src/components/sessions/session-overview.tsx
+  eb4d5a394f202027 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "6fc3b800ebd6233d76e9d25e04753cbd67b2e481",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 3837,
+      "total_deletions": 3574,
+      "accepted_lines": 6081,
+      "overriden_lines": 0
+    }
+  }
+}

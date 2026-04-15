@@ -1,89 +1,18 @@
 import { generateObject, generateText, streamText, convertToModelMessages } from 'ai'
 import type { LanguageModel } from 'ai'
 import { z } from 'zod'
-import { getAgentBySlug } from '@/lib/db/queries/ai-agents'
-import { getLayer } from './layers/registry'
-import { resolveSkills } from './skills/resolver'
 import { getTool } from './tools/registry'
 import { getSchema } from './schemas/registry'
 import { getLangfuseClient } from './observe'
+import { buildAIInput } from './input-builder'
 import type {
   AIBuilderInput,
   AIBuilderResult,
-  LayerResult,
-  LayerSpec,
   ToolSpec,
-  ResilienceConfig,
   ResolvedSkills,
-  AIAgentConfig,
 } from './types'
-import { EMPTY_SKILLS } from './types'
 
 // ── Helpers ──
-
-function rejectAfter(ms: number, message: string): Promise<never> {
-  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
-}
-
-async function runLayers(
-  specs: LayerSpec[],
-  params: AIBuilderInput['params'],
-  resilience: ResilienceConfig,
-  trace?: any
-): Promise<{
-  results: LayerResult[]
-  timings: Record<string, number>
-  errors: Array<{ layer: string; error: string }>
-}> {
-  const timings: Record<string, number> = {}
-  const errors: Array<{ layer: string; error: string }> = []
-
-  const results = await Promise.all(
-    specs.map(async (spec) => {
-      const span = trace?.span({ name: `layer:${spec.layer}` })
-      const start = Date.now()
-      try {
-        const layer = getLayer(spec.layer)
-        const result = await Promise.race([
-          layer.resolve(params, spec.options),
-          rejectAfter(
-            resilience.layerTimeout,
-            `Layer ${spec.layer} timed out after ${resilience.layerTimeout}ms`
-          ),
-        ])
-        timings[spec.layer] = Date.now() - start
-        span?.end({
-          output: { timing: timings[spec.layer], varsKeys: Object.keys(result.templateVars) },
-        })
-        return result
-      } catch (err) {
-        const duration = Date.now() - start
-        timings[spec.layer] = duration
-        const errorMsg = err instanceof Error ? err.message : String(err)
-        errors.push({ layer: spec.layer, error: errorMsg })
-        span?.end({ output: { timing: duration, error: errorMsg }, level: 'ERROR' })
-        console.warn(`[AI] Layer ${spec.layer} failed (${duration}ms):`, errorMsg)
-
-        if (!resilience.fallbackOnLayerError) {
-          throw new Error(
-            `Layer ${spec.layer} failed and fallbackOnLayerError is false: ${errorMsg}`
-          )
-        }
-        return { data: {}, templateVars: {} } as LayerResult
-      }
-    })
-  )
-
-  return { results, timings, errors }
-}
-
-function mergeLayerTemplateVars(results: LayerResult[]): Record<string, string> {
-  const vars: Record<string, string> = {}
-  for (const r of results) {
-    Object.assign(vars, r.templateVars)
-  }
-  return vars
-}
 
 interface CompiledPrompt {
   systemPrompt: string
@@ -192,39 +121,30 @@ async function fetchPrompt(promptName: string, langfuse: any): Promise<any> {
 export async function executeAI<T = unknown>(input: AIBuilderInput): Promise<AIBuilderResult<T>> {
   const startTime = Date.now()
 
-  const config = await getAgentBySlug(input.agentSlug)
-  if (!config) throw new Error(`Unknown AI agent: "${input.agentSlug}"`)
-
   const model = input.model as LanguageModel
   const anthropic = input.anthropic
 
   const langfuse = getLangfuseClient()
-  const trace = langfuse?.trace({
-    name: config.slug,
-    metadata: {
-      configVersion: config.version,
-      mode: config.mode,
-      model: config.model,
-    },
-  })
 
   try {
-    const layerResults =
-      config.layers.length > 0
-        ? await runLayers(config.layers, input.params, config.resilience, trace)
-        : { results: [], timings: {}, errors: [] }
+    // Context side: layers, skills, template vars. Trace is attached once
+    // we know the agent slug is valid.
+    const built = await buildAIInput(input.agentSlug, input.params, {
+      overrides: input.overrides,
+    })
+    const { config, skills, templateVars: vars, layerResults, layerTimings, layerErrors } = built
 
-    const [skills, langfusePrompt] = await Promise.all([
-      config.skills.length > 0 ? resolveSkills(config.skills) : EMPTY_SKILLS,
-      fetchPrompt(config.langfusePromptName, langfuse),
-    ])
+    const trace = langfuse?.trace({
+      name: config.slug,
+      metadata: {
+        configVersion: config.version,
+        mode: config.mode,
+        model: config.model,
+      },
+    })
+
+    const langfusePrompt = await fetchPrompt(config.langfusePromptName, langfuse)
     const resolvedTools = resolveTools(config.tools, anthropic)
-
-    const vars: Record<string, string> = {
-      ...mergeLayerTemplateVars(layerResults.results),
-      ...skills.contextEnrichments,
-      ...input.overrides?.templateVars,
-    }
 
     const compiled = compilePrompt(langfusePrompt, vars)
     const systemPrompt = buildSystemPrompt(compiled, skills, input.overrides)
@@ -309,9 +229,9 @@ export async function executeAI<T = unknown>(input: AIBuilderInput): Promise<AIB
         configVersion: config.version,
         promptVersion: langfusePrompt.version,
         model: config.model,
-        layerTimings: layerResults.timings,
+        layerTimings,
         totalDuration: Date.now() - startTime,
-        layerErrors: layerResults.errors,
+        layerErrors,
         traceId: trace?.id,
       },
     } as AIBuilderResult<T>

@@ -16,17 +16,22 @@ import { emailDraftFeature } from '@/lib/ai/features/email-draft'
 import { sessionInterviewFeature } from '@/lib/ai/features/session-interview'
 import { processHypothesisFeature } from '@/lib/ai/features/process-hypothesis'
 import { prepBriefFeature } from '@/lib/ai/features/prep-brief'
+import { captureSuggestionsFeature } from '@/lib/ai/features/capture-suggestions'
 import { renderEmailDraftTemplate } from '@/lib/ai/templates/email-draft'
 import { renderSessionInterviewTemplate } from '@/lib/ai/templates/session-interview'
 import { renderProcessHypothesisTemplate } from '@/lib/ai/templates/process-hypothesis'
 import { renderPrepBriefTemplate } from '@/lib/ai/templates/prep-brief'
+import { renderCaptureSuggestionsTemplate } from '@/lib/ai/templates/capture-suggestions'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { hypothesisSchema, type HypothesisOutput } from '@/lib/ai/schemas/hypothesis'
 import { prepBriefSchema, type PrepBrief } from '@/lib/ai/schemas/prep-brief'
+import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
 import { buildAIInput } from '@/lib/ai/input-builder'
 import { composeStructuredHypothesis } from '@/lib/ai/hypothesis/compose'
 import type {
   AIGateway,
+  CaptureSuggestion,
+  CaptureSuggestionsGatewayInput,
   EmailDraftGatewayInput,
   InterviewQuestion,
   PrepBriefGatewayInput,
@@ -173,6 +178,34 @@ class LocalAIGatewayImpl implements AIGateway {
     })
 
     return object as PrepBrief
+  }
+
+  async generateCaptureSuggestions(
+    input: CaptureSuggestionsGatewayInput
+  ): Promise<CaptureSuggestion[]> {
+    const feature = captureSuggestionsFeature
+    if (!feature.systemPrompt) {
+      throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
+    }
+
+    const built = await buildAIInput(feature.slug, { sessionId: input.sessionId })
+
+    const userPrompt = renderCaptureSuggestionsTemplate({
+      domainKnowledge: built.templateVars.domainKnowledge ?? '',
+      processModelSection: built.templateVars.processModelSection ?? '',
+      sessionEventsSection: built.templateVars.sessionEventsSection ?? '',
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: userPrompt,
+      schema: suggestionsSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    const parsed = object as { suggestions: CaptureSuggestion[] }
+    return parsed.suggestions ?? []
   }
 }
 

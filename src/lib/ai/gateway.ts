@@ -70,6 +70,15 @@ export interface PrepBriefGatewayInput extends WithModel {
   sessionId: string
 }
 
+export interface CaptureSuggestionsGatewayInput extends WithModel {
+  sessionId: string
+}
+
+export interface CaptureSuggestion {
+  text: string
+  rationale: string
+}
+
 export interface AIGateway {
   draftEmail(input: EmailDraftGatewayInput): Promise<string>
   generateInterviewQuestion(input: SessionInterviewGatewayInput): Promise<InterviewQuestion>
@@ -77,4 +86,7 @@ export interface AIGateway {
     input: ProcessHypothesisGatewayInput
   ): Promise<ProcessHypothesisGatewayResult>
   generatePrepBrief(input: PrepBriefGatewayInput): Promise<PrepBrief>
+  generateCaptureSuggestions(
+    input: CaptureSuggestionsGatewayInput
+  ): Promise<CaptureSuggestion[]>
 }

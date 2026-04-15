@@ -28,6 +28,7 @@ vi.mock('@/lib/ai/input-builder', () => ({
 import { localAIGateway } from '@/lib/ai/gateway-local'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { prepBriefSchema } from '@/lib/ai/schemas/prep-brief'
+import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
 import { processHypothesisSchema } from '@/lib/ai/contracts'
 
 const FAKE_MODEL = { modelId: 'fake-model' } as any
@@ -136,5 +137,29 @@ describe('gateway parity — prep-brief', () => {
 
     const out = await localAIGateway.generatePrepBrief({ sessionId: 's1', model: FAKE_MODEL })
     expect(prepBriefSchema.safeParse(out).success).toBe(true)
+  })
+})
+
+describe('gateway parity — capture-suggestions', () => {
+  it('LocalAIGateway.generateCaptureSuggestions returns suggestions that match the schema', async () => {
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: {
+        domainKnowledge: 'procurement',
+        processModelSection: '',
+        sessionEventsSection: '',
+      },
+    })
+    const suggestions = [
+      { text: 'Open email', rationale: 'Starts the flow' },
+      { text: 'Attach quote', rationale: 'Expected next' },
+    ]
+    mockGenerateObject.mockResolvedValue({ object: { suggestions } })
+
+    const out = await localAIGateway.generateCaptureSuggestions({
+      sessionId: 's1',
+      model: FAKE_MODEL,
+    })
+    expect(Array.isArray(out)).toBe(true)
+    expect(suggestionsSchema.safeParse({ suggestions: out }).success).toBe(true)
   })
 })

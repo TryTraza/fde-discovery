@@ -14,14 +14,20 @@
 import { generateObject, generateText } from 'ai'
 import { emailDraftFeature } from '@/lib/ai/features/email-draft'
 import { sessionInterviewFeature } from '@/lib/ai/features/session-interview'
+import { processHypothesisFeature } from '@/lib/ai/features/process-hypothesis'
 import { renderEmailDraftTemplate } from '@/lib/ai/templates/email-draft'
 import { renderSessionInterviewTemplate } from '@/lib/ai/templates/session-interview'
+import { renderProcessHypothesisTemplate } from '@/lib/ai/templates/process-hypothesis'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
+import { hypothesisSchema, type HypothesisOutput } from '@/lib/ai/schemas/hypothesis'
 import { buildAIInput } from '@/lib/ai/input-builder'
+import { composeStructuredHypothesis } from '@/lib/ai/hypothesis/compose'
 import type {
   AIGateway,
   EmailDraftGatewayInput,
   InterviewQuestion,
+  ProcessHypothesisGatewayInput,
+  ProcessHypothesisGatewayResult,
   SessionInterviewGatewayInput,
 } from './gateway'
 
@@ -84,6 +90,57 @@ class LocalAIGatewayImpl implements AIGateway {
     })
 
     return object as InterviewQuestion
+  }
+
+  async generateProcessHypothesis(
+    input: ProcessHypothesisGatewayInput
+  ): Promise<ProcessHypothesisGatewayResult> {
+    const feature = processHypothesisFeature
+    if (!feature.systemPrompt) {
+      throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
+    }
+
+    // Resolve L1 domain patterns through the layer pipeline. Client/process
+    // facts come from the caller directly — no need to round-trip through L2/L3
+    // for a just-created process where the caller already has the values.
+    const built = await buildAIInput(feature.slug, { processId: input.processId })
+    const allDomains = built.templateVars.allDomains ?? ''
+
+    const userPrompt = renderProcessHypothesisTemplate({
+      clientName: input.clientName,
+      clientIndustry: input.clientIndustry,
+      clientWebsite: input.clientWebsite,
+      processName: input.processName,
+      processDescription: input.processDescription,
+      processDepartment: input.processDepartment,
+      allDomains,
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: userPrompt,
+      schema: hypothesisSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    const ai = object as HypothesisOutput
+    let structured = null
+    try {
+      structured = composeStructuredHypothesis(ai)
+    } catch (err) {
+      console.warn(
+        `[gateway-local] ${feature.slug}: structured composition failed; returning legacy fields only:`,
+        err
+      )
+    }
+
+    return {
+      hypothesisText: ai.hypothesisText,
+      matchedProcessType: ai.matchedProcessType,
+      initialSteps: ai.initialSteps,
+      structured,
+    }
   }
 }
 

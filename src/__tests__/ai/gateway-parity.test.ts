@@ -27,6 +27,7 @@ vi.mock('@/lib/ai/input-builder', () => ({
 
 import { localAIGateway } from '@/lib/ai/gateway-local'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
+import { processHypothesisSchema } from '@/lib/ai/contracts'
 
 const FAKE_MODEL = { modelId: 'fake-model' } as any
 
@@ -74,5 +75,38 @@ describe('gateway parity — session-interview', () => {
     })
 
     expect(interviewQuestionSchema.safeParse(out).success).toBe(true)
+  })
+})
+
+describe('gateway parity — process-hypothesis', () => {
+  it('LocalAIGateway.generateProcessHypothesis emits a contract-valid structured hypothesis', async () => {
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: { allDomains: 'procurement' },
+    })
+    mockGenerateObject.mockResolvedValue({
+      object: {
+        hypothesisText: 'Summary.',
+        matchedProcessType: 'procurement',
+        initialSteps: [{ name: 'Step', description: 'Do', systems: ['SAP'], order: 1 }],
+        triggers: [{ description: 'new PO' }],
+        stakeholders: [{ role: 'Buyer', responsibility: 'submits' }],
+        assumptions: [{ text: 'POs in SAP', confidence: 'low' }],
+        openQuestions: [],
+      },
+    })
+
+    const out = await localAIGateway.generateProcessHypothesis({
+      processId: 'p1',
+      clientName: 'Acme',
+      clientIndustry: 'Manufacturing',
+      clientWebsite: null,
+      processName: 'PO',
+      processDescription: null,
+      processDepartment: null,
+      model: FAKE_MODEL,
+    })
+
+    expect(out.structured).not.toBeNull()
+    expect(processHypothesisSchema.safeParse(out.structured).success).toBe(true)
   })
 })

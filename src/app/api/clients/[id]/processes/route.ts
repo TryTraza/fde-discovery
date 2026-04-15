@@ -6,11 +6,10 @@ import {
   createProcess,
   createProcessModel,
   softDeleteProcess,
-  updateProcess,
-  updateProcessModel,
 } from '@/lib/db/queries/processes'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
-import { executeAI } from '@/lib/ai/builder'
+import { getAIGateway } from '@/lib/ai/gateway-factory'
+import { persistHypothesisResult } from '@/lib/ai/hypothesis/persist'
 import { createProcessSchema } from '@/lib/validations/process'
 import { parseJSON } from '@/lib/api/utils'
 
@@ -65,54 +64,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Failed to create process' }, { status: 500 })
     }
 
-    // Resolve AI model NOW while Clerk auth context is still available
+    // Resolve AI model NOW while Clerk auth context is still available.
+    // Fire-and-forget: the process response ships before AI finishes.
     try {
-      const { model, anthropic } = await getAIConfig('hypothesis')
+      const { model } = await getAIConfig('hypothesis')
+      const gateway = getAIGateway('process-hypothesis')
 
-      executeAI({
-        agentSlug: 'process-hypothesis',
-        params: { processId: process.id },
-        userId: '',
-        model,
-        anthropic,
-        overrides: {
-          templateVars: {
-            clientName: client.name,
-            clientIndustry: client.industry ? `Industry: ${client.industry}` : '',
-            clientWebsite: client.website ? `Website: ${client.website}` : '',
-            processName: parsed.data.name,
-            processDescription: parsed.data.description
-              ? `Description: ${parsed.data.description}`
-              : '',
-            processDepartment: parsed.data.departmentTag
-              ? `Department: ${parsed.data.departmentTag}`
-              : '',
-          },
-        },
-      })
-        .then(async (result) => {
-          const hypothesis = result.data as any
-          const fullSteps = (hypothesis.initialSteps ?? []).map((step: any) => ({
-            id: crypto.randomUUID(),
-            name: step.name,
-            description: step.description,
-            order: step.order,
-            systems: step.systems.map((s: string) => ({
-              name: s,
-              confirmed: false,
-              detailNotes: '',
-            })),
-            confidence: 'inferred' as const,
-            edgeCases: [],
-            notes: '',
-          }))
-
-          await updateProcessModel(process.id, { steps: fullSteps }).catch(() => {})
-          await updateProcess(process.id, {
-            hypothesisText: hypothesis.hypothesisText,
-            processTypeL1: hypothesis.matchedProcessType,
-          })
+      gateway
+        .generateProcessHypothesis({
+          processId: process.id,
+          clientName: client.name,
+          clientIndustry: client.industry ?? null,
+          clientWebsite: client.website ?? null,
+          processName: parsed.data.name,
+          processDescription: parsed.data.description ?? null,
+          processDepartment: parsed.data.departmentTag ?? null,
+          model,
         })
+        .then((result) => persistHypothesisResult(process.id, result))
         .catch((err) => {
           console.error(`[hypothesis] Failed for process ${process.id}:`, err)
         })

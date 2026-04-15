@@ -18,6 +18,7 @@
  */
 
 import type { LanguageModel } from 'ai'
+import type { ProcessHypothesis } from '@/lib/ai/contracts'
 
 /**
  * Shared: every gateway method receives a pre-resolved model (the caller
@@ -46,7 +47,28 @@ export interface InterviewQuestion {
   context: string
 }
 
+export interface ProcessHypothesisGatewayInput extends WithModel {
+  processId: string
+  clientName: string
+  clientIndustry: string | null
+  clientWebsite: string | null
+  processName: string
+  processDescription: string | null
+  processDepartment: string | null
+}
+
+export interface ProcessHypothesisGatewayResult {
+  hypothesisText: string
+  matchedProcessType: string
+  initialSteps: Array<{ name: string; description: string; systems: string[]; order: number }>
+  /** Composed ProcessHypothesis. null when composition fails (partial AI output). */
+  structured: ProcessHypothesis | null
+}
+
 export interface AIGateway {
   draftEmail(input: EmailDraftGatewayInput): Promise<string>
   generateInterviewQuestion(input: SessionInterviewGatewayInput): Promise<InterviewQuestion>
+  generateProcessHypothesis(
+    input: ProcessHypothesisGatewayInput
+  ): Promise<ProcessHypothesisGatewayResult>
 }

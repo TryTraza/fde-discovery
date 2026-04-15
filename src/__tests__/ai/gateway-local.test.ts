@@ -159,3 +159,84 @@ describe('LocalAIGateway.generateInterviewQuestion', () => {
     expect(out).toEqual({ question: 'Specific Q', context: 'Specific C' })
   })
 })
+
+describe('LocalAIGateway.generateProcessHypothesis', () => {
+  const FULL_AI_OUTPUT = {
+    hypothesisText: 'POs flow through SAP with Finance approval over $10k.',
+    matchedProcessType: 'procurement',
+    initialSteps: [
+      { name: 'Submit PO', description: 'Buyer submits', systems: ['SAP'], order: 1 },
+    ],
+    triggers: [{ description: 'New PO request', frequency: 'daily' }],
+    stakeholders: [{ role: 'Buyer', responsibility: 'Submits PO' }],
+    assumptions: [
+      {
+        text: 'All POs in SAP',
+        confidence: 'medium',
+        validationQuestion: 'Off-system POs?',
+      },
+    ],
+    openQuestions: ['What is the SLA?'],
+  }
+
+  const INPUT = {
+    processId: 'p1',
+    clientName: 'Acme',
+    clientIndustry: 'Manufacturing',
+    clientWebsite: null,
+    processName: 'PO',
+    processDescription: 'Buy things',
+    processDepartment: null,
+    model: FAKE_MODEL,
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: { allDomains: '## procurement\n- receive PO\n- approve\n- pay' },
+    })
+    mockGenerateObject.mockResolvedValue({ object: FULL_AI_OUTPUT })
+  })
+
+  it('passes the feature systemPrompt', async () => {
+    await localAIGateway.generateProcessHypothesis(INPUT)
+    const call = mockGenerateObject.mock.calls[0][0]
+    expect(call.system).toContain('operations analyst')
+  })
+
+  it('renders domain patterns + company + process in the user prompt', async () => {
+    await localAIGateway.generateProcessHypothesis(INPUT)
+    const call = mockGenerateObject.mock.calls[0][0]
+    expect(call.prompt).toContain('## Domain patterns')
+    expect(call.prompt).toContain('procurement')
+    expect(call.prompt).toContain('## Company')
+    expect(call.prompt).toContain('Acme')
+    expect(call.prompt).toContain('Manufacturing')
+    expect(call.prompt).toContain('## Process')
+    expect(call.prompt).toContain('Buy things')
+  })
+
+  it('returns legacy fields AND a composed structured hypothesis', async () => {
+    const out = await localAIGateway.generateProcessHypothesis(INPUT)
+    expect(out.hypothesisText).toBe(FULL_AI_OUTPUT.hypothesisText)
+    expect(out.matchedProcessType).toBe('procurement')
+    expect(out.initialSteps).toEqual(FULL_AI_OUTPUT.initialSteps)
+    expect(out.structured).not.toBeNull()
+    expect(out.structured!.schemaVersion).toBe(1)
+    expect(out.structured!.summary).toBe(FULL_AI_OUTPUT.hypothesisText)
+    expect(out.structured!.triggers).toHaveLength(1)
+  })
+
+  it('returns structured: null when AI output is missing structured fields', async () => {
+    mockGenerateObject.mockResolvedValueOnce({
+      object: {
+        hypothesisText: 'partial',
+        matchedProcessType: 'unknown',
+        initialSteps: [],
+      },
+    })
+    const out = await localAIGateway.generateProcessHypothesis(INPUT)
+    expect(out.hypothesisText).toBe('partial')
+    expect(out.structured).toBeNull()
+  })
+})

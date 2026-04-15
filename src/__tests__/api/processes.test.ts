@@ -22,20 +22,18 @@ vi.mock('@/lib/db/queries/processes', () => ({
   updateProcessModel: vi.fn(),
 }))
 
-const mockExecuteAI = vi.fn().mockResolvedValue({
-  data: { hypothesisText: 'Test hypothesis', matchedProcessType: 'procurement', initialSteps: [] },
-  meta: {
-    agentSlug: 'process-hypothesis',
-    configVersion: 1,
-    promptVersion: 1,
-    model: 'standard',
-    layerTimings: {},
-    totalDuration: 100,
-    layerErrors: [],
-  },
+const mockGenerateProcessHypothesis = vi.fn().mockResolvedValue({
+  hypothesisText: 'Test hypothesis',
+  matchedProcessType: 'procurement',
+  initialSteps: [],
+  structured: null,
 })
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({ generateProcessHypothesis: mockGenerateProcessHypothesis }),
+}))
+
+vi.mock('@/lib/ai/hypothesis/persist', () => ({
+  persistHypothesisResult: vi.fn(),
 }))
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
@@ -175,8 +173,11 @@ describe('POST /api/clients/[id]/processes', () => {
     const body = await res.json()
     expect(body.name).toBe('Purchasing')
     expect(createProcessModel).toHaveBeenCalledWith('proc-1')
-    expect(mockExecuteAI).toHaveBeenCalledWith(
-      expect.objectContaining({ agentSlug: 'process-hypothesis' })
+    expect(mockGenerateProcessHypothesis).toHaveBeenCalledWith(
+      expect.objectContaining({
+        processId: 'proc-1',
+        clientName: expect.any(String),
+      })
     )
   })
 })

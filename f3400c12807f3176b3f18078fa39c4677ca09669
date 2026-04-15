@@ -1,0 +1,34 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "f3400c12807f3176b3f18078fa39c4677ca09669",
+  "prompts": {
+    "0ca0cb6a1501c4c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9dac85b2-7f82-469a-903f-51437de4825d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 144,
+      "overriden_lines": 0
+    },
+    "6b21916ece6aa2c0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ba0ea344-dab6-4d09-887b-3d4872702f2d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 15,
+      "overriden_lines": 0
+    }
+  }
+}

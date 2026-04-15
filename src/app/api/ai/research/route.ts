@@ -4,7 +4,6 @@ import { createAnthropic } from '@ai-sdk/anthropic'
 import { requireAuthWithUser, handleAPIError } from '@/lib/auth/utils'
 import { createResearchNote } from '@/lib/db/queries/research-notes'
 import { getLayer } from '@/lib/ai/layers/registry'
-import { getLangfuseClient } from '@/lib/ai/observe'
 import { PROMPTS } from '@/lib/ai/prompts/fixtures'
 import { DEFAULT_MODELS } from '@/lib/ai/models'
 
@@ -67,19 +66,10 @@ export async function POST(req: Request) {
     }
     await Promise.all(layerPromises)
 
-    // Compile prompt from fixtures (Langfuse fallback)
-    const langfuse = getLangfuseClient()
-    let systemPrompt: string
-    if (langfuse) {
-      const prompt = await langfuse.getPrompt('research-chat', undefined, { label: 'production' })
-      const compiled = prompt.compile(vars) as any
-      const sysMsg = (Array.isArray(compiled) ? compiled : []).find((m: any) => m.role === 'system')
-      systemPrompt = sysMsg?.content ?? ''
-    } else {
-      const fixture = PROMPTS.find((p) => p.name === 'research-chat')!
-      const sysContent = fixture.prompt.find((m) => m.role === 'system')!.content
-      systemPrompt = sysContent.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '')
-    }
+    // Compile prompt from fixtures. Langfuse was retired in Phase 2.6.
+    const fixture = PROMPTS.find((p) => p.name === 'research-chat')!
+    const sysContent = fixture.prompt.find((m) => m.role === 'system')!.content
+    const systemPrompt = sysContent.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '')
 
     // Streaming call with onFinish stays in route
     const result = streamText({

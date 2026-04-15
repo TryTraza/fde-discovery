@@ -8,7 +8,10 @@ export const researchSourceSchema = z.object({
 })
 
 export const companySizeSchema = z.object({
-  employees: z.number().int().nonnegative().optional(),
+  // Note: no .int() / .nonnegative() — Anthropic structured outputs reject
+  // `minimum`/`maximum` constraints on integers. Validation of shape
+  // (non-negative integer) happens in UI/business logic, not in the schema.
+  employees: z.number().optional(),
   revenueRange: z.string().optional(),
   stage: z
     .enum([COMPANY_STAGE.STARTUP, COMPANY_STAGE.GROWTH, COMPANY_STAGE.ENTERPRISE])

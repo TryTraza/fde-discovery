@@ -1,0 +1,39 @@
+src/lib/db/queries/processes.ts
+  fd955c16e7741b85 96,98-120,123
+src/__tests__/ai/build-graph.test.ts
+  fd955c16e7741b85 1-134
+src/lib/ai/graph/build-graph.ts
+  fd955c16e7741b85 1-99
+src/lib/db/schema.ts
+  fd955c16e7741b85 14,185
+src/lib/db/migrations/0005_process_models_graph.sql
+  fd955c16e7741b85 1
+src/lib/db/migrations/meta/_journal.json
+  fd955c16e7741b85 39-45
+scripts/backfill-process-graph.ts
+  fd955c16e7741b85 1-83
+src/lib/db/migrations/meta/0005_snapshot.json
+  fd955c16e7741b85 1-1448
+src/app/api/sessions/[sessionId]/apply-synthesis/route.ts
+  fd955c16e7741b85 11,82-94,102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "e90c13787325cd9d565328c3ef6c31e5685d1dc1",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 1814,
+      "total_deletions": 3,
+      "accepted_lines": 1814,
+      "overriden_lines": 0
+    }
+  }
+}

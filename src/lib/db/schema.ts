@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import type { CompanyProfile } from '@/lib/ai/contracts'
+import type { CompanyProfile, ProcessHypothesis } from '@/lib/ai/contracts'
 
 // ====================================================================
 // ENUMS — 9 total
@@ -165,6 +165,7 @@ export const processes = pgTable('processes', {
   description: text('description'),
   status: processStatusEnum('status').default('draft').notNull(),
   hypothesisText: text('hypothesis_text'),
+  hypothesis: jsonb('hypothesis').$type<ProcessHypothesis>(),
   processTypeL1: text('process_type_l1').default('unknown'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

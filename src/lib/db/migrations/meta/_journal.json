@@ -43,6 +43,13 @@
       "when": 1776290487353,
       "tag": "0005_process_models_graph",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776290770572,
+      "tag": "0006_research_notes_response_structured",
+      "breakpoints": true
     }
   ]
 }

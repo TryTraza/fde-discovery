@@ -11,7 +11,12 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import type { CompanyProfile, ProcessGraph, ProcessHypothesis } from '@/lib/ai/contracts'
+import type {
+  CompanyProfile,
+  ProcessGraph,
+  ProcessHypothesis,
+  ResearchNoteResult,
+} from '@/lib/ai/contracts'
 
 // ====================================================================
 // ENUMS — 9 total
@@ -297,6 +302,7 @@ export const researchNotes = pgTable('research_notes', {
   processId: uuid('process_id').references(() => processes.id),
   query: text('query').notNull(),
   response: text('response').notNull(),
+  responseStructured: jsonb('response_structured').$type<ResearchNoteResult>(),
   sources: jsonb('sources').default([]).notNull(), // ResearchSource[]
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })

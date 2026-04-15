@@ -1,5 +1,6 @@
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 import { getSessionById } from '@/lib/db/queries/sessions'
+import type { ProcessHypothesis } from '@/lib/ai/contracts'
 import {
   EMPTY_LAYER_RESULT,
   type ContextLayer,
@@ -7,6 +8,34 @@ import {
   type LayerResult,
   type L3Options,
 } from './types'
+
+function formatStructuredHypothesis(h: ProcessHypothesis | null | undefined): string {
+  if (!h) return ''
+  const lines: string[] = ['### Structured Hypothesis', h.summary]
+  if (h.triggers.length > 0) {
+    lines.push('\n#### Triggers')
+    for (const t of h.triggers) {
+      lines.push(`- ${t.description}${t.frequency ? ` (${t.frequency})` : ''}`)
+    }
+  }
+  if (h.stakeholders.length > 0) {
+    lines.push('\n#### Stakeholders')
+    for (const s of h.stakeholders) lines.push(`- **${s.role}** — ${s.responsibility}`)
+  }
+  if (h.assumptions.length > 0) {
+    lines.push('\n#### Assumptions')
+    for (const a of h.assumptions) {
+      lines.push(
+        `- [${a.confidence}] ${a.text}${a.validationQuestion ? ` — validate: ${a.validationQuestion}` : ''}`
+      )
+    }
+  }
+  if (h.openQuestions.length > 0) {
+    lines.push('\n#### Open questions')
+    for (const q of h.openQuestions) lines.push(`- ${q}`)
+  }
+  return lines.join('\n')
+}
 
 function formatProcessModel(model: { steps?: any[]; systems?: any[]; edgeCases?: any[] }): string {
   const parts: string[] = ['## Current Process Model']
@@ -111,10 +140,16 @@ export const l3ProcessLayer: ContextLayer<L3Options> = {
       vars.processStatus = processWithModel.status ?? ''
       vars.processType = processWithModel.processTypeL1 ?? ''
       vars.processHypothesis = processWithModel.hypothesisText ?? ''
+      vars.processHypothesisSection = formatStructuredHypothesis(processWithModel.hypothesis)
     }
 
     return {
-      data: { process: processWithModel, processModel: processWithModel.processModel },
+      data: {
+        process: processWithModel,
+        processModel: processWithModel.processModel,
+        hypothesis: processWithModel.hypothesis ?? null,
+        graph: processWithModel.processModel?.graph ?? null,
+      },
       templateVars: vars,
     }
   },

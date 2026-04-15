@@ -19,20 +19,34 @@
 
 import type { LanguageModel } from 'ai'
 
-export interface EmailDraftGatewayInput {
+/**
+ * Shared: every gateway method receives a pre-resolved model (the caller
+ * owns Clerk / API-key concerns) and whatever input the feature needs.
+ */
+interface WithModel {
+  model: LanguageModel
+}
+
+export interface EmailDraftGatewayInput extends WithModel {
   clientName: string
   processName: string
   contacts: Array<{ name: string; role?: string | null }>
   synthesisHighlights: string
   openQuestions: string[]
   language: 'en' | 'es'
-  /**
-   * Pre-resolved provider client and model. Injected by the route handler
-   * because the gateway must stay unaware of Clerk / per-user keys.
-   */
-  model: LanguageModel
+}
+
+export interface SessionInterviewGatewayInput extends WithModel {
+  processId: string
+  previousAnswers: Array<{ question: string; answer: string }>
+}
+
+export interface InterviewQuestion {
+  question: string
+  context: string
 }
 
 export interface AIGateway {
   draftEmail(input: EmailDraftGatewayInput): Promise<string>
+  generateInterviewQuestion(input: SessionInterviewGatewayInput): Promise<InterviewQuestion>
 }

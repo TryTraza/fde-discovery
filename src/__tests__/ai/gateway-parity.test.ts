@@ -14,11 +14,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockGenerateText = vi.fn()
+const mockGenerateObject = vi.fn()
 vi.mock('ai', () => ({
   generateText: (...args: unknown[]) => mockGenerateText(...args),
+  generateObject: (...args: unknown[]) => mockGenerateObject(...args),
+}))
+
+const mockBuildAIInput = vi.fn()
+vi.mock('@/lib/ai/input-builder', () => ({
+  buildAIInput: (...args: unknown[]) => mockBuildAIInput(...args),
 }))
 
 import { localAIGateway } from '@/lib/ai/gateway-local'
+import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 
 const FAKE_MODEL = { modelId: 'fake-model' } as any
 
@@ -42,5 +50,29 @@ describe('gateway parity — email-draft', () => {
 
     expect(typeof out).toBe('string')
     expect(out.length).toBeGreaterThan(0)
+  })
+})
+
+describe('gateway parity — session-interview', () => {
+  it('LocalAIGateway.generateInterviewQuestion returns an interviewQuestionSchema-valid object', async () => {
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: {
+        clientSection: 'client',
+        processSection: 'process',
+        processModelSection: '',
+        contactsSection: '',
+      },
+    })
+    mockGenerateObject.mockResolvedValue({
+      object: { question: 'What triggers the process?', context: 'Understand inputs.' },
+    })
+
+    const out = await localAIGateway.generateInterviewQuestion({
+      processId: 'p1',
+      previousAnswers: [],
+      model: FAKE_MODEL,
+    })
+
+    expect(interviewQuestionSchema.safeParse(out).success).toBe(true)
   })
 })

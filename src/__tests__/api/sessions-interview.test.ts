@@ -17,9 +17,9 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
   }),
 }))
 
-const mockExecuteAI = vi.fn()
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+const mockGenerateInterviewQuestion = vi.fn()
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({ generateInterviewQuestion: mockGenerateInterviewQuestion }),
 }))
 
 // --- Imports (after mocks) ---
@@ -69,20 +69,9 @@ const VALID_BODY = {
 describe('POST /api/sessions/interview', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockExecuteAI.mockResolvedValue({
-      data: {
-        question: 'What are the main pain points?',
-        context: 'Understanding pain points helps focus the session.',
-      },
-      meta: {
-        agentSlug: 'session-interview',
-        configVersion: 1,
-        promptVersion: 1,
-        model: 'standard',
-        layerTimings: {},
-        totalDuration: 100,
-        layerErrors: [],
-      },
+    mockGenerateInterviewQuestion.mockResolvedValue({
+      question: 'What are the main pain points?',
+      context: 'Understanding pain points helps focus the session.',
     })
   })
 
@@ -114,9 +103,9 @@ describe('POST /api/sessions/interview', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 500 when executeAI fails (e.g. process not found)', async () => {
+  it('returns 500 when the gateway fails (e.g. process not found)', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
-    mockExecuteAI.mockRejectedValueOnce(new Error('Process not found'))
+    mockGenerateInterviewQuestion.mockRejectedValueOnce(new Error('Process not found'))
 
     const req = createRequest(VALID_BODY)
     const res = await POST(req)
@@ -141,7 +130,7 @@ describe('POST /api/sessions/interview', () => {
 
     expect(res.status).toBe(200)
     expect(data).toEqual({ done: true })
-    expect(mockExecuteAI).not.toHaveBeenCalled()
+    expect(mockGenerateInterviewQuestion).not.toHaveBeenCalled()
   })
 
   it('returns question and context for valid request', async () => {
@@ -155,6 +144,6 @@ describe('POST /api/sessions/interview', () => {
     expect(data.done).toBe(false)
     expect(data.question).toBe('What are the main pain points?')
     expect(data.context).toBe('Understanding pain points helps focus the session.')
-    expect(mockExecuteAI).toHaveBeenCalled()
+    expect(mockGenerateInterviewQuestion).toHaveBeenCalled()
   })
 })

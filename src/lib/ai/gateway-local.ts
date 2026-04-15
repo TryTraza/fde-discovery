@@ -11,10 +11,19 @@
  * a feature lives in its feature file + template.
  */
 
-import { generateText } from 'ai'
+import { generateObject, generateText } from 'ai'
 import { emailDraftFeature } from '@/lib/ai/features/email-draft'
+import { sessionInterviewFeature } from '@/lib/ai/features/session-interview'
 import { renderEmailDraftTemplate } from '@/lib/ai/templates/email-draft'
-import type { AIGateway, EmailDraftGatewayInput } from './gateway'
+import { renderSessionInterviewTemplate } from '@/lib/ai/templates/session-interview'
+import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
+import { buildAIInput } from '@/lib/ai/input-builder'
+import type {
+  AIGateway,
+  EmailDraftGatewayInput,
+  InterviewQuestion,
+  SessionInterviewGatewayInput,
+} from './gateway'
 
 function languageInstruction(language: 'en' | 'es'): string {
   return language === 'es'
@@ -46,6 +55,35 @@ class LocalAIGatewayImpl implements AIGateway {
     })
 
     return text
+  }
+
+  async generateInterviewQuestion(
+    input: SessionInterviewGatewayInput
+  ): Promise<InterviewQuestion> {
+    const feature = sessionInterviewFeature
+    if (!feature.systemPrompt) {
+      throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
+    }
+
+    const built = await buildAIInput(feature.slug, { processId: input.processId })
+
+    const userPrompt = renderSessionInterviewTemplate({
+      clientSection: built.templateVars.clientSection ?? '',
+      processSection: built.templateVars.processSection ?? '',
+      processModelSection: built.templateVars.processModelSection ?? '',
+      contactsSection: built.templateVars.contactsSection ?? '',
+      previousAnswers: input.previousAnswers,
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: userPrompt,
+      schema: interviewQuestionSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    return object as InterviewQuestion
   }
 }
 

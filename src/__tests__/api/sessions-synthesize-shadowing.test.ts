@@ -78,7 +78,6 @@ const fakeSynthesisResult = {
       confirmed: true,
       role: 'Data entry',
       details: 'Main spreadsheet',
-      gaps: null,
       detailNotes: 'Sheet: Quotes2024\nCol A = Supplier',
       changeType: 'new',
     },

@@ -183,4 +183,26 @@ describe('POST /api/sessions/[sessionId]/synthesize', () => {
       status: 'synthesis_done',
     })
   })
+
+  it('returns 500 and does not persist when AI output fails schema validation', async () => {
+    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
+    setupDBMocks()
+
+    mockExecuteAI.mockResolvedValueOnce({
+      data: { summary: 'broken', steps: 'not-an-array', openQuestions: [] },
+      meta: {
+        agentSlug: 'session-synthesis',
+        configVersion: 1,
+        promptVersion: 1,
+        model: 'standard',
+        layerTimings: {},
+        totalDuration: 1,
+        layerErrors: [],
+      },
+    })
+
+    const res = await POST(createRequest(), withParams(SESSION_ID))
+    expect(res.status).toBe(500)
+    expect(updateSession).not.toHaveBeenCalled()
+  })
 })

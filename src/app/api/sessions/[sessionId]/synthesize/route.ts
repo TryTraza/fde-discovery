@@ -3,6 +3,16 @@ import { requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
 import { getSessionById, updateSession } from '@/lib/db/queries/sessions'
 import { executeAI } from '@/lib/ai/builder'
+import { synthesisOutputSchema } from '@/lib/ai/schemas/synthesis'
+
+function validateSynthesisOutput(data: unknown): { ok: true; data: unknown } | { ok: false } {
+  const parsed = synthesisOutputSchema.safeParse(data)
+  if (!parsed.success) {
+    console.error('Synthesis output failed schema validation:', parsed.error.flatten())
+    return { ok: false }
+  }
+  return { ok: true, data: parsed.data }
+}
 
 export async function POST(
   _request: Request,
@@ -44,12 +54,20 @@ export async function POST(
           anthropic,
         })
 
+        const validated = validateSynthesisOutput(result.data)
+        if (!validated.ok) {
+          return NextResponse.json(
+            { error: 'Synthesis output did not match expected shape.' },
+            { status: 500 }
+          )
+        }
+
         await updateSession(sessionId, {
-          synthesisOutput: result.data,
+          synthesisOutput: validated.data,
           status: 'synthesis_done',
         })
 
-        return NextResponse.json(result.data)
+        return NextResponse.json(validated.data)
       } catch (error) {
         console.error('Shadowing synthesis failed:', error)
         return NextResponse.json({ error: 'Synthesis failed. Please try again.' }, { status: 500 })
@@ -71,12 +89,20 @@ export async function POST(
       anthropic,
     })
 
+    const validated = validateSynthesisOutput(result.data)
+    if (!validated.ok) {
+      return NextResponse.json(
+        { error: 'Synthesis output did not match expected shape.' },
+        { status: 500 }
+      )
+    }
+
     await updateSession(sessionId, {
-      synthesisOutput: result.data,
+      synthesisOutput: validated.data,
       status: 'synthesis_done',
     })
 
-    return NextResponse.json(result.data)
+    return NextResponse.json(validated.data)
   } catch (error) {
     if (error instanceof Error && error.message === 'Session not found') {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })

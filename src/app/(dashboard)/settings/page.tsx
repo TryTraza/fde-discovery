@@ -23,6 +23,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, EyeOff } from 'lucide-react';
+import { settingsService } from '@/modules/settings/services/settings-service';
+import { ApiError } from '@/lib/api-client';
 import {
   AVAILABLE_MODELS,
   AI_FEATURE_LABELS,
@@ -55,9 +57,7 @@ export default function SettingsPage() {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const res = await fetch('/api/settings');
-        if (!res.ok) throw new Error('Failed to fetch settings');
-        const data: SettingsData = await res.json();
+        const data = await settingsService.get();
         setHasApiKey(data.hasApiKey);
         setAiModels(data.aiModels);
       } catch {
@@ -95,21 +95,19 @@ export default function SettingsPage() {
     setKeyError('');
     setInFlight(true);
     try {
-      const res = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ anthropicApiKey: apiKey }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
-      }
+      await settingsService.updateApiKey(apiKey);
       setHasApiKey(true);
       setApiKey('');
       await user?.reload();
       toast.success('API key saved successfully');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save API key');
+      const message =
+        err instanceof ApiError && typeof (err.body as { error?: string })?.error === 'string'
+          ? (err.body as { error: string }).error
+          : err instanceof Error
+            ? err.message
+            : 'Failed to save API key';
+      toast.error(message);
     } finally {
       setInFlight(false);
     }
@@ -118,12 +116,16 @@ export default function SettingsPage() {
   async function handleTestKey() {
     setInFlight(true);
     try {
-      const res = await fetch('/api/settings/test-key', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Test failed');
+      await settingsService.testKey();
       toast.success('API key is valid!');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Key test failed');
+      const message =
+        err instanceof ApiError && typeof (err.body as { error?: string })?.error === 'string'
+          ? (err.body as { error: string }).error
+          : err instanceof Error
+            ? err.message
+            : 'Key test failed';
+      toast.error(message);
     } finally {
       setInFlight(false);
     }
@@ -132,19 +134,17 @@ export default function SettingsPage() {
   async function handleSaveModels() {
     setInFlight(true);
     try {
-      const res = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aiModels }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
-      }
+      await settingsService.updateAiModels(aiModels);
       await user?.reload();
       toast.success('Model preferences saved');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save model preferences');
+      const message =
+        err instanceof ApiError && typeof (err.body as { error?: string })?.error === 'string'
+          ? (err.body as { error: string }).error
+          : err instanceof Error
+            ? err.message
+            : 'Failed to save model preferences';
+      toast.error(message);
     } finally {
       setInFlight(false);
     }

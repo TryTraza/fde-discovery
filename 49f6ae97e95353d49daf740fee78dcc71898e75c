@@ -1,0 +1,33 @@
+eslint.config.mjs
+  eb4d5a394f202027 4,9
+package.json
+  eb4d5a394f202027 10-11,74,76
+src/lib/api-client.ts
+  eb4d5a394f202027 1-109
+.prettierignore
+  eb4d5a394f202027 1-13
+prettier.config.mjs
+  eb4d5a394f202027 1-9
+src/__tests__/lib/api-client.test.ts
+  eb4d5a394f202027 1-213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "49f6ae97e95353d49daf740fee78dcc71898e75c",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 1856,
+      "total_deletions": 1136,
+      "accepted_lines": 1847,
+      "overriden_lines": 0
+    }
+  }
+}

@@ -1,0 +1,95 @@
+src/modules/processes/hooks/use-processes.ts
+  eb4d5a394f202027 1-44
+src/modules/processes/components/process-detail-card.tsx
+  eb4d5a394f202027 1-176
+src/components/processes/metadata-strip.tsx
+  eb4d5a394f202027 1-2
+src/modules/processes/components/step-card.tsx
+  eb4d5a394f202027 1-196
+src/components/processes/processes-list.tsx
+  eb4d5a394f202027 1-2
+src/modules/processes/components/process-overview.tsx
+  eb4d5a394f202027 1-170
+src/modules/processes/components/flow-nodes/step-node.tsx
+  eb4d5a394f202027 1-131
+src/modules/processes/lib/swr-keys.ts
+  eb4d5a394f202027 1-10
+src/components/processes/process-overview.tsx
+  eb4d5a394f202027 1-2
+src/modules/processes/components/process-step-row.tsx
+  eb4d5a394f202027 1-257
+src/modules/processes/services/processes-service.ts
+  eb4d5a394f202027 1-74
+src/modules/processes/components/flow-nodes/terminal-node.tsx
+  eb4d5a394f202027 1-55
+src/modules/processes/components/hypothesis-card.tsx
+  eb4d5a394f202027 1-154
+src/modules/processes/components/process-status-badge.tsx
+  eb4d5a394f202027 1-21
+src/modules/processes/components/edit-details-sheet.tsx
+  eb4d5a394f202027 1-196
+src/components/processes/confidence-legend.tsx
+  eb4d5a394f202027 1-2
+src/lib/hooks/use-processes.ts
+  eb4d5a394f202027 1-2
+src/modules/processes/components/flow-nodes/flow-controls.tsx
+  eb4d5a394f202027 1-26
+src/modules/processes/components/flow-nodes/sketchy-defs.tsx
+  eb4d5a394f202027 1-30
+src/components/processes/edit-details-sheet.tsx
+  eb4d5a394f202027 1-2
+src/components/processes/process-detail-card.tsx
+  eb4d5a394f202027 1-2
+src/components/processes/process-flow.tsx
+  eb4d5a394f202027 1-2
+src/components/processes/process-step-row.tsx
+  eb4d5a394f202027 1-2
+src/modules/processes/components/confidence-legend.tsx
+  eb4d5a394f202027 1-32
+src/modules/processes/components/create-process-dialog.tsx
+  eb4d5a394f202027 1-174
+src/components/processes/step-card.tsx
+  eb4d5a394f202027 1-2
+src/components/processes/system-badge.tsx
+  eb4d5a394f202027 1-2
+src/components/processes/hypothesis-card.tsx
+  eb4d5a394f202027 1-2
+src/modules/processes/components/flow-nodes/step-detail-panel.tsx
+  eb4d5a394f202027 1-227
+src/modules/processes/components/metadata-strip.tsx
+  eb4d5a394f202027 1-75
+src/modules/processes/components/process-flow.tsx
+  eb4d5a394f202027 1-251
+src/__tests__/modules/processes/processes-service.test.ts
+  eb4d5a394f202027 1-70
+src/components/processes/create-process-dialog.tsx
+  eb4d5a394f202027 1-2
+src/modules/processes/components/flow-nodes/animated-edge.tsx
+  eb4d5a394f202027 1-83
+src/modules/processes/components/processes-list.tsx
+  eb4d5a394f202027 1-97
+src/modules/processes/components/system-badge.tsx
+  eb4d5a394f202027 1-24
+src/components/processes/process-status-badge.tsx
+  eb4d5a394f202027 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "44799d8304d6abc8b446227ec6a0ac8fc23a2c7c",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 2728,
+      "total_deletions": 1960,
+      "accepted_lines": 4545,
+      "overriden_lines": 0
+    }
+  }
+}

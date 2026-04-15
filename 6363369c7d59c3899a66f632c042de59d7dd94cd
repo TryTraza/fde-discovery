@@ -1,0 +1,73 @@
+src/app/(dashboard)/clients/[clientId]/processes/[processId]/sessions/page.tsx
+  eb4d5a394f202027 1
+src/__tests__/components/metadata-strip.test.tsx
+  eb4d5a394f202027 3
+src/app/(dashboard)/clients/[clientId]/page.tsx
+  eb4d5a394f202027 1
+CLAUDE.md
+  eb4d5a394f202027 336-340,348,352-354,356,361,363,369-381,384,386-398,401-404
+src/app/(dashboard)/settings/ai-agents/page.tsx
+  eb4d5a394f202027 39-40
+src/components/layout/dashboard-header-actions.tsx
+  eb4d5a394f202027 6
+src/__tests__/hooks/use-event-sync.test.ts
+  eb4d5a394f202027 3
+src/modules/capture/components/analytics-sidebar.tsx
+  eb4d5a394f202027 4
+src/modules/capture/components/event-log-panel.tsx
+  eb4d5a394f202027 8
+src/modules/clients/components/processes-section.tsx
+  eb4d5a394f202027 4-6
+src/app/(dashboard)/clients/[clientId]/processes/[processId]/page.tsx
+  eb4d5a394f202027 1
+src/app/(dashboard)/clients/[clientId]/processes/page.tsx
+  eb4d5a394f202027 1
+src/app/(dashboard)/clients/page.tsx
+  eb4d5a394f202027 1
+src/modules/processes/components/process-overview.tsx
+  eb4d5a394f202027 9,16
+src/modules/sessions/components/sessions-feed.tsx
+  eb4d5a394f202027 9
+src/app/(dashboard)/settings/skills/page.tsx
+  eb4d5a394f202027 49
+SPEC.md
+  eb4d5a394f202027 205
+src/__tests__/components/prep-brief-panel.test.tsx
+  eb4d5a394f202027 3
+src/__tests__/components/confidence-legend.test.tsx
+  eb4d5a394f202027 3
+src/modules/sessions/components/shadowing-capture-panel.tsx
+  eb4d5a394f202027 7,10-17
+src/__tests__/components/edit-details-sheet.test.tsx
+  eb4d5a394f202027 3
+src/__tests__/hooks/use-suggestions.test.ts
+  eb4d5a394f202027 3
+src/modules/sessions/components/sessions-list.tsx
+  eb4d5a394f202027 5
+src/__tests__/components/question-sidebar.test.tsx
+  eb4d5a394f202027 3
+src/__tests__/components/suggested-next-session.test.tsx
+  eb4d5a394f202027 3
+src/app/(dashboard)/clients/[clientId]/processes/[processId]/sessions/[sessionId]/page.tsx
+  eb4d5a394f202027 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "6363369c7d59c3899a66f632c042de59d7dd94cd",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 1998,
+      "total_deletions": 297,
+      "accepted_lines": 1997,
+      "overriden_lines": 0
+    }
+  }
+}

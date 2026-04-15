@@ -1,0 +1,23 @@
+CONTRIBUTING.md
+  eb4d5a394f202027 1,3,5,7,9-22,24,26,28,30,32-81,84-119,122,124-198,200,202-283,285-289,291,293,295,297-302,305-326,328,330-335,337-340,342,344,346,348,351-353,355-425,427-483,485-989,991-1001,1005-1951,1953
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "27115a6427d67072c544f153def73b5889735cd8",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1944,
+      "overriden_lines": 0
+    }
+  }
+}

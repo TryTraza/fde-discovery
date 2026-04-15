@@ -1,0 +1,29 @@
+src/components/ui/button.tsx
+  eb4d5a394f202027 6,13,23-25
+src/components/ui/button-variants.ts
+  eb4d5a394f202027 1-43
+src/app/(dashboard)/clients/[clientId]/not-found.tsx
+  eb4d5a394f202027 1
+src/app/(dashboard)/clients/[clientId]/processes/[processId]/not-found.tsx
+  eb4d5a394f202027 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "6ec950586fcf208c6a2cd4d28d467731f29f3c53",
+  "prompts": {
+    "eb4d5a394f202027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3118bcc7-08e1-468d-acd6-231fdd47cf2f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 50,
+      "total_deletions": 41,
+      "accepted_lines": 50,
+      "overriden_lines": 0
+    }
+  }
+}

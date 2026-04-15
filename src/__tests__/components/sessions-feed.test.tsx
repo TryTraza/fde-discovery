@@ -1,19 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { SessionsFeed } from '@/components/sessions/sessions-feed';
+import { SessionsFeed } from '@/modules/sessions/components/sessions-feed';
 
 // Mock next/link
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
 }));
 
-// Mock CreateSessionDialog
-vi.mock('@/components/sessions/create-session-dialog', () => ({
+// Mock CreateSessionDialog (new module path — matches the relative import inside sessions-feed)
+vi.mock('@/modules/sessions/components/create-session-dialog', () => ({
   CreateSessionDialog: () => null,
 }));
 
-// Mock SuggestedNextSession
-vi.mock('@/components/sessions/suggested-next-session', () => ({
+// Mock SuggestedNextSession (new module path)
+vi.mock('@/modules/sessions/components/suggested-next-session', () => ({
   SuggestedNextSession: () => <div data-testid="suggested-next-session" />,
 }));
 

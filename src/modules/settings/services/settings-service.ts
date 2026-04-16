@@ -2,7 +2,6 @@ import { apiClient } from '@/lib/api-client'
 
 export interface SettingsData {
   hasApiKey: boolean
-  aiModels: Record<string, string>
 }
 
 class SettingsService {
@@ -12,10 +11,6 @@ class SettingsService {
 
   async updateApiKey(anthropicApiKey: string): Promise<unknown> {
     return apiClient.patch('/api/settings', { anthropicApiKey })
-  }
-
-  async updateAiModels(aiModels: Record<string, string>): Promise<unknown> {
-    return apiClient.patch('/api/settings', { aiModels })
   }
 
   async testKey(): Promise<unknown> {

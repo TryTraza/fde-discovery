@@ -85,4 +85,33 @@ describe('L2 Client Layer', () => {
     expect(result.templateVars).toEqual({})
     expect(result.data).toEqual({})
   })
+
+  it('renders a clientProfileSection when client.profile is populated', async () => {
+    vi.mocked(getClientById).mockResolvedValue({
+      ...fakeClient,
+      profile: {
+        schemaVersion: 1,
+        description: 'Acme builds widgets.',
+        industry: 'Manufacturing',
+        size: { stage: 'growth', employees: 500 },
+        areasOfExpertise: ['widget engineering'],
+        productsAndServices: [{ name: 'Widget Pro', description: 'Pro widgets' }],
+        sources: [],
+        lastRefreshedAt: '2026-04-16T10:00:00.000Z',
+      },
+    } as any)
+
+    const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
+    expect(result.templateVars.clientProfileSection).toContain('Company Profile')
+    expect(result.templateVars.clientProfileSection).toContain('Acme builds widgets.')
+    expect(result.templateVars.clientProfileSection).toContain('stage: growth')
+    expect(result.templateVars.clientProfileSection).toContain('500 employees')
+    expect(result.templateVars.clientProfileSection).toContain('Widget Pro')
+  })
+
+  it('returns empty string for clientProfileSection when profile is null', async () => {
+    vi.mocked(getClientById).mockResolvedValue({ ...fakeClient, profile: null } as any)
+    const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
+    expect(result.templateVars.clientProfileSection).toBe('')
+  })
 })

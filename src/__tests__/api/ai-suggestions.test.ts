@@ -27,9 +27,9 @@ vi.mock('@/lib/ai/context/capture-context', () => ({
   }),
 }))
 
-const mockExecuteAI = vi.fn()
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+const mockGenerateCaptureSuggestions = vi.fn()
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({ generateCaptureSuggestions: mockGenerateCaptureSuggestions }),
 }))
 
 // --- Imports (after mocks) ---
@@ -59,18 +59,7 @@ const MOCK_SUGGESTIONS = [
 describe('POST /api/ai/suggestions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockExecuteAI.mockResolvedValue({
-      data: { suggestions: MOCK_SUGGESTIONS },
-      meta: {
-        agentSlug: 'capture-suggestions',
-        configVersion: 1,
-        promptVersion: 1,
-        model: 'standard',
-        layerTimings: {},
-        totalDuration: 100,
-        layerErrors: [],
-      },
-    })
+    mockGenerateCaptureSuggestions.mockResolvedValue(MOCK_SUGGESTIONS)
     vi.mocked(getAIConfig).mockResolvedValue({
       model: 'mock-model',
       modelId: 'claude-haiku-4-5-20241022',
@@ -101,7 +90,7 @@ describe('POST /api/ai/suggestions', () => {
 
   it('returns empty array when AI call fails (no 500)', async () => {
     setupClerkMocks({ isAuthenticated: true })
-    mockExecuteAI.mockRejectedValue(new Error('AI model error'))
+    mockGenerateCaptureSuggestions.mockRejectedValue(new Error('AI model error'))
 
     const req = createRequest({ sessionId: SESSION_ID, activeType: 'STEP', eventCount: 0 })
     const res = await POST(req)
@@ -131,7 +120,7 @@ describe('POST /api/ai/suggestions', () => {
     const data = await res.json()
 
     expect(data.suggestions).toEqual([])
-    expect(mockExecuteAI).not.toHaveBeenCalled()
+    expect(mockGenerateCaptureSuggestions).not.toHaveBeenCalled()
   })
 
   it('limits suggestions to max 5', async () => {
@@ -142,18 +131,7 @@ describe('POST /api/ai/suggestions', () => {
         text: `Suggestion ${i}`,
         rationale: `Rationale ${i}`,
       }))
-    mockExecuteAI.mockResolvedValue({
-      data: { suggestions: manySuggestions },
-      meta: {
-        agentSlug: 'capture-suggestions',
-        configVersion: 1,
-        promptVersion: 1,
-        model: 'standard',
-        layerTimings: {},
-        totalDuration: 100,
-        layerErrors: [],
-      },
-    })
+    mockGenerateCaptureSuggestions.mockResolvedValue(manySuggestions)
 
     const req = createRequest({ sessionId: SESSION_ID, activeType: 'STEP', eventCount: 0 })
     const res = await POST(req)
@@ -176,17 +154,16 @@ describe('POST /api/ai/suggestions', () => {
     expect(data.suggestions).toEqual([])
   })
 
-  it('calls executeAI with capture-suggestions agent', async () => {
+  it('calls the gateway with the capture-suggestions input shape', async () => {
     setupClerkMocks({ isAuthenticated: true })
 
     const req = createRequest({ sessionId: SESSION_ID, activeType: 'EDGE', eventCount: 5 })
     await POST(req)
 
-    expect(mockExecuteAI).toHaveBeenCalledTimes(1)
-    expect(mockExecuteAI).toHaveBeenCalledWith(
+    expect(mockGenerateCaptureSuggestions).toHaveBeenCalledTimes(1)
+    expect(mockGenerateCaptureSuggestions).toHaveBeenCalledWith(
       expect.objectContaining({
-        agentSlug: 'capture-suggestions',
-        params: { sessionId: SESSION_ID },
+        sessionId: SESSION_ID,
         model: 'mock-model',
       })
     )

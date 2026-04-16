@@ -37,14 +37,14 @@ describe('getAIConfig', () => {
     expect(result.modelId).toBe('claude-sonnet-4-6')
   })
 
-  it('returns user model preference when set', async () => {
+  it('ignores publicMetadata.aiModels (field retired in Phase 2.5)', async () => {
     setupClerkMocks({
       isAuthenticated: true,
       privateMetadata: { anthropicApiKey: 'sk-ant-test' },
       publicMetadata: { aiModels: { research: 'claude-haiku-4-5-20241022' } },
     })
     const result = await getAIConfig('research')
-    expect(result.modelId).toBe('claude-haiku-4-5-20241022')
+    expect(result.modelId).toBe('claude-sonnet-4-6')
   })
 
   it('returns anthropic provider for tool access', async () => {

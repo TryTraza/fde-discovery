@@ -1,0 +1,184 @@
+/**
+ * input-builder — the "context side" of AI invocation.
+ *
+ * Given a feature slug and LayerParams, returns everything a prompt needs
+ * to be compiled (layer data, skills, merged template variables). Does NOT
+ * touch prompt loading, tools, or model invocation — those stay in
+ * builder.ts / executeAI for unmigrated features and in gateway-local.ts
+ * for the rest.
+ *
+ * Why split out:
+ *   1. Tests can snapshot the merged template vars deterministically.
+ *   2. Gateway methods reuse the same function when rendering templates
+ *      and dispatching, without going through executeAI.
+ */
+
+import { getLayer } from '@/lib/ai/layers/registry'
+import { resolveSkills } from '@/lib/ai/skills/resolver'
+import { getFeatureConfig } from '@/lib/ai/features/registry'
+import type { FeatureConfig } from '@/lib/ai/features/types'
+import { EMPTY_SKILLS } from '@/lib/ai/types'
+import type {
+  AIAgentConfig,
+  AIBuilderInput,
+  LayerResult,
+  LayerSpec,
+  ResilienceConfig,
+  ResolvedSkills,
+} from '@/lib/ai/types'
+
+function rejectAfter(ms: number, message: string): Promise<never> {
+  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
+}
+
+export async function runLayers(
+  specs: LayerSpec[],
+  params: AIBuilderInput['params'],
+  resilience: ResilienceConfig,
+  trace?: any
+): Promise<{
+  results: LayerResult[]
+  timings: Record<string, number>
+  errors: Array<{ layer: string; error: string }>
+}> {
+  const timings: Record<string, number> = {}
+  const errors: Array<{ layer: string; error: string }> = []
+
+  const results = await Promise.all(
+    specs.map(async (spec) => {
+      const span = trace?.span({ name: `layer:${spec.layer}` })
+      const start = Date.now()
+      try {
+        const layer = getLayer(spec.layer)
+        const result = await Promise.race([
+          layer.resolve(params, spec.options),
+          rejectAfter(
+            resilience.layerTimeout,
+            `Layer ${spec.layer} timed out after ${resilience.layerTimeout}ms`
+          ),
+        ])
+        timings[spec.layer] = Date.now() - start
+        span?.end({
+          output: { timing: timings[spec.layer], varsKeys: Object.keys(result.templateVars) },
+        })
+        return result
+      } catch (err) {
+        const duration = Date.now() - start
+        timings[spec.layer] = duration
+        const errorMsg = err instanceof Error ? err.message : String(err)
+        errors.push({ layer: spec.layer, error: errorMsg })
+        span?.end({ output: { timing: duration, error: errorMsg }, level: 'ERROR' })
+        console.warn(`[AI] Layer ${spec.layer} failed (${duration}ms):`, errorMsg)
+
+        if (!resilience.fallbackOnLayerError) {
+          throw new Error(
+            `Layer ${spec.layer} failed and fallbackOnLayerError is false: ${errorMsg}`
+          )
+        }
+        return { data: {}, templateVars: {} } as LayerResult
+      }
+    })
+  )
+
+  return { results, timings, errors }
+}
+
+export function mergeLayerTemplateVars(results: LayerResult[]): Record<string, string> {
+  const vars: Record<string, string> = {}
+  for (const r of results) {
+    Object.assign(vars, r.templateVars)
+  }
+  return vars
+}
+
+export interface BuildAIInputResult {
+  config: AIAgentConfig
+  layerResults: LayerResult[]
+  skills: ResolvedSkills
+  /** Merged: layer templateVars + skill contextEnrichments + caller overrides. */
+  templateVars: Record<string, string>
+  /** Union of every layer's `data` map, keyed by layer name. */
+  layerData: Record<string, Record<string, unknown>>
+  layerTimings: Record<string, number>
+  layerErrors: Array<{ layer: string; error: string }>
+}
+
+/**
+ * Feature config lookup. Code is the only source of truth — the
+ * DB-backed ai_agents table was retired in Phase 2.11.
+ */
+function resolveConfig(slug: string): AIAgentConfig {
+  const fromCode = getFeatureConfig(slug)
+  if (fromCode) return featureToAgentConfig(fromCode)
+  throw new Error(`Unknown AI feature: "${slug}"`)
+}
+
+function featureToAgentConfig(f: FeatureConfig): AIAgentConfig {
+  // AIAgentConfig is the legacy shape that builder.ts and tracing still
+  // consume. Synthesise stable sentinel values for the DB-only metadata
+  // (id/version/timestamps).
+  return {
+    id: `code:${f.slug}`,
+    version: 1,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+    slug: f.slug,
+    label: f.label,
+    description: f.description,
+    mode: f.mode,
+    model: f.model,
+    layers: f.layers,
+    promptKey: f.promptKey,
+    schemaSlug: f.schemaSlug,
+    tools: f.tools,
+    maxOutputTokens: f.maxOutputTokens,
+    skills: f.skills,
+    resilience: f.resilience,
+    enabled: f.enabled,
+  }
+}
+
+/**
+ * Resolves layers + skills + overrides for a given agent slug.
+ * Zero side-effects beyond reads and observability spans.
+ */
+export async function buildAIInput(
+  agentSlug: string,
+  params: AIBuilderInput['params'],
+  options: {
+    overrides?: AIBuilderInput['overrides']
+    trace?: any
+  } = {}
+): Promise<BuildAIInputResult> {
+  const config = resolveConfig(agentSlug)
+
+  const layerOutcome =
+    config.layers.length > 0
+      ? await runLayers(config.layers, params, config.resilience, options.trace)
+      : { results: [] as LayerResult[], timings: {}, errors: [] }
+
+  const skills = config.skills.length > 0 ? await resolveSkills(config.skills) : EMPTY_SKILLS
+
+  const templateVars: Record<string, string> = {
+    ...mergeLayerTemplateVars(layerOutcome.results),
+    ...skills.contextEnrichments,
+    ...options.overrides?.templateVars,
+  }
+
+  const layerData: Record<string, Record<string, unknown>> = {}
+  for (let i = 0; i < config.layers.length; i++) {
+    const spec = config.layers[i]
+    const res = layerOutcome.results[i]
+    if (res) layerData[spec.layer] = res.data
+  }
+
+  return {
+    config,
+    layerResults: layerOutcome.results,
+    skills,
+    templateVars,
+    layerData,
+    layerTimings: layerOutcome.timings,
+    layerErrors: layerOutcome.errors,
+  }
+}

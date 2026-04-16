@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockAuth, mockClerkClient, setupClerkMocks } from '../mocks/clerk'
 
 // --- Mocks ---
@@ -9,14 +9,14 @@ vi.mock('@clerk/nextjs/server', () => ({
   clerkClient: (...args: unknown[]) => mockClerkClient(...args),
 }))
 
-const mockExecuteAI = vi.fn()
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+const mockDraftEmail = vi.fn()
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({ draftEmail: mockDraftEmail }),
 }))
 
 vi.mock('@/lib/ai/get-ai-config', () => ({
   getAIConfig: vi.fn().mockResolvedValue({
-    model: { modelId: 'claude-sonnet-4-20250514' },
+    model: { modelId: 'claude-sonnet-4-6' },
     anthropic: {},
   }),
 }))
@@ -93,20 +93,9 @@ const MOCK_CONTACTS = [
 describe('POST /api/sessions/[sessionId]/email-draft', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockExecuteAI.mockResolvedValue({
-      text: 'Dear team, following up on our session...',
-      meta: {
-        agentSlug: 'email-draft',
-        configVersion: 1,
-        promptVersion: 1,
-        model: 'fast',
-        layerTimings: {},
-        totalDuration: 100,
-        layerErrors: [],
-      },
-    })
+    mockDraftEmail.mockResolvedValue('Dear team, following up on our session...')
     vi.mocked(getAIConfig).mockResolvedValue({
-      model: { modelId: 'claude-sonnet-4-20250514' },
+      model: { modelId: 'claude-sonnet-4-6' },
       anthropic: {},
     } as any)
   })
@@ -154,7 +143,7 @@ describe('POST /api/sessions/[sessionId]/email-draft', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns generated email text on success (language: en)', async () => {
+  it('returns generated email text on success', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
     vi.mocked(getSessionById).mockResolvedValue(MOCK_SESSION as any)
     vi.mocked(getProcessById).mockResolvedValue(MOCK_PROCESS as any)
@@ -167,7 +156,7 @@ describe('POST /api/sessions/[sessionId]/email-draft', () => {
     expect(data.email).toBe('Dear team, following up on our session...')
   })
 
-  it('generates email in Spanish when language is es', async () => {
+  it('forwards language to the gateway', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
     vi.mocked(getSessionById).mockResolvedValue(MOCK_SESSION as any)
     vi.mocked(getProcessById).mockResolvedValue(MOCK_PROCESS as any)
@@ -176,11 +165,11 @@ describe('POST /api/sessions/[sessionId]/email-draft', () => {
 
     await POST(createRequest({ language: 'es' }), withParams('s1'))
 
-    const call = mockExecuteAI.mock.calls[0][0]
-    expect(call.overrides.templateVars.languageInstruction).toContain('Spanish')
+    const call = mockDraftEmail.mock.calls[0][0]
+    expect(call.language).toBe('es')
   })
 
-  it('includes session contacts in the AI call overrides', async () => {
+  it('includes session contacts in the gateway input', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
     vi.mocked(getSessionById).mockResolvedValue(MOCK_SESSION as any)
     vi.mocked(getProcessById).mockResolvedValue(MOCK_PROCESS as any)
@@ -189,8 +178,10 @@ describe('POST /api/sessions/[sessionId]/email-draft', () => {
 
     await POST(createRequest(), withParams('s1'))
 
-    const call = mockExecuteAI.mock.calls[0][0]
-    expect(call.overrides.templateVars.contactsList).toContain('Jane Doe')
-    expect(call.overrides.templateVars.contactsList).toContain('Procurement Manager')
+    const call = mockDraftEmail.mock.calls[0][0]
+    expect(call.contacts).toContainEqual({ name: 'Jane Doe', role: 'Procurement Manager' })
+    expect(call.openQuestions).toContain('What triggers the PO creation?')
+    expect(call.clientName).toBe('Acme Corp')
+    expect(call.processName).toBe('PO Process')
   })
 })

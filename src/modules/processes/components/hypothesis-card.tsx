@@ -95,6 +95,18 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
     startPolling((data) => !!data.hypothesisText && data.hypothesisText !== previousHypothesis)
   }, [clientId, process.id, process.hypothesisText, startPolling])
 
+  const regenerateButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleRegenerate}
+      disabled={isPolling}
+    >
+      <RefreshCw className="size-3.5 mr-1" />
+      {process.hypothesisText ? 'Regenerate' : 'Generate'}
+    </Button>
+  )
+
   return (
     <div>
       {isPolling ? (
@@ -103,9 +115,12 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
           Generating hypothesis...
         </div>
       ) : timedOut ? (
-        <p className="text-sm text-muted-foreground py-4">
-          Generation is taking longer than expected. Try regenerating.
-        </p>
+        <div className="py-4 space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Generation is taking longer than expected. Try regenerating.
+          </p>
+          {regenerateButton}
+        </div>
       ) : process.hypothesisText ? (
         <div>
           <div
@@ -145,9 +160,12 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
           </div>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground py-4">
-          No hypothesis generated yet. Click Regenerate or configure your API key in Settings.
-        </p>
+        <div className="py-4 space-y-2">
+          <p className="text-sm text-muted-foreground">
+            No hypothesis generated yet. Click Generate, or configure your API key in Settings.
+          </p>
+          {regenerateButton}
+        </div>
       )}
     </div>
   )

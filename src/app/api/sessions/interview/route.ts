@@ -3,7 +3,9 @@ import { requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { interviewRequestSchema } from '@/lib/validations/session'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
 import { parseJSON } from '@/lib/api/utils'
-import { executeAI } from '@/lib/ai/builder'
+import { getAIGateway } from '@/lib/ai/gateway-factory'
+
+const MAX_INTERVIEW_QUESTIONS = 3
 
 export async function POST(request: Request) {
   try {
@@ -20,36 +22,20 @@ export async function POST(request: Request) {
     }
 
     const body = parsed.data
-
-    // Short-circuit when all questions answered
-    if (body.questionIndex >= 3) {
+    if (body.questionIndex >= MAX_INTERVIEW_QUESTIONS) {
       return NextResponse.json({ done: true })
     }
 
-    const { model, anthropic } = await getAIConfig('interview')
+    const { model } = await getAIConfig('interview')
 
-    // Pre-render previous answers for template interpolation
-    let previousAnswersSection = 'This is the first question — no previous answers yet.'
-    if (body.previousAnswers && body.previousAnswers.length > 0) {
-      previousAnswersSection = body.previousAnswers
-        .map((a: any, i: number) => `Q${i + 1}: ${a.question}\nA${i + 1}: ${a.answer}`)
-        .join('\n\n')
-    }
-
-    const result = await executeAI({
-      agentSlug: 'session-interview',
-      params: { processId: body.processId },
-      userId: '',
+    const gateway = getAIGateway('session-interview')
+    const question = await gateway.generateInterviewQuestion({
+      processId: body.processId,
+      previousAnswers: body.previousAnswers ?? [],
       model,
-      anthropic,
-      overrides: {
-        templateVars: {
-          previousAnswersSection,
-        },
-      },
     })
 
-    return NextResponse.json({ done: false, ...(result.data as object) })
+    return NextResponse.json({ done: false, ...question })
   } catch (error) {
     return handleAPIError(error)
   }

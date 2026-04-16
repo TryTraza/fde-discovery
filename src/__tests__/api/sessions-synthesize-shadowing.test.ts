@@ -36,9 +36,13 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
   }),
 }))
 
-const mockExecuteAI = vi.fn()
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+const mockSynthesizeShadowing = vi.fn()
+const mockSynthesizeSession = vi.fn()
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: (slug: string) => {
+    if (slug === 'shadowing-synthesis') return { synthesizeShadowing: mockSynthesizeShadowing }
+    return { synthesizeSession: mockSynthesizeSession }
+  },
 }))
 
 // --- Imports (after mocks) ---
@@ -78,7 +82,6 @@ const fakeSynthesisResult = {
       confirmed: true,
       role: 'Data entry',
       details: 'Main spreadsheet',
-      gaps: null,
       detailNotes: 'Sheet: Quotes2024\nCol A = Supplier',
       changeType: 'new',
     },
@@ -171,18 +174,8 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
       privateMetadata: { anthropicApiKey: 'sk-test' },
     })
     vi.mocked(getSessionById).mockResolvedValue(fakeShadowingSession as any)
-    mockExecuteAI.mockResolvedValue({
-      data: fakeSynthesisResult,
-      meta: {
-        agentSlug: 'shadowing-synthesis',
-        configVersion: 1,
-        promptVersion: 1,
-        model: 'standard',
-        layerTimings: {},
-        totalDuration: 100,
-        layerErrors: [],
-      },
-    })
+    mockSynthesizeShadowing.mockResolvedValue(fakeSynthesisResult)
+    mockSynthesizeSession.mockResolvedValue(fakeSynthesisResult)
   })
 
   it('1. returns 400 when shadowing session has no debriefAnswers', async () => {
@@ -205,34 +198,28 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
     expect(res.status).toBe(400)
   })
 
-  it('3. calls executeAI with shadowing-synthesis agent', async () => {
+  it('3. calls the shadowing-synthesis gateway method', async () => {
     const res = await POST(createRequest(), withParams(SESSION_ID))
     expect(res.status).toBe(200)
-    expect(mockExecuteAI).toHaveBeenCalledTimes(1)
-    expect(mockExecuteAI).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agentSlug: 'shadowing-synthesis',
-        params: { sessionId: SESSION_ID },
-      })
+    expect(mockSynthesizeShadowing).toHaveBeenCalledTimes(1)
+  })
+
+  it('4. forwards sessionId to the gateway', async () => {
+    await POST(createRequest(), withParams(SESSION_ID))
+    expect(mockSynthesizeShadowing).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionId: SESSION_ID })
     )
   })
 
-  it('4. calls executeAI with sessionId param', async () => {
+  it('5. forwards the resolved model to the gateway', async () => {
     await POST(createRequest(), withParams(SESSION_ID))
-    const callArgs = mockExecuteAI.mock.calls[0][0]
-    expect(callArgs.params).toEqual({ sessionId: SESSION_ID })
-  })
-
-  it('5. calls executeAI with correct model', async () => {
-    await POST(createRequest(), withParams(SESSION_ID))
-    const callArgs = mockExecuteAI.mock.calls[0][0]
+    const callArgs = mockSynthesizeShadowing.mock.calls[0][0]
     expect(callArgs.model).toBe('mock-model')
   })
 
-  it('6. calls executeAI with anthropic config', async () => {
+  it('6. does not call the non-shadowing gateway method on a shadowing session', async () => {
     await POST(createRequest(), withParams(SESSION_ID))
-    const callArgs = mockExecuteAI.mock.calls[0][0]
-    expect(callArgs.anthropic).toBeDefined()
+    expect(mockSynthesizeSession).not.toHaveBeenCalled()
   })
 
   it('7. saves synthesis output via updateSession', async () => {
@@ -248,7 +235,7 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
     )
   })
 
-  it('8. non-shadowing session uses session-synthesis agent', async () => {
+  it('8. non-shadowing session uses synthesizeSession (not synthesizeShadowing)', async () => {
     vi.mocked(getSessionById).mockResolvedValue({
       ...fakeShadowingSession,
       type: 'discovery',
@@ -258,112 +245,20 @@ describe('POST /api/sessions/[sessionId]/synthesize — shadowing', () => {
     } as any)
     const res = await POST(createRequest(), withParams(SESSION_ID))
     expect(res.status).toBe(200)
-    const callArgs = mockExecuteAI.mock.calls[0][0]
-    expect(callArgs.agentSlug).toBe('session-synthesis')
+    expect(mockSynthesizeSession).toHaveBeenCalledTimes(1)
+    expect(mockSynthesizeShadowing).not.toHaveBeenCalled()
   })
 
-  it('9. returns 500 when executeAI throws', async () => {
-    mockExecuteAI.mockRejectedValueOnce(new Error('AI failed'))
+  it('9. returns 500 when the gateway throws', async () => {
+    mockSynthesizeShadowing.mockRejectedValueOnce(new Error('AI failed'))
     const res = await POST(createRequest(), withParams(SESSION_ID))
     expect(res.status).toBe(500)
   })
 
-  it('10. does NOT update session when executeAI throws', async () => {
-    mockExecuteAI.mockRejectedValueOnce(new Error('AI failed'))
+  it('10. does NOT update session when the gateway throws', async () => {
+    mockSynthesizeShadowing.mockRejectedValueOnce(new Error('AI failed'))
     await POST(createRequest(), withParams(SESSION_ID))
     expect(vi.mocked(updateSession)).not.toHaveBeenCalled()
   })
 })
 
-describe('buildShadowingSynthesisPrompt', () => {
-  // Import after mocks
-  let buildShadowingSynthesisPrompt: typeof import('@/lib/ai/prompts/shadowing-synthesis').buildShadowingSynthesisPrompt
-
-  beforeEach(async () => {
-    const mod = await import('@/lib/ai/prompts/shadowing-synthesis')
-    buildShadowingSynthesisPrompt = mod.buildShadowingSynthesisPrompt
-  })
-
-  const baseCtx = {
-    client: {
-      id: 'c1',
-      name: 'Acme',
-      industry: 'Mfg',
-      website: null,
-      status: 'active',
-      aiSummary: null,
-      notes: null,
-    },
-    process: {
-      id: 'p1',
-      name: 'AP',
-      description: null,
-      status: 'discovery',
-      hypothesisText: null,
-      departmentTag: null,
-      processTypeL1: null,
-      model: null,
-    },
-    session: {
-      id: 's1',
-      type: 'shadowing',
-      title: 'Shadow',
-      date: '2026-03-20',
-      status: 'completed',
-      interviewAnswers: null,
-      transcriptText: null,
-      notes: null,
-    },
-    sessionContacts: [],
-    priorSessions: [],
-    events: [
-      { type: 'SYSTEM', label: 'Excel', detail: 'Col A = Name', timestamp: '2026-03-20T10:00:00Z' },
-      {
-        type: 'SYSTEM',
-        label: 'Excel',
-        detail: 'Sheet: Orders',
-        timestamp: '2026-03-20T10:01:00Z',
-      },
-      { type: 'SYSTEM', label: 'SAP', detail: 'PO module', timestamp: '2026-03-20T10:02:00Z' },
-      { type: 'STEP', label: 'Check email', detail: null, timestamp: '2026-03-20T10:03:00Z' },
-    ],
-    debriefAnswers: { items: [] },
-    notes: 'Test notes',
-  }
-
-  it('13. groups SYSTEM events by label as system name', () => {
-    const prompt = buildShadowingSynthesisPrompt(baseCtx as any)
-    // Should group Excel events together
-    expect(prompt).toContain('Excel')
-    expect(prompt).toContain('SAP')
-    expect(prompt).toContain('Col A = Name')
-    expect(prompt).toContain('Sheet: Orders')
-    expect(prompt).toContain('PO module')
-  })
-
-  it('14. excludes null/empty details from grouped system events', () => {
-    const ctx = {
-      ...baseCtx,
-      events: [
-        { type: 'SYSTEM', label: 'Excel', detail: null, timestamp: '2026-03-20T10:00:00Z' },
-        { type: 'SYSTEM', label: 'Excel', detail: 'Has detail', timestamp: '2026-03-20T10:01:00Z' },
-      ],
-    }
-    const prompt = buildShadowingSynthesisPrompt(ctx as any)
-    expect(prompt).toContain('Has detail')
-    // null details should be excluded from grouped output
-  })
-
-  it('15. handles sessions with zero SYSTEM events', () => {
-    const ctx = {
-      ...baseCtx,
-      events: [
-        { type: 'STEP', label: 'Do something', detail: null, timestamp: '2026-03-20T10:00:00Z' },
-      ],
-    }
-    const prompt = buildShadowingSynthesisPrompt(ctx as any)
-    expect(prompt).toContain('System Events Grouped')
-    // Should not crash, just have empty object
-    expect(prompt).toContain('{}')
-  })
-})

@@ -1,0 +1,1 @@
+ALTER TABLE "research_notes" ADD COLUMN "response_structured" jsonb;

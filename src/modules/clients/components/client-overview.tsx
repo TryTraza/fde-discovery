@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { useClient } from '@/modules/clients/hooks/use-clients'
 import { ClientDetailCard } from './client-detail-card'
 import { AISummaryCard } from './ai-summary-card'
+import { CompanyProfileCard } from './company-profile-card'
 import { ContactsSection } from '@/modules/contacts/components/contacts-section'
 import { ProcessesSection } from './processes-section'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -113,6 +114,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
           <ContactsSection clientId={clientId} mutateClient={mutateClient} />
         </div>
         <div className="space-y-6">
+          <CompanyProfileCard clientId={clientId} profile={client.profile ?? null} />
           <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
           <ProcessesSection clientId={clientId} />
         </div>

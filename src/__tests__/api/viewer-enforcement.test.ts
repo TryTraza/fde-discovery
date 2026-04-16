@@ -63,8 +63,8 @@ vi.mock('@/lib/utils/merge-process-model', () => ({
 vi.mock('@/lib/ai/get-ai-config', () => ({
   getAIConfig: vi.fn(),
 }))
-vi.mock('@/lib/ai/prompts/email-draft', () => ({
-  generateFollowUpEmail: vi.fn(),
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: vi.fn(() => ({ draftEmail: vi.fn() })),
 }))
 vi.mock('ai', () => ({
   streamText: vi.fn(),

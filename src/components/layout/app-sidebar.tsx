@@ -13,8 +13,6 @@ import {
   LayoutDashboard,
   FolderKanban,
   FileText,
-  Bot,
-  Sparkles,
 } from 'lucide-react'
 
 import {
@@ -123,26 +121,6 @@ export function AppSidebar() {
                     >
                       <Settings />
                       <span>General</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={<Link href="/settings/ai-agents" />}
-                      isActive={pathname === '/settings/ai-agents'}
-                      tooltip="AI Agents"
-                    >
-                      <Bot />
-                      <span>AI Agents</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={<Link href="/settings/skills" />}
-                      isActive={pathname === '/settings/skills'}
-                      tooltip="Skills"
-                    >
-                      <Sparkles />
-                      <span>Skills</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>

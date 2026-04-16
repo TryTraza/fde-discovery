@@ -22,6 +22,41 @@
       "when": 1776001178862,
       "tag": "0002_premium_spencer_smythe",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776288922408,
+      "tag": "0003_clients_profile",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776289666391,
+      "tag": "0004_processes_hypothesis",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776290487353,
+      "tag": "0005_process_models_graph",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776290770572,
+      "tag": "0006_research_notes_response_structured",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1776329076314,
+      "tag": "0007_drop_ai_agents_skills",
+      "breakpoints": true
     }
   ]
 }

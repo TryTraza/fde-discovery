@@ -1,0 +1,1 @@
+ALTER TABLE "process_models" ADD COLUMN "graph" jsonb;

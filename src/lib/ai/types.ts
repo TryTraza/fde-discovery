@@ -98,7 +98,7 @@ export const aiAgentConfigSchema = z
     mode: z.enum(['generateObject', 'generateText', 'streamText']),
     model: z.enum(['fast', 'standard']),
     layers: z.array(layerSpecSchema).default([]),
-    langfusePromptName: z.string().min(1),
+    promptKey: z.string().min(1),
     schemaSlug: z.string().nullable().default(null),
     tools: z.array(toolSpecSchema).default([]),
     maxOutputTokens: z.number().int().positive().default(1000),

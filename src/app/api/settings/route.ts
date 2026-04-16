@@ -15,7 +15,6 @@ export async function GET() {
 
     return NextResponse.json({
       hasApiKey: !!(user.privateMetadata as Record<string, unknown>)?.anthropicApiKey,
-      aiModels: (user.publicMetadata as Record<string, unknown>)?.aiModels ?? {},
       role: (user.publicMetadata as Record<string, unknown>)?.role ?? 'viewer',
     })
   } catch (error) {
@@ -23,14 +22,9 @@ export async function GET() {
   }
 }
 
-const patchSettingsSchema = z
-  .object({
-    anthropicApiKey: z.string().min(1).optional(),
-    aiModels: z.record(z.string(), z.string()).optional(),
-  })
-  .refine((data) => data.anthropicApiKey || data.aiModels, {
-    message: 'Must provide anthropicApiKey or aiModels',
-  })
+const patchSettingsSchema = z.object({
+  anthropicApiKey: z.string().min(1),
+})
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -46,20 +40,10 @@ export async function PATCH(req: NextRequest) {
     }
 
     const client = await clerkClient()
-    const { anthropicApiKey, aiModels } = parsed.data
-
-    if (anthropicApiKey) {
-      await client.users.updateUserMetadata(userId, {
-        privateMetadata: { anthropicApiKey },
-        publicMetadata: { hasApiKey: true },
-      })
-    }
-
-    if (aiModels) {
-      await client.users.updateUserMetadata(userId, {
-        publicMetadata: { aiModels },
-      })
-    }
+    await client.users.updateUserMetadata(userId, {
+      privateMetadata: { anthropicApiKey: parsed.data.anthropicApiKey },
+      publicMetadata: { hasApiKey: true },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

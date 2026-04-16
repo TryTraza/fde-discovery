@@ -93,11 +93,34 @@ export async function getProcessModel(processId: string) {
 
 export async function updateProcessModel(
   processId: string,
-  data: { steps?: any; edgeCases?: any; systems?: any }
+  data: { steps?: any; edgeCases?: any; systems?: any; graph?: any }
 ) {
+  // Auto-derive graph when caller only passes legacy fields, so graph stays in
+  // sync until legacy columns are dropped. Explicit `graph` in data wins.
+  let nextData = data
+  if (data.graph === undefined && (data.steps || data.edgeCases || data.systems)) {
+    const current = await getProcessModel(processId)
+    if (current) {
+      const merged = {
+        steps: (data.steps ?? current.steps ?? []) as any[],
+        edgeCases: (data.edgeCases ?? current.edgeCases ?? []) as any[],
+        systems: (data.systems ?? current.systems ?? []) as any[],
+      }
+      try {
+        const { buildGraphFromLegacyModel } = await import('@/lib/ai/graph/build-graph')
+        nextData = { ...data, graph: buildGraphFromLegacyModel(merged) }
+      } catch (err) {
+        console.warn(
+          `[updateProcessModel] Could not build graph for process ${processId}:`,
+          err
+        )
+      }
+    }
+  }
+
   const [updated] = await db
     .update(processModels)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...nextData, updatedAt: new Date() })
     .where(eq(processModels.processId, processId))
     .returning()
   return updated ?? null

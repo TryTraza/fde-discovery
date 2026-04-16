@@ -27,9 +27,13 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
   }),
 }))
 
-const mockExecuteAI = vi.fn()
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+const mockGenerateProcessHypothesis = vi.fn()
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({ generateProcessHypothesis: mockGenerateProcessHypothesis }),
+}))
+
+vi.mock('@/lib/ai/hypothesis/persist', () => ({
+  persistHypothesisResult: vi.fn(),
 }))
 
 // --- Imports (after mocks) ---
@@ -73,21 +77,11 @@ const fakeClient = {
 describe('POST /api/clients/[id]/processes/[processId]/hypothesis', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockExecuteAI.mockResolvedValue({
-      data: {
-        hypothesisText: 'Test hypothesis',
-        matchedProcessType: 'procurement',
-        initialSteps: [],
-      },
-      meta: {
-        agentSlug: 'process-hypothesis',
-        configVersion: 1,
-        promptVersion: 1,
-        model: 'standard',
-        layerTimings: {},
-        totalDuration: 100,
-        layerErrors: [],
-      },
+    mockGenerateProcessHypothesis.mockResolvedValue({
+      hypothesisText: 'Test hypothesis',
+      matchedProcessType: 'procurement',
+      initialSteps: [],
+      structured: null,
     })
   })
 
@@ -156,15 +150,16 @@ describe('POST /api/clients/[id]/processes/[processId]/hypothesis', () => {
     )
     const res = await POST(req, withParams({ id: 'client-1', processId: 'proc-1' }))
     expect(res.status).toBe(200)
-    expect(mockExecuteAI).toHaveBeenCalledWith(
+    expect(mockGenerateProcessHypothesis).toHaveBeenCalledWith(
       expect.objectContaining({
-        agentSlug: 'process-hypothesis',
+        processId: 'proc-1',
+        clientName: 'Acme Corp',
         model: 'mock-model',
       })
     )
   })
 
-  it('passes correct overrides to executeAI', async () => {
+  it('passes client and process context to the gateway', async () => {
     setupClerkMocks({
       isAuthenticated: true,
       publicMetadata: { role: 'admin' },
@@ -178,16 +173,13 @@ describe('POST /api/clients/[id]/processes/[processId]/hypothesis', () => {
     )
     await POST(req, withParams({ id: 'client-1', processId: 'proc-1' }))
 
-    expect(mockExecuteAI).toHaveBeenCalledWith(
+    expect(mockGenerateProcessHypothesis).toHaveBeenCalledWith(
       expect.objectContaining({
-        agentSlug: 'process-hypothesis',
-        params: { processId: 'proc-1' },
-        overrides: expect.objectContaining({
-          templateVars: expect.objectContaining({
-            clientName: 'Acme Corp',
-            processName: 'Purchasing',
-          }),
-        }),
+        processId: 'proc-1',
+        clientName: 'Acme Corp',
+        clientIndustry: 'Manufacturing',
+        processName: 'Purchasing',
+        processDescription: 'Buy things',
       })
     )
   })

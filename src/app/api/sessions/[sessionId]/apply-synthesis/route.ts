@@ -8,6 +8,7 @@ import { db } from '@/lib/db'
 import { processModels, processModelSnapshots, openQuestions } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
+import { buildGraphFromLegacyModel } from '@/lib/ai/graph/build-graph'
 
 export async function POST(
   request: Request,
@@ -78,6 +79,19 @@ export async function POST(
         updatedEdgeCases = mergeEdgeCases(updatedEdgeCases, synthesis.edgeCases)
       if (options.applySystems) updatedSystems = mergeSystems(updatedSystems, synthesis.systems)
 
+      // Derive graph from merged legacy shape (dual-write — graph stays in sync
+      // with steps/edgeCases/systems until the legacy columns are dropped).
+      let graph: ReturnType<typeof buildGraphFromLegacyModel> | null = null
+      try {
+        graph = buildGraphFromLegacyModel({
+          steps: updatedSteps,
+          edgeCases: updatedEdgeCases,
+          systems: updatedSystems,
+        })
+      } catch (err) {
+        console.warn(`[apply-synthesis] Could not build graph for process_model ${currentModel.id}:`, err)
+      }
+
       // Update model
       await tx
         .update(processModels)
@@ -85,6 +99,7 @@ export async function POST(
           steps: updatedSteps,
           systems: updatedSystems,
           edgeCases: updatedEdgeCases,
+          graph,
           updatedAt: new Date(),
         })
         .where(eq(processModels.id, currentModel.id))

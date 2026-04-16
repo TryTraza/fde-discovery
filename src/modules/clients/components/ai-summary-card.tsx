@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -62,7 +63,9 @@ export function AISummaryCard({ client, clientId, mutateClient }: AISummaryCardP
       ) : isNoKey ? (
         <p className="text-sm text-muted-foreground">{summary}</p>
       ) : (
-        <div className="prose prose-sm max-w-none text-sm whitespace-pre-wrap">{summary}</div>
+        <div className="prose prose-sm max-w-none text-sm prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-hr:my-3">
+          <ReactMarkdown>{summary}</ReactMarkdown>
+        </div>
       )}
     </CollapsibleCard>
   )

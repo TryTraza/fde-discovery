@@ -1,0 +1,39 @@
+src/lib/ai/features/research-chat.ts
+  2ad2821f6cc09db5 5
+src/app/api/sessions/[sessionId]/synthesize/route.ts
+  2ad2821f6cc09db5 64
+src/lib/ai/research/extract.ts
+  2ad2821f6cc09db5 10,76
+src/__tests__/api/sessions-synthesize.test.ts
+  2ad2821f6cc09db5 48-56
+src/lib/ai/templates/session-synthesis.ts
+  2ad2821f6cc09db5 35
+src/__tests__/ai/gateway-local.test.ts
+  2ad2821f6cc09db5 317-318,328
+src/lib/ai/templates/shadowing-synthesis.ts
+  2ad2821f6cc09db5 37,41
+src/__tests__/api/ai-research.test.ts
+  2ad2821f6cc09db5 52-56,211-243
+src/app/api/ai/research/route.ts
+  2ad2821f6cc09db5 4-5,16-31,38-39,66-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "c151140e3731699c340c9c302452e79b61014c20",
+  "prompts": {
+    "2ad2821f6cc09db5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed797443-a6ba-4d5e-9c7e-75da8f203931",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 88,
+      "total_deletions": 25,
+      "accepted_lines": 87,
+      "overriden_lines": 0
+    }
+  }
+}

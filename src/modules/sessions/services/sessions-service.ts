@@ -16,6 +16,8 @@ export type SessionUpdateInput = Partial<{
   durationMinutes: number | null
   scheduledAt: string | null
   prepBriefText: string | null
+  questionsAsked: boolean[] | null
+  interviewAnswers: { questions: { question: string; answer: string }[] } | null
 }>
 
 class SessionsService {

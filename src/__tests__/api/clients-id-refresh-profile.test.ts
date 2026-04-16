@@ -12,13 +12,22 @@ vi.mock('@/lib/db/queries/clients', () => ({
   updateClient: vi.fn(),
 }))
 
+vi.mock('@/lib/ai/get-ai-config', () => ({
+  getAIConfig: vi.fn().mockResolvedValue({
+    model: 'mock-model',
+    modelId: 'claude-sonnet-4-6',
+    anthropic: {},
+  }),
+}))
+
 const mockRefreshCompanyProfile = vi.fn()
-vi.mock('@/lib/ai/prompts/refresh-company-profile', () => ({
-  refreshCompanyProfile: (...args: unknown[]) => mockRefreshCompanyProfile(...args),
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({ refreshCompanyProfile: mockRefreshCompanyProfile }),
 }))
 
 import { POST } from '@/app/api/clients/[id]/refresh-profile/route'
-import { getClientById } from '@/lib/db/queries/clients'
+import { getClientById, updateClient } from '@/lib/db/queries/clients'
+import { getAIConfig } from '@/lib/ai/get-ai-config'
 import { validCompanyProfile } from '@/lib/ai/contracts/__fixtures__'
 
 function withParams(id: string) {
@@ -63,13 +72,13 @@ describe('POST /api/clients/[id]/refresh-profile', () => {
       industry: 'Tech',
       website: 'https://acme.com',
     } as any)
-    mockRefreshCompanyProfile.mockRejectedValueOnce(new Error('NO_API_KEY'))
+    vi.mocked(getAIConfig).mockRejectedValueOnce(new Error('NO_API_KEY'))
 
     const res = await POST(createRequest('c1'), withParams('c1'))
     expect(res.status).toBe(422)
   })
 
-  it('returns the generated profile when successful', async () => {
+  it('returns the generated profile and persists it', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     vi.mocked(getClientById).mockResolvedValue({
       id: 'c1',
@@ -83,10 +92,11 @@ describe('POST /api/clients/[id]/refresh-profile', () => {
     const data = await res.json()
     expect(data).toEqual(validCompanyProfile)
     expect(mockRefreshCompanyProfile).toHaveBeenCalledWith({
-      clientId: 'c1',
-      name: 'Acme',
-      industry: 'Tech',
-      website: 'https://acme.com',
+      clientName: 'Acme',
+      clientIndustry: 'Tech',
+      clientWebsite: 'https://acme.com',
+      model: 'mock-model',
     })
+    expect(updateClient).toHaveBeenCalledWith('c1', { profile: validCompanyProfile })
   })
 })

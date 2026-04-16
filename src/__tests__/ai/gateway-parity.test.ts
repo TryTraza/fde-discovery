@@ -29,7 +29,7 @@ import { localAIGateway } from '@/lib/ai/gateway-local'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { prepBriefSchema } from '@/lib/ai/schemas/prep-brief'
 import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
-import { processHypothesisSchema } from '@/lib/ai/contracts'
+import { companyProfileSchema, processHypothesisSchema } from '@/lib/ai/contracts'
 
 const FAKE_MODEL = { modelId: 'fake-model' } as any
 
@@ -161,5 +161,30 @@ describe('gateway parity — capture-suggestions', () => {
     })
     expect(Array.isArray(out)).toBe(true)
     expect(suggestionsSchema.safeParse({ suggestions: out }).success).toBe(true)
+  })
+})
+
+describe('gateway parity — refresh-company-profile', () => {
+  it('LocalAIGateway.refreshCompanyProfile returns a contract-valid CompanyProfile', async () => {
+    mockGenerateObject.mockResolvedValue({
+      object: {
+        description: 'Acme makes widgets.',
+        industry: 'Manufacturing',
+        areasOfExpertise: ['widgets'],
+        productsAndServices: [{ name: 'Widget Pro', description: 'Pro widgets' }],
+        sources: [],
+      },
+    })
+
+    const out = await localAIGateway.refreshCompanyProfile({
+      clientName: 'Acme',
+      clientIndustry: 'Manufacturing',
+      clientWebsite: null,
+      model: FAKE_MODEL,
+    })
+
+    expect(companyProfileSchema.safeParse(out).success).toBe(true)
+    expect(out.schemaVersion).toBe(1)
+    expect(typeof out.lastRefreshedAt).toBe('string')
   })
 })

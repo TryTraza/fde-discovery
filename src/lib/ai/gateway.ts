@@ -18,7 +18,7 @@
  */
 
 import type { LanguageModel } from 'ai'
-import type { ProcessHypothesis } from '@/lib/ai/contracts'
+import type { CompanyProfile, ProcessHypothesis } from '@/lib/ai/contracts'
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
 
 /**
@@ -79,6 +79,12 @@ export interface CaptureSuggestion {
   rationale: string
 }
 
+export interface RefreshCompanyProfileGatewayInput extends WithModel {
+  clientName: string
+  clientIndustry: string
+  clientWebsite: string | null
+}
+
 export interface AIGateway {
   draftEmail(input: EmailDraftGatewayInput): Promise<string>
   generateInterviewQuestion(input: SessionInterviewGatewayInput): Promise<InterviewQuestion>
@@ -89,4 +95,5 @@ export interface AIGateway {
   generateCaptureSuggestions(
     input: CaptureSuggestionsGatewayInput
   ): Promise<CaptureSuggestion[]>
+  refreshCompanyProfile(input: RefreshCompanyProfileGatewayInput): Promise<CompanyProfile>
 }

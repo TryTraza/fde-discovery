@@ -17,15 +17,27 @@ import { sessionInterviewFeature } from '@/lib/ai/features/session-interview'
 import { processHypothesisFeature } from '@/lib/ai/features/process-hypothesis'
 import { prepBriefFeature } from '@/lib/ai/features/prep-brief'
 import { captureSuggestionsFeature } from '@/lib/ai/features/capture-suggestions'
+import { refreshCompanyProfileFeature } from '@/lib/ai/features/refresh-company-profile'
 import { renderEmailDraftTemplate } from '@/lib/ai/templates/email-draft'
 import { renderSessionInterviewTemplate } from '@/lib/ai/templates/session-interview'
 import { renderProcessHypothesisTemplate } from '@/lib/ai/templates/process-hypothesis'
 import { renderPrepBriefTemplate } from '@/lib/ai/templates/prep-brief'
 import { renderCaptureSuggestionsTemplate } from '@/lib/ai/templates/capture-suggestions'
+import { renderRefreshCompanyProfileTemplate } from '@/lib/ai/templates/refresh-company-profile'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { hypothesisSchema, type HypothesisOutput } from '@/lib/ai/schemas/hypothesis'
 import { prepBriefSchema, type PrepBrief } from '@/lib/ai/schemas/prep-brief'
 import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
+import {
+  companyProfileSchema,
+  companyNewsSchema,
+  companySizeSchema,
+  keyStakeholderSchema,
+  productOrServiceSchema,
+  researchSourceSchema,
+  type CompanyProfile,
+} from '@/lib/ai/contracts'
+import { z } from 'zod'
 import { buildAIInput } from '@/lib/ai/input-builder'
 import { composeStructuredHypothesis } from '@/lib/ai/hypothesis/compose'
 import type {
@@ -37,8 +49,24 @@ import type {
   PrepBriefGatewayInput,
   ProcessHypothesisGatewayInput,
   ProcessHypothesisGatewayResult,
+  RefreshCompanyProfileGatewayInput,
   SessionInterviewGatewayInput,
 } from './gateway'
+
+// Schema handed to generateObject — lacks schemaVersion / lastRefreshedAt
+// because those are server-composed. Full contract validation runs at
+// the end via companyProfileSchema.parse().
+const generatedProfileSchema = z.object({
+  description: z.string().min(1),
+  industry: z.string().min(1),
+  size: companySizeSchema.optional(),
+  areasOfExpertise: z.array(z.string()).default([]),
+  productsAndServices: z.array(productOrServiceSchema),
+  keyStakeholders: z.array(keyStakeholderSchema).optional(),
+  techStack: z.array(z.string()).optional(),
+  recentNews: z.array(companyNewsSchema).optional(),
+  sources: z.array(researchSourceSchema).default([]),
+})
 
 function languageInstruction(language: 'en' | 'es'): string {
   return language === 'es'
@@ -206,6 +234,33 @@ class LocalAIGatewayImpl implements AIGateway {
 
     const parsed = object as { suggestions: CaptureSuggestion[] }
     return parsed.suggestions ?? []
+  }
+
+  async refreshCompanyProfile(input: RefreshCompanyProfileGatewayInput): Promise<CompanyProfile> {
+    const feature = refreshCompanyProfileFeature
+    if (!feature.systemPrompt) {
+      throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
+    }
+
+    const userPrompt = renderRefreshCompanyProfileTemplate({
+      name: input.clientName,
+      industry: input.clientIndustry,
+      website: input.clientWebsite,
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: userPrompt,
+      schema: generatedProfileSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    return companyProfileSchema.parse({
+      schemaVersion: 1,
+      ...object,
+      lastRefreshedAt: new Date().toISOString(),
+    })
   }
 }
 

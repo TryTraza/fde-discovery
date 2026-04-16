@@ -7,6 +7,7 @@ import {
   type ResearchNoteResult,
   RESEARCH_FINDING_CATEGORY,
   CONFIDENCE_LEVEL,
+  CONTRACT_SCHEMA_VERSION,
 } from '@/lib/ai/contracts'
 
 const EXTRACT_MAX_TOKENS = 800
@@ -72,7 +73,7 @@ export async function extractResearchNoteResult(args: {
       prompt: `## User question\n${args.query}\n\n## Assistant reply\n${args.reply}`,
     })
 
-    return researchNoteResultSchema.parse({ schemaVersion: 1, ...object })
+    return researchNoteResultSchema.parse({ schemaVersion: CONTRACT_SCHEMA_VERSION, ...object })
   } catch (err) {
     console.warn('[research-chat] structured extraction failed:', err)
     return null

@@ -49,6 +49,11 @@ vi.mock('@/lib/db/queries/research-notes', () => ({
   createResearchNote: vi.fn().mockResolvedValue({ id: 'note-1' }),
 }))
 
+const mockExtractResearchNoteResult = vi.fn().mockResolvedValue(null)
+vi.mock('@/lib/ai/research/extract', () => ({
+  extractResearchNoteResult: (...args: unknown[]) => mockExtractResearchNoteResult(...args),
+}))
+
 // --- Imports (after mocks) ---
 
 import { POST } from '@/app/api/ai/research/route'
@@ -198,6 +203,39 @@ describe('POST /api/ai/research', () => {
       })
     )
     // Must NOT contain createdBy — schema has no such column
+    expect(createResearchNote).toHaveBeenCalledWith(
+      expect.not.objectContaining({ createdBy: expect.anything() })
+    )
+  })
+
+  it('passes responseStructured to createResearchNote when extraction succeeds', async () => {
+    setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
+
+    const structured = {
+      schemaVersion: 1,
+      summary: 'Structured summary.',
+      findings: [{ category: 'company', text: 'Acme is public', confidence: 'high' }],
+    }
+    mockExtractResearchNoteResult.mockResolvedValueOnce(structured)
+
+    let capturedOnFinish: (args: { text: string }) => Promise<void>
+    mockStreamText.mockImplementation((opts: any) => {
+      capturedOnFinish = opts.onFinish
+      return { toUIMessageStreamResponse: () => new Response('ok') }
+    })
+
+    const req = createRequest({ messages: MESSAGES, clientId: 'c1' })
+    await POST(req)
+    await capturedOnFinish!({ text: 'Research response about procurement' })
+
+    expect(createResearchNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientId: 'c1',
+        query: 'Tell me about procurement patterns',
+        response: 'Research response about procurement',
+        responseStructured: structured,
+      })
+    )
     expect(createResearchNote).toHaveBeenCalledWith(
       expect.not.objectContaining({ createdBy: expect.anything() })
     )

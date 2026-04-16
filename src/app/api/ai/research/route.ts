@@ -1,6 +1,8 @@
 import 'server-only'
 import { streamText, convertToModelMessages, stepCountIs, UIMessage } from 'ai'
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { z } from 'zod'
+import { NextResponse } from 'next/server'
 import { requireAuthWithUser, handleAPIError } from '@/lib/auth/utils'
 import { createResearchNote } from '@/lib/db/queries/research-notes'
 import { getLayer } from '@/lib/ai/layers/registry'
@@ -11,13 +13,30 @@ import { DEFAULT_MODELS } from '@/lib/ai/models'
 
 export const maxDuration = 30
 
+const researchRequestSchema = z.object({
+  messages: z
+    .array(
+      z
+        .object({
+          id: z.string().optional(),
+          role: z.string(),
+          parts: z.array(z.record(z.string(), z.unknown())).optional(),
+        })
+        .passthrough()
+    )
+    .min(1),
+  clientId: z.string().optional(),
+  processId: z.string().optional(),
+})
+
 function extractUserQuery(messages: UIMessage[]): string {
   const last = messages.filter((m) => m.role === 'user').pop()
   if (!last) return 'Research query'
   const text = last.parts
     ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
     .map((p) => p.text)
-    .join('')
+    .join(' ')
+    .trim()
   return text || 'Research query'
 }
 
@@ -44,15 +63,16 @@ export async function POST(req: Request) {
     const modelId = DEFAULT_MODELS.research
     const model = anthropic(modelId)
 
-    const {
-      messages,
-      clientId,
-      processId,
-    }: {
-      messages: UIMessage[]
-      clientId?: string
-      processId?: string
-    } = await req.json()
+    const rawBody = await req.json()
+    const parsed = researchRequestSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+    const messages = parsed.data.messages as unknown as UIMessage[]
+    const { clientId, processId } = parsed.data
 
     // Resolve context layers in parallel. Failures are silent — chat can
     // still operate without per-call context.

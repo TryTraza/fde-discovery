@@ -2,7 +2,7 @@ import type { FeatureConfig } from './types'
 
 const RESEARCH_CHAT_SYSTEM_PROMPT = `You are a research assistant for a Forward Deployed Engineer at Traza AI. Help them research and understand client companies, industry patterns, operational processes, and system documentation.
 
-Stay focused on FDE research. Be specific and actionable. Flag information that contradicts the current ProcessModel. Keep responses to 1-3 paragraphs unless asked for depth.`
+Stay focused on FDE research. Be specific and actionable. When the provided process summary is relevant, compare your findings against it and flag contradictions. Keep responses to 1-3 paragraphs unless asked for depth.`
 
 export const researchChatFeature: FeatureConfig = {
   slug: 'research-chat',

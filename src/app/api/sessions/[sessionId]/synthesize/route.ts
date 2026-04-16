@@ -61,7 +61,7 @@ export async function POST(
         : await gateway.synthesizeSession({ sessionId, model })
     } catch (error) {
       console.error(`${isShadowing ? 'Shadowing' : 'Session'} synthesis failed:`, error)
-      return NextResponse.json({ error: 'Synthesis failed. Please try again.' }, { status: 500 })
+      return handleAPIError(error)
     }
 
     const validated = validateSynthesisOutput(raw)

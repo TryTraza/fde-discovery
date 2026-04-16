@@ -1,0 +1,29 @@
+src/lib/ai/hypothesis/persist.ts
+  fd955c16e7741b85 25-26
+docs/plans/legacy-column-drops.md
+  fd955c16e7741b85 1-220
+src/lib/ai/graph/build-graph.ts
+  fd955c16e7741b85 50,52,59-63
+src/__tests__/ai/build-graph.test.ts
+  fd955c16e7741b85 134-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "c41d983cfff0f2fee3808de14d0306338e956ed1",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 253,
+      "total_deletions": 4,
+      "accepted_lines": 253,
+      "overriden_lines": 0
+    }
+  }
+}

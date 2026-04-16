@@ -45,10 +45,15 @@ const mockSynthesizeSession = vi.fn().mockResolvedValue(mockSynthesisOutput)
 const mockSynthesizeShadowing = vi.fn().mockResolvedValue(mockSynthesisOutput)
 
 vi.mock('@/lib/ai/gateway-factory', () => ({
-  getAIGateway: () => ({
-    synthesizeSession: mockSynthesizeSession,
-    synthesizeShadowing: mockSynthesizeShadowing,
-  }),
+  getAIGateway: (slug: string) => {
+    if (slug === 'shadowing-synthesis') {
+      return { synthesizeShadowing: mockSynthesizeShadowing }
+    }
+    if (slug === 'session-synthesis') {
+      return { synthesizeSession: mockSynthesizeSession }
+    }
+    throw new Error(`Unexpected gateway slug in test: ${slug}`)
+  },
 }))
 
 // --- Imports (after mocks) ---

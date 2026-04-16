@@ -31,9 +31,8 @@ export function renderSessionSynthesisTemplate(input: SessionSynthesisTemplateIn
       body: input.sessionTranscript.trim() || 'No transcript provided.',
     },
     {
-      when: !!input.sessionNotes.trim(),
       heading: 'FDE personal notes',
-      body: input.sessionNotes,
+      body: input.sessionNotes.trim() || 'No session notes provided.',
     },
     {
       when: !!input.sessionInterviewAnswers.trim(),

@@ -33,14 +33,12 @@ export function renderShadowingSynthesisTemplate(
       body: input.debriefSection,
     },
     {
-      when: !!input.sessionTranscript.trim(),
       heading: 'Transcript',
-      body: input.sessionTranscript,
+      body: input.sessionTranscript.trim() || 'No transcript provided.',
     },
     {
-      when: !!input.sessionNotes.trim(),
       heading: 'FDE personal notes',
-      body: input.sessionNotes,
+      body: input.sessionNotes.trim() || 'No FDE notes provided.',
     },
     {
       when: !!input.sessionInterviewAnswers.trim(),

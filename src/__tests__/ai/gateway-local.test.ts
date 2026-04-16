@@ -314,7 +314,8 @@ describe('LocalAIGateway.synthesizeSession + synthesizeShadowing', () => {
     expect(call.system).toContain('process discovery')
     expect(call.prompt).toContain('## Session transcript')
     expect(call.prompt).toContain('T')
-    expect(call.prompt).toContain('FDE personal notes')
+    expect(call.prompt).toContain('## FDE personal notes')
+    expect(call.prompt).toContain('N')
   })
 
   it('synthesizeShadowing threads event log + debrief into the user prompt', async () => {
@@ -324,6 +325,7 @@ describe('LocalAIGateway.synthesizeSession + synthesizeShadowing', () => {
     expect(call.prompt).toContain('## Chronological event log')
     expect(call.prompt).toContain('EV')
     expect(call.prompt).toContain('## Debrief answers')
+    expect(call.prompt).toContain('D')
   })
 
   it('both methods return the AI output as-is', async () => {

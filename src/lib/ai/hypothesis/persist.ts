@@ -22,6 +22,8 @@ export async function persistHypothesisResult(
     order: step.order,
     systems: step.systems.map((s) => ({ name: s, confirmed: false, detailNotes: '' })),
     confidence: 'inferred' as const,
+    nextSteps: [] as string[],
+    relatedEdgeCases: [] as string[],
     edgeCases: [],
     notes: '',
   }))

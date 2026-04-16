@@ -47,17 +47,20 @@ export function buildGraphFromLegacyModel(model: LegacyModelShape): ProcessGraph
     confidence: CONFIDENCE_MAP[step.confidence],
     metadata: {
       order: step.order,
-      systems: step.systems,
+      systems: Array.isArray(step.systems) ? step.systems : [],
       notes: step.notes || undefined,
-      relatedEdgeCases: step.relatedEdgeCases,
+      relatedEdgeCases: Array.isArray(step.relatedEdgeCases) ? step.relatedEdgeCases : [],
     },
     sourceSessionIds: step.sourceSessionId ? [step.sourceSessionId] : undefined,
   }))
 
   const edges: GraphEdge[] = []
   for (const step of model.steps) {
-    const isBranch = step.nextSteps.length > 1
-    for (const target of step.nextSteps) {
+    // Defensive: hypothesis-generated steps don't carry nextSteps (no
+    // ordering inference from a single AI pass). Treat as no outbound edges.
+    const nextSteps = Array.isArray(step.nextSteps) ? step.nextSteps : []
+    const isBranch = nextSteps.length > 1
+    for (const target of nextSteps) {
       edges.push({
         id: `edge_${step.id}__${target}`,
         from: step.id,

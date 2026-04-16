@@ -131,4 +131,28 @@ describe('buildGraphFromLegacyModel', () => {
     const b = buildGraphFromLegacyModel(input)
     expect(a).toEqual(b)
   })
+
+  it('treats steps with missing nextSteps / systems / relatedEdgeCases as empty (defensive)', () => {
+    // Hypothesis-generated steps don't carry nextSteps or relatedEdgeCases —
+    // the writer in persistHypothesisResult includes them as [] but a typo
+    // in any future writer must not crash the auto-derive in updateProcessModel.
+    const partialStep = {
+      id: 's1',
+      order: 1,
+      name: 'Step',
+      description: '',
+      confidence: 'inferred',
+      notes: '',
+    } as unknown as Parameters<typeof buildGraphFromLegacyModel>[0]['steps'][number]
+
+    const result = buildGraphFromLegacyModel({
+      steps: [partialStep],
+      edgeCases: [],
+      systems: [],
+    })
+    expect(result.nodes).toHaveLength(1)
+    expect(result.edges).toEqual([])
+    expect(result.nodes[0].metadata.systems).toEqual([])
+    expect(result.nodes[0].metadata.relatedEdgeCases).toEqual([])
+  })
 })

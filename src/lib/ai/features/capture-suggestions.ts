@@ -24,7 +24,7 @@ export const captureSuggestionsFeature: FeatureConfig = {
       options: { events: 'last20', debrief: false, contacts: false, priorSessions: false },
     },
   ],
-  langfusePromptName: 'capture-suggestions',
+  promptKey: 'capture-suggestions',
   systemPrompt: CAPTURE_SUGGESTIONS_SYSTEM_PROMPT,
   schemaSlug: 'capture-suggestions',
   tools: [],

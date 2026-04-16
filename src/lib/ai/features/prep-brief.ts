@@ -26,7 +26,7 @@ export const prepBriefFeature: FeatureConfig = {
       options: { events: 'none', debrief: false, contacts: true, priorSessions: true },
     },
   ],
-  langfusePromptName: 'prep-brief',
+  promptKey: 'prep-brief',
   systemPrompt: PREP_BRIEF_SYSTEM_PROMPT,
   schemaSlug: 'prep-brief',
   tools: [],

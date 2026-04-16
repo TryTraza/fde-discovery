@@ -7,7 +7,7 @@ export const companyResearchFeature: FeatureConfig = {
   mode: 'generateText',
   model: 'standard',
   layers: [{ layer: 'l2-client', options: { fields: 'summary' } }],
-  langfusePromptName: 'company-research',
+  promptKey: 'company-research',
   schemaSlug: null,
   tools: [{ tool: 'web-search', options: { maxSteps: 3 } }],
   maxOutputTokens: 2000,

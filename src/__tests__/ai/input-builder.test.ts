@@ -31,7 +31,7 @@ function fakeFeature(overrides?: Partial<any>) {
     skills: [],
     tools: [],
     schemaSlug: 'hypothesis',
-    langfusePromptName: 'hypothesis',
+    promptKey: 'hypothesis',
     systemPrompt: 'You are…',
     maxOutputTokens: 1000,
     resilience: FAST_RESILIENCE,

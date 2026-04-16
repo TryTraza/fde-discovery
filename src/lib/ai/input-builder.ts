@@ -1,15 +1,16 @@
 /**
  * input-builder — the "context side" of AI invocation.
  *
- * Given an agent slug and LayerParams, returns everything a prompt needs
+ * Given a feature slug and LayerParams, returns everything a prompt needs
  * to be compiled (layer data, skills, merged template variables). Does NOT
- * touch Langfuse, prompts, tools, or model invocation — those stay in
- * builder.ts / executeAI.
+ * touch prompt loading, tools, or model invocation — those stay in
+ * builder.ts / executeAI for unmigrated features and in gateway-local.ts
+ * for the rest.
  *
- * Split out so:
+ * Why split out:
  *   1. Tests can snapshot the merged template vars deterministically.
- *   2. Phase 2.7 gateway code can reuse the same function when rendering
- *      templates and building WorkerInput without going through executeAI.
+ *   2. Gateway methods reuse the same function when rendering templates
+ *      and dispatching, without going through executeAI.
  */
 
 import { getLayer } from '@/lib/ai/layers/registry'
@@ -127,7 +128,7 @@ function featureToAgentConfig(f: FeatureConfig): AIAgentConfig {
     mode: f.mode,
     model: f.model,
     layers: f.layers,
-    langfusePromptName: f.langfusePromptName,
+    promptKey: f.promptKey,
     schemaSlug: f.schemaSlug,
     tools: f.tools,
     maxOutputTokens: f.maxOutputTokens,

@@ -28,7 +28,7 @@ export const sessionSynthesisFeature: FeatureConfig = {
       options: { events: 'none', debrief: false, contacts: true, priorSessions: true },
     },
   ],
-  langfusePromptName: 'session-synthesis',
+  promptKey: 'session-synthesis',
   systemPrompt: SESSION_SYNTHESIS_SYSTEM_PROMPT,
   schemaSlug: 'session-synthesis',
   tools: [],

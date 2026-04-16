@@ -24,7 +24,7 @@ export const processHypothesisFeature: FeatureConfig = {
     { layer: 'l2-client', options: { fields: 'summary' } },
     { layer: 'l3-process', options: { fields: 'summary', includeModel: false } },
   ],
-  langfusePromptName: 'process-hypothesis',
+  promptKey: 'process-hypothesis',
   systemPrompt: PROCESS_HYPOTHESIS_SYSTEM_PROMPT,
   schemaSlug: 'process-hypothesis',
   tools: [],

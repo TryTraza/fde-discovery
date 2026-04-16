@@ -15,7 +15,7 @@ export const emailDraftFeature: FeatureConfig = {
   mode: 'generateText',
   model: 'fast',
   layers: [],
-  langfusePromptName: 'email-draft',
+  promptKey: 'email-draft',
   systemPrompt: EMAIL_DRAFT_SYSTEM_PROMPT,
   schemaSlug: null,
   tools: [],

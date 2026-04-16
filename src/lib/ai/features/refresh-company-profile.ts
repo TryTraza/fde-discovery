@@ -27,7 +27,7 @@ export const refreshCompanyProfileFeature: FeatureConfig = {
   mode: 'generateObject',
   model: 'standard',
   layers: [],
-  langfusePromptName: 'refresh-company-profile',
+  promptKey: 'refresh-company-profile',
   systemPrompt: REFRESH_COMPANY_PROFILE_SYSTEM_PROMPT,
   schemaSlug: null,
   tools: [],

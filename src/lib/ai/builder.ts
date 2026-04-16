@@ -134,7 +134,7 @@ export async function executeAI<T = unknown>(input: AIBuilderInput): Promise<AIB
   })
   const { config, skills, templateVars: vars, layerTimings, layerErrors } = built
 
-  const prompt = await fetchPrompt(config.langfusePromptName)
+  const prompt = await fetchPrompt(config.promptKey)
   const resolvedTools = resolveTools(config.tools, anthropic)
 
   const compiled = compilePrompt(prompt, vars)

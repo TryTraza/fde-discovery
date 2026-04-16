@@ -1,7 +1,11 @@
 /**
- * Langfuse prompt definitions.
- * Shared by: seed-langfuse-prompts.ts script + behavioral tests.
- * Variables use {{name}} syntax (Langfuse interpolation).
+ * Static prompt fixtures (originally Langfuse-backed; Langfuse retired
+ * in Phase 2.6). The remaining unmigrated feature is research-chat,
+ * which still reads its system message from here. Migrated features
+ * instead carry systemPrompt + a template under src/lib/ai/templates/.
+ *
+ * Variables use {{name}} syntax — interpolation is done by the caller
+ * (research route) via String.replace.
  */
 
 export interface PromptFixture {

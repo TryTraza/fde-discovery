@@ -19,7 +19,7 @@ function validConfig(overrides: Record<string, unknown> = {}) {
     mode: 'generateText' as const,
     model: 'standard' as const,
     layers: [],
-    langfusePromptName: 'test-prompt',
+    promptKey: 'test-prompt',
     schemaSlug: null,
     tools: [],
     maxOutputTokens: 1000,

@@ -26,7 +26,7 @@ export const shadowingSynthesisFeature: FeatureConfig = {
       options: { events: 'all', debrief: true, contacts: true, priorSessions: false },
     },
   ],
-  langfusePromptName: 'shadowing-synthesis',
+  promptKey: 'shadowing-synthesis',
   systemPrompt: SHADOWING_SYNTHESIS_SYSTEM_PROMPT,
   schemaSlug: 'shadowing-synthesis',
   tools: [],

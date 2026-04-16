@@ -25,7 +25,7 @@ export interface FeatureConfig {
    * reading fixtures; once every feature is migrated, this field and
    * fixtures.ts are both retired.
    */
-  langfusePromptName: string
+  promptKey: string
   /**
    * Worker persona + task instructions + output-format rules. Static —
    * per-call variability must come from the user-side template, not

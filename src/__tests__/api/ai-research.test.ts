@@ -29,10 +29,6 @@ vi.mock('@/lib/ai/layers/registry', () => ({
   }),
 }))
 
-vi.mock('@/lib/ai/observe', () => ({
-  getLangfuseClient: vi.fn().mockReturnValue(null),
-}))
-
 vi.mock('@/lib/ai/prompts/fixtures', () => ({
   PROMPTS: [
     {

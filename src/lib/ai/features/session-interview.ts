@@ -16,7 +16,7 @@ export const sessionInterviewFeature: FeatureConfig = {
     { layer: 'l2-client', options: { fields: 'full' } },
     { layer: 'l3-process', options: { fields: 'full', includeModel: true } },
   ],
-  langfusePromptName: 'session-interview',
+  promptKey: 'session-interview',
   systemPrompt: SESSION_INTERVIEW_SYSTEM_PROMPT,
   schemaSlug: 'session-interview',
   tools: [],

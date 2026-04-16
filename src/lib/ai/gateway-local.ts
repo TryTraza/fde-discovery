@@ -18,16 +18,21 @@ import { processHypothesisFeature } from '@/lib/ai/features/process-hypothesis'
 import { prepBriefFeature } from '@/lib/ai/features/prep-brief'
 import { captureSuggestionsFeature } from '@/lib/ai/features/capture-suggestions'
 import { refreshCompanyProfileFeature } from '@/lib/ai/features/refresh-company-profile'
+import { sessionSynthesisFeature } from '@/lib/ai/features/session-synthesis'
+import { shadowingSynthesisFeature } from '@/lib/ai/features/shadowing-synthesis'
 import { renderEmailDraftTemplate } from '@/lib/ai/templates/email-draft'
 import { renderSessionInterviewTemplate } from '@/lib/ai/templates/session-interview'
 import { renderProcessHypothesisTemplate } from '@/lib/ai/templates/process-hypothesis'
 import { renderPrepBriefTemplate } from '@/lib/ai/templates/prep-brief'
 import { renderCaptureSuggestionsTemplate } from '@/lib/ai/templates/capture-suggestions'
 import { renderRefreshCompanyProfileTemplate } from '@/lib/ai/templates/refresh-company-profile'
+import { renderSessionSynthesisTemplate } from '@/lib/ai/templates/session-synthesis'
+import { renderShadowingSynthesisTemplate } from '@/lib/ai/templates/shadowing-synthesis'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { hypothesisSchema, type HypothesisOutput } from '@/lib/ai/schemas/hypothesis'
 import { prepBriefSchema, type PrepBrief } from '@/lib/ai/schemas/prep-brief'
 import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
+import { synthesisOutputSchema, type SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 import {
   companyProfileSchema,
   companyNewsSchema,
@@ -51,6 +56,8 @@ import type {
   ProcessHypothesisGatewayResult,
   RefreshCompanyProfileGatewayInput,
   SessionInterviewGatewayInput,
+  SessionSynthesisGatewayInput,
+  ShadowingSynthesisGatewayInput,
 } from './gateway'
 
 // Schema handed to generateObject — lacks schemaVersion / lastRefreshedAt
@@ -261,6 +268,66 @@ class LocalAIGatewayImpl implements AIGateway {
       ...object,
       lastRefreshedAt: new Date().toISOString(),
     })
+  }
+
+  async synthesizeSession(input: SessionSynthesisGatewayInput): Promise<SynthesisOutput> {
+    const feature = sessionSynthesisFeature
+    if (!feature.systemPrompt) {
+      throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
+    }
+
+    const built = await buildAIInput(feature.slug, { sessionId: input.sessionId })
+
+    const userPrompt = renderSessionSynthesisTemplate({
+      clientSection: built.templateVars.clientSection ?? '',
+      processSection: built.templateVars.processSection ?? '',
+      processModelSection: built.templateVars.processModelSection ?? '',
+      contactsSection: built.templateVars.contactsSection ?? '',
+      priorSessionsSection: built.templateVars.priorSessionsSection ?? '',
+      sessionTranscript: built.templateVars.sessionTranscript ?? '',
+      sessionNotes: built.templateVars.sessionNotes ?? '',
+      sessionInterviewAnswers: built.templateVars.sessionInterviewAnswers ?? '',
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: userPrompt,
+      schema: synthesisOutputSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    return object as SynthesisOutput
+  }
+
+  async synthesizeShadowing(input: ShadowingSynthesisGatewayInput): Promise<SynthesisOutput> {
+    const feature = shadowingSynthesisFeature
+    if (!feature.systemPrompt) {
+      throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
+    }
+
+    const built = await buildAIInput(feature.slug, { sessionId: input.sessionId })
+
+    const userPrompt = renderShadowingSynthesisTemplate({
+      clientSection: built.templateVars.clientSection ?? '',
+      processSection: built.templateVars.processSection ?? '',
+      processModelSection: built.templateVars.processModelSection ?? '',
+      sessionEventsSection: built.templateVars.sessionEventsSection ?? '',
+      debriefSection: built.templateVars.debriefSection ?? '',
+      sessionTranscript: built.templateVars.sessionTranscript ?? '',
+      sessionNotes: built.templateVars.sessionNotes ?? '',
+      sessionInterviewAnswers: built.templateVars.sessionInterviewAnswers ?? '',
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: userPrompt,
+      schema: synthesisOutputSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    return object as SynthesisOutput
   }
 }
 

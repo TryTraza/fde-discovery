@@ -29,6 +29,7 @@ import { localAIGateway } from '@/lib/ai/gateway-local'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { prepBriefSchema } from '@/lib/ai/schemas/prep-brief'
 import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
+import { synthesisOutputSchema } from '@/lib/ai/schemas/synthesis'
 import { companyProfileSchema, processHypothesisSchema } from '@/lib/ai/contracts'
 
 const FAKE_MODEL = { modelId: 'fake-model' } as any
@@ -186,5 +187,54 @@ describe('gateway parity — refresh-company-profile', () => {
     expect(companyProfileSchema.safeParse(out).success).toBe(true)
     expect(out.schemaVersion).toBe(1)
     expect(typeof out.lastRefreshedAt).toBe('string')
+  })
+})
+
+describe('gateway parity — session-synthesis + shadowing-synthesis', () => {
+  const VALID_SYNTHESIS = {
+    summary: 'Session synthesized.',
+    steps: [],
+    edgeCases: [],
+    systems: [],
+    openQuestions: [],
+    confidence: 80,
+  }
+
+  it('synthesizeSession output validates against synthesisOutputSchema', async () => {
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: {
+        clientSection: 'C',
+        processSection: 'P',
+        processModelSection: '',
+        contactsSection: '',
+        priorSessionsSection: '',
+        sessionTranscript: 'T',
+        sessionNotes: '',
+        sessionInterviewAnswers: '',
+      },
+    })
+    mockGenerateObject.mockResolvedValue({ object: VALID_SYNTHESIS })
+
+    const out = await localAIGateway.synthesizeSession({ sessionId: 's1', model: FAKE_MODEL })
+    expect(synthesisOutputSchema.safeParse(out).success).toBe(true)
+  })
+
+  it('synthesizeShadowing output validates against synthesisOutputSchema', async () => {
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: {
+        clientSection: 'C',
+        processSection: 'P',
+        processModelSection: '',
+        sessionEventsSection: 'EV',
+        debriefSection: 'D',
+        sessionTranscript: '',
+        sessionNotes: '',
+        sessionInterviewAnswers: '',
+      },
+    })
+    mockGenerateObject.mockResolvedValue({ object: VALID_SYNTHESIS })
+
+    const out = await localAIGateway.synthesizeShadowing({ sessionId: 's1', model: FAKE_MODEL })
+    expect(synthesisOutputSchema.safeParse(out).success).toBe(true)
   })
 })

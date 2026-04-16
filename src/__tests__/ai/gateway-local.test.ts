@@ -278,3 +278,58 @@ describe('LocalAIGateway.generatePrepBrief', () => {
     expect(out).toEqual(MOCK_BRIEF)
   })
 })
+
+describe('LocalAIGateway.synthesizeSession + synthesizeShadowing', () => {
+  const MOCK_OUTPUT = {
+    summary: 'Session summary.',
+    steps: [],
+    edgeCases: [],
+    systems: [],
+    openQuestions: [],
+    confidence: 80,
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGenerateObject.mockResolvedValue({ object: MOCK_OUTPUT })
+    mockBuildAIInput.mockResolvedValue({
+      templateVars: {
+        clientSection: 'C',
+        processSection: 'P',
+        processModelSection: 'PM',
+        contactsSection: 'Co',
+        priorSessionsSection: 'Pr',
+        sessionTranscript: 'T',
+        sessionNotes: 'N',
+        sessionInterviewAnswers: '',
+        sessionEventsSection: 'EV',
+        debriefSection: 'D',
+      },
+    })
+  })
+
+  it('synthesizeSession threads layer vars into the user prompt', async () => {
+    await localAIGateway.synthesizeSession({ sessionId: 's1', model: FAKE_MODEL })
+    const call = mockGenerateObject.mock.calls[0][0]
+    expect(call.system).toContain('process discovery')
+    expect(call.prompt).toContain('## Session transcript')
+    expect(call.prompt).toContain('T')
+    expect(call.prompt).toContain('FDE personal notes')
+  })
+
+  it('synthesizeShadowing threads event log + debrief into the user prompt', async () => {
+    await localAIGateway.synthesizeShadowing({ sessionId: 's1', model: FAKE_MODEL })
+    const call = mockGenerateObject.mock.calls[0][0]
+    expect(call.system).toContain('shadowing session')
+    expect(call.prompt).toContain('## Chronological event log')
+    expect(call.prompt).toContain('EV')
+    expect(call.prompt).toContain('## Debrief answers')
+  })
+
+  it('both methods return the AI output as-is', async () => {
+    const a = await localAIGateway.synthesizeSession({ sessionId: 's1', model: FAKE_MODEL })
+    const b = await localAIGateway.synthesizeShadowing({ sessionId: 's1', model: FAKE_MODEL })
+    expect(a).toEqual(MOCK_OUTPUT)
+    expect(b).toEqual(MOCK_OUTPUT)
+  })
+})

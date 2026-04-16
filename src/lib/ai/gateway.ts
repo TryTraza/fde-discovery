@@ -20,6 +20,7 @@
 import type { LanguageModel } from 'ai'
 import type { CompanyProfile, ProcessHypothesis } from '@/lib/ai/contracts'
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
+import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 
 /**
  * Shared: every gateway method receives a pre-resolved model (the caller
@@ -85,6 +86,14 @@ export interface RefreshCompanyProfileGatewayInput extends WithModel {
   clientWebsite: string | null
 }
 
+export interface SessionSynthesisGatewayInput extends WithModel {
+  sessionId: string
+}
+
+export interface ShadowingSynthesisGatewayInput extends WithModel {
+  sessionId: string
+}
+
 export interface AIGateway {
   draftEmail(input: EmailDraftGatewayInput): Promise<string>
   generateInterviewQuestion(input: SessionInterviewGatewayInput): Promise<InterviewQuestion>
@@ -96,4 +105,6 @@ export interface AIGateway {
     input: CaptureSuggestionsGatewayInput
   ): Promise<CaptureSuggestion[]>
   refreshCompanyProfile(input: RefreshCompanyProfileGatewayInput): Promise<CompanyProfile>
+  synthesizeSession(input: SessionSynthesisGatewayInput): Promise<SynthesisOutput>
+  synthesizeShadowing(input: ShadowingSynthesisGatewayInput): Promise<SynthesisOutput>
 }

@@ -41,21 +41,14 @@ const mockSynthesisOutput = {
   confidence: 75,
 }
 
-const mockExecuteAI = vi.fn().mockResolvedValue({
-  data: mockSynthesisOutput,
-  meta: {
-    agentSlug: 'session-synthesis',
-    configVersion: 1,
-    promptVersion: 1,
-    model: 'standard',
-    layerTimings: {},
-    totalDuration: 100,
-    layerErrors: [],
-  },
-})
+const mockSynthesizeSession = vi.fn().mockResolvedValue(mockSynthesisOutput)
+const mockSynthesizeShadowing = vi.fn().mockResolvedValue(mockSynthesisOutput)
 
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+vi.mock('@/lib/ai/gateway-factory', () => ({
+  getAIGateway: () => ({
+    synthesizeSession: mockSynthesizeSession,
+    synthesizeShadowing: mockSynthesizeShadowing,
+  }),
 }))
 
 // --- Imports (after mocks) ---
@@ -188,18 +181,11 @@ describe('POST /api/sessions/[sessionId]/synthesize', () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     setupDBMocks()
 
-    mockExecuteAI.mockResolvedValueOnce({
-      data: { summary: 'broken', steps: 'not-an-array', openQuestions: [] },
-      meta: {
-        agentSlug: 'session-synthesis',
-        configVersion: 1,
-        promptVersion: 1,
-        model: 'standard',
-        layerTimings: {},
-        totalDuration: 1,
-        layerErrors: [],
-      },
-    })
+    mockSynthesizeSession.mockResolvedValueOnce({
+      summary: 'broken',
+      steps: 'not-an-array',
+      openQuestions: [],
+    } as any)
 
     const res = await POST(createRequest(), withParams(SESSION_ID))
     expect(res.status).toBe(500)

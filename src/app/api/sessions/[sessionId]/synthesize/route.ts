@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server'
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
 import { getSessionById, updateSession } from '@/lib/db/queries/sessions'
-import { executeAI } from '@/lib/ai/builder'
-import { synthesisOutputSchema } from '@/lib/ai/schemas/synthesis'
+import { getAIGateway } from '@/lib/ai/gateway-factory'
+import { synthesisOutputSchema, type SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 
-function validateSynthesisOutput(data: unknown): { ok: true; data: unknown } | { ok: false } {
+function validateSynthesisOutput(
+  data: unknown
+): { ok: true; data: SynthesisOutput } | { ok: false } {
   const parsed = synthesisOutputSchema.safeParse(data)
   if (!parsed.success) {
     console.error('Synthesis output failed schema validation:', parsed.error.flatten())
@@ -26,7 +28,6 @@ export async function POST(
     if (!session) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
-
     if (session.status !== 'completed') {
       return NextResponse.json(
         { error: `Session must be completed. Current: ${session.status}` },
@@ -34,62 +35,36 @@ export async function POST(
       )
     }
 
-    // Shadowing synthesis
-    if (session.type === 'shadowing') {
+    const isShadowing = session.type === 'shadowing'
+
+    if (isShadowing) {
       if (session.debriefAnswers === null || session.debriefAnswers === undefined) {
         return NextResponse.json(
           { error: 'Complete the debrief before running synthesis on shadowing sessions.' },
           { status: 400 }
         )
       }
-
-      try {
-        const { model, anthropic } = await getAIConfig('synthesis')
-
-        const result = await executeAI({
-          agentSlug: 'shadowing-synthesis',
-          params: { sessionId },
-          userId: '',
-          model,
-          anthropic,
-        })
-
-        const validated = validateSynthesisOutput(result.data)
-        if (!validated.ok) {
-          return NextResponse.json(
-            { error: 'Synthesis output did not match expected shape.' },
-            { status: 500 }
-          )
-        }
-
-        await updateSession(sessionId, {
-          synthesisOutput: validated.data,
-          status: 'synthesis_done',
-        })
-
-        return NextResponse.json(validated.data)
-      } catch (error) {
-        console.error('Shadowing synthesis failed:', error)
-        return NextResponse.json({ error: 'Synthesis failed. Please try again.' }, { status: 500 })
-      }
+    } else if (!session.transcriptText && !session.notes) {
+      return NextResponse.json(
+        { error: 'Session must have transcript or notes' },
+        { status: 400 }
+      )
     }
 
-    // Non-shadowing session synthesis
-    if (!session.transcriptText && !session.notes) {
-      return NextResponse.json({ error: 'Session must have transcript or notes' }, { status: 400 })
+    const { model } = await getAIConfig('synthesis')
+    const gateway = getAIGateway(isShadowing ? 'shadowing-synthesis' : 'session-synthesis')
+
+    let raw: SynthesisOutput
+    try {
+      raw = isShadowing
+        ? await gateway.synthesizeShadowing({ sessionId, model })
+        : await gateway.synthesizeSession({ sessionId, model })
+    } catch (error) {
+      console.error(`${isShadowing ? 'Shadowing' : 'Session'} synthesis failed:`, error)
+      return NextResponse.json({ error: 'Synthesis failed. Please try again.' }, { status: 500 })
     }
 
-    const { model, anthropic } = await getAIConfig('synthesis')
-
-    const result = await executeAI({
-      agentSlug: 'session-synthesis',
-      params: { sessionId },
-      userId: '',
-      model,
-      anthropic,
-    })
-
-    const validated = validateSynthesisOutput(result.data)
+    const validated = validateSynthesisOutput(raw)
     if (!validated.ok) {
       return NextResponse.json(
         { error: 'Synthesis output did not match expected shape.' },

@@ -1,0 +1,23 @@
+scripts/backfill-process-graph.ts
+  2ad2821f6cc09db5 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "ce7099da027991b9f395639d020f3e776c9f6b8a",
+  "prompts": {
+    "2ad2821f6cc09db5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed797443-a6ba-4d5e-9c7e-75da8f203931",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}

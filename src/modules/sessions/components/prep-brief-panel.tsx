@@ -74,10 +74,14 @@ export function PrepBriefPanel({
     try {
       await sessionsService.update(sessionId, {
         interviewAnswers: { questions: answers },
-      } as Parameters<typeof sessionsService.update>[1])
+      })
       setShowInterview(false)
-      mutateSession()
-      toast.success('Interview answers saved')
+      mutateSession() // surface the saved answers regardless of what happens next
+      toast.success('Interview answers saved — generating prep brief...')
+      // Auto-generate so the user doesn't have to click again. handleGenerate
+      // handles its own error toast; if it fails the answers are still there
+      // and the user can hit "Generate Prep Brief" manually.
+      await handleGenerate()
     } catch {
       toast.error('Failed to save interview answers')
     } finally {

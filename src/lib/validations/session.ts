@@ -36,6 +36,12 @@ export const updateSessionSchema = z.object({
   notes: z.string().nullable().optional(),
   durationMinutes: z.number().int().positive().nullable().optional(),
   questionsAsked: z.array(z.boolean()).nullable().optional(),
+  interviewAnswers: z
+    .object({
+      questions: z.array(z.object({ question: z.string(), answer: z.string() })),
+    })
+    .nullable()
+    .optional(),
 })
 
 export const interviewRequestSchema = z.object({

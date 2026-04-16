@@ -56,7 +56,7 @@ async function main() {
       if (!dryRun) {
         await sql`
           UPDATE process_models
-          SET graph = ${sql.json(graph)}, updated_at = now()
+          SET graph = ${sql.json(graph as never)}, updated_at = now()
           WHERE id = ${row.id}
         `
       }

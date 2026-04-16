@@ -147,7 +147,7 @@ describe('POST /api/ai/research', () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
     const mockResolve = vi.fn().mockResolvedValue({
       data: {},
-      templateVars: { clientName: 'Acme Corp', clientIndustry: 'Manufacturing' },
+      templateVars: { clientSection: '## Client: Acme Corp\n- Industry: Manufacturing' },
     })
     vi.mocked(getLayer).mockReturnValue({ resolve: mockResolve } as any)
 
@@ -158,13 +158,14 @@ describe('POST /api/ai/research', () => {
     const call = mockStreamText.mock.calls[0][0]
     expect(call.system).toContain('Acme Corp')
     expect(call.system).toContain('Manufacturing')
+    expect(call.system).toContain('## Current context')
   })
 
   it('resolves process layer when processId provided', async () => {
     setupClerkMocks({ isAuthenticated: true, ...ADMIN_META })
     const mockResolve = vi.fn().mockResolvedValue({
       data: {},
-      templateVars: { processName: 'PO Process', processTypeL1: 'procurement' },
+      templateVars: { processSection: '## Process: PO Process\n- Domain: procurement' },
     })
     vi.mocked(getLayer).mockReturnValue({ resolve: mockResolve } as any)
 

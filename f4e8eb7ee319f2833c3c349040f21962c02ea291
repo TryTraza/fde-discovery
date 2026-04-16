@@ -1,0 +1,27 @@
+src/modules/processes/components/process-flow.tsx
+  fd955c16e7741b85 11-12,44-61,63
+src/__tests__/ai/steps-from-graph.test.ts
+  fd955c16e7741b85 1-143
+src/lib/ai/graph/steps-from-graph.ts
+  fd955c16e7741b85 1-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "f4e8eb7ee319f2833c3c349040f21962c02ea291",
+  "prompts": {
+    "fd955c16e7741b85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9978c618-f4b3-409e-9edf-25a1a0c4aac6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 216,
+      "total_deletions": 23,
+      "accepted_lines": 216,
+      "overriden_lines": 0
+    }
+  }
+}

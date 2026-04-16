@@ -8,6 +8,8 @@ import { Save, Undo2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { parseProcessSteps, type ProcessStepParsed } from '@/lib/validations/process'
 import { layoutProcessSteps } from '@/lib/utils/flow-layout'
+import { stepsFromGraph } from '@/lib/ai/graph/steps-from-graph'
+import type { ProcessGraph } from '@/lib/ai/contracts'
 import { TerminalNode } from './flow-nodes/terminal-node'
 import { StepNode } from './flow-nodes/step-node'
 import { AnimatedEdge } from './flow-nodes/animated-edge'
@@ -39,8 +41,26 @@ function generateStepId() {
   return `step-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
+/**
+ * Renders process steps. Source priority:
+ *   1. processModel.graph (Bloque 1+ structured shape, kept in sync via
+ *      the auto-derive in updateProcessModel)
+ *   2. processModel.steps (legacy JSONB) as a fallback for any row that
+ *      somehow has graph: null
+ *
+ * The editor still operates on ProcessStepParsed and saves back via
+ * processesService.updateSteps. The auto-derive then refreshes the graph,
+ * so the next render comes from the new source. A subsequent phase will
+ * make the editor operate on graph.nodes natively; for now this renderer
+ * change is enough to close the Bloque 1 deferral.
+ */
+function readSteps(processModel: { graph?: ProcessGraph | null; steps?: unknown }): ProcessStepParsed[] {
+  if (processModel?.graph) return stepsFromGraph(processModel.graph)
+  return parseProcessSteps(processModel?.steps)
+}
+
 export function ProcessFlow({ process, clientId, processId, mutateProcess }: ProcessFlowProps) {
-  const serverSteps = parseProcessSteps(process.processModel?.steps)
+  const serverSteps = readSteps(process.processModel ?? {})
   const [localSteps, setLocalSteps] = useState<ProcessStepParsed[] | null>(null)
   const [saving, setSaving] = useState(false)
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null)

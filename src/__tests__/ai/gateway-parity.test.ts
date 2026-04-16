@@ -190,6 +190,25 @@ describe('gateway parity — refresh-company-profile', () => {
   })
 })
 
+describe('gateway parity — TrazaAIGateway stub', () => {
+  it('throws NotImplementedError instead of corrupting the wire format', async () => {
+    const { trazaAIGateway, NotImplementedError } = await import(
+      '@/lib/ai/gateway-traza'
+    )
+    await expect(
+      trazaAIGateway.draftEmail({
+        clientName: 'Acme',
+        processName: 'PO',
+        contacts: [],
+        synthesisHighlights: 'x',
+        openQuestions: [],
+        language: 'en',
+        model: FAKE_MODEL,
+      })
+    ).rejects.toBeInstanceOf(NotImplementedError)
+  })
+})
+
 describe('gateway parity — session-synthesis + shadowing-synthesis', () => {
   const VALID_SYNTHESIS = {
     summary: 'Session synthesized.',

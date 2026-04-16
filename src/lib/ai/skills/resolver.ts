@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { getSkillsBySlugs } from '@/lib/db/queries/skills'
 import { EMPTY_SKILLS, type ResolvedSkills } from '@/lib/ai/types'
 
 const SKILLS_DIR = join(process.cwd(), 'src/lib/ai/skills')
@@ -67,16 +66,6 @@ function readSkillFromFs(slug: string): Skill | null {
   }
 }
 
-async function readSkillsFromDb(slugs: string[]): Promise<Skill[]> {
-  try {
-    const rows = await getSkillsBySlugs(slugs)
-    return rows.map((r) => ({ slug: r.slug, type: r.type as SkillType, content: r.content }))
-  } catch (err) {
-    console.warn('[AI] Failed to read skills from DB:', err)
-    return []
-  }
-}
-
 function applySkills(skills: Skill[]): ResolvedSkills {
   const systemPromptFragments: string[] = []
   const contextEnrichments: Record<string, string> = {}
@@ -113,30 +102,21 @@ function applySkills(skills: Skill[]): ResolvedSkills {
 export async function resolveSkills(slugs: string[]): Promise<ResolvedSkills> {
   if (slugs.length === 0) return EMPTY_SKILLS
 
-  // 1. Try filesystem for every slug.
+  // Filesystem is the only source of truth as of Phase 2.11. The DB
+  // fallback (and the admin UI that wrote to it) was retired with the
+  // ai_agents and skills tables.
   const fromFs: Skill[] = []
-  const missingFromFs: string[] = []
+  const missing: string[] = []
   for (const slug of slugs) {
     const skill = readSkillFromFs(slug)
     if (skill) fromFs.push(skill)
-    else missingFromFs.push(slug)
+    else missing.push(slug)
   }
 
-  // 2. For anything missing on disk, fall back to the DB.
-  //    This keeps the old admin UI editable during the transition.
-  let fromDb: Skill[] = []
-  if (missingFromFs.length > 0) {
-    fromDb = await readSkillsFromDb(missingFromFs)
-    const stillMissing = missingFromFs.filter((s) => !fromDb.find((r) => r.slug === s))
-    if (stillMissing.length > 0) {
-      console.warn(
-        `[AI] Skills not found on disk or in DB: ${stillMissing.join(', ')} — skipping`
-      )
-    }
+  if (missing.length > 0) {
+    console.warn(`[AI] Skills not found on disk: ${missing.join(', ')} — skipping`)
   }
 
-  const merged = [...fromFs, ...fromDb]
-  if (merged.length === 0) return EMPTY_SKILLS
-
-  return applySkills(merged)
+  if (fromFs.length === 0) return EMPTY_SKILLS
+  return applySkills(fromFs)
 }

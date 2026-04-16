@@ -50,6 +50,13 @@
       "when": 1776290770572,
       "tag": "0006_research_notes_response_structured",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1776329076314,
+      "tag": "0007_drop_ai_agents_skills",
+      "breakpoints": true
     }
   ]
 }

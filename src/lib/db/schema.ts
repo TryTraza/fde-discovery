@@ -79,16 +79,6 @@ export const snapshotTriggerEnum = pgEnum('snapshot_trigger', [
   'validation_merge',
 ])
 
-export const aiModeEnum = pgEnum('ai_mode', ['generateObject', 'generateText', 'streamText'])
-
-export const modelTierEnum = pgEnum('model_tier', ['fast', 'standard'])
-
-export const skillTypeEnum = pgEnum('skill_type', [
-  'system-prompt',
-  'context-enrichment',
-  'instruction',
-])
-
 // ====================================================================
 // ENUM CONSTANTS + UNION TYPES — derived from pgEnum definitions
 // ====================================================================
@@ -401,46 +391,6 @@ export const insertOpenQuestionSchema = createInsertSchema(openQuestions)
 export const insertResearchNoteSchema = createInsertSchema(researchNotes)
 
 // ====================================================================
-// AI AGENTS + SKILLS TABLES
-// ====================================================================
-
-export const aiAgents = pgTable('ai_agents', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  slug: text('slug').notNull().unique(),
-  label: text('label').notNull(),
-  description: text('description'),
-  mode: aiModeEnum('mode').notNull(),
-  model: modelTierEnum('model').notNull(),
-  layers: jsonb('layers').notNull().default([]),
-  langfusePromptName: text('langfuse_prompt_name').notNull(),
-  schemaSlug: text('schema_slug'),
-  tools: jsonb('tools').notNull().default([]),
-  maxOutputTokens: integer('max_output_tokens').notNull().default(1000),
-  skills: jsonb('skills').notNull().default([]),
-  resilience: jsonb('resilience').notNull(),
-  enabled: boolean('enabled').notNull().default(true),
-  version: integer('version').notNull().default(1),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
-
-export const skills = pgTable('skills', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  slug: text('slug').notNull().unique(),
-  label: text('label').notNull(),
-  description: text('description'),
-  type: skillTypeEnum('type').notNull(),
-  content: text('content').notNull(),
-  enabled: boolean('enabled').notNull().default(true),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-})
-
-export const insertAiAgentSchema = createInsertSchema(aiAgents)
-export const insertSkillSchema = createInsertSchema(skills)
-
-// ====================================================================
 // TYPESCRIPT TYPES — inferred from Drizzle schema
 // ====================================================================
 
@@ -477,8 +427,3 @@ export type NewResearchNote = typeof researchNotes.$inferInsert
 export type ProcessModelSnapshot = typeof processModelSnapshots.$inferSelect
 export type NewProcessModelSnapshot = typeof processModelSnapshots.$inferInsert
 
-export type AIAgent = typeof aiAgents.$inferSelect
-export type NewAIAgent = typeof aiAgents.$inferInsert
-
-export type SkillRow = typeof skills.$inferSelect
-export type NewSkillRow = typeof skills.$inferInsert

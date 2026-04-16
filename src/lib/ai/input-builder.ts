@@ -12,7 +12,6 @@
  *      templates and building WorkerInput without going through executeAI.
  */
 
-import { getAgentBySlug } from '@/lib/db/queries/ai-agents'
 import { getLayer } from '@/lib/ai/layers/registry'
 import { resolveSkills } from '@/lib/ai/skills/resolver'
 import { getFeatureConfig } from '@/lib/ai/features/registry'
@@ -104,26 +103,19 @@ export interface BuildAIInputResult {
 }
 
 /**
- * Feature-first config lookup: static FEATURES map wins; DB fallback only
- * covers slugs that haven't been ported yet (all 9 are ported as of
- * Phase 2.5, so the DB branch is just transitional belt-and-suspenders
- * until Phase 2.11 drops the ai_agents table).
+ * Feature config lookup. Code is the only source of truth — the
+ * DB-backed ai_agents table was retired in Phase 2.11.
  */
-async function resolveConfig(slug: string): Promise<AIAgentConfig> {
+function resolveConfig(slug: string): AIAgentConfig {
   const fromCode = getFeatureConfig(slug)
   if (fromCode) return featureToAgentConfig(fromCode)
-
-  const fromDb = await getAgentBySlug(slug)
-  if (fromDb) return fromDb
-
-  throw new Error(`Unknown AI agent: "${slug}"`)
+  throw new Error(`Unknown AI feature: "${slug}"`)
 }
 
 function featureToAgentConfig(f: FeatureConfig): AIAgentConfig {
-  // AIAgentConfig carries DB-only metadata (id/version/timestamps) that
-  // the rest of the pipeline reads for tracing. We synthesise stable
-  // sentinel values for code-backed features — they live in tracing
-  // output only and are distinguishable from real DB rows.
+  // AIAgentConfig is the legacy shape that builder.ts and tracing still
+  // consume. Synthesise stable sentinel values for the DB-only metadata
+  // (id/version/timestamps).
   return {
     id: `code:${f.slug}`,
     version: 1,
@@ -157,7 +149,7 @@ export async function buildAIInput(
     trace?: any
   } = {}
 ): Promise<BuildAIInputResult> {
-  const config = await resolveConfig(agentSlug)
+  const config = resolveConfig(agentSlug)
 
   const layerOutcome =
     config.layers.length > 0

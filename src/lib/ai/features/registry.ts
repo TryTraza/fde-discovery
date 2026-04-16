@@ -12,10 +12,9 @@ import type { FeatureConfig } from './types'
 
 /**
  * Source of truth for every AI feature's static configuration.
- * Queried by buildAIInput (via getFeatureConfig). Falls back to
- * the DB-backed ai_agents table for unknown slugs during the
- * Phase 2.4–2.11 transition window; the fallback is removed when
- * 2.11 drops the ai_agents table.
+ * Queried by buildAIInput (via getFeatureConfig). The legacy
+ * ai_agents DB table was retired in Phase 2.11 — code is the only
+ * source of truth.
  */
 export const FEATURES: Record<string, FeatureConfig> = {
   'capture-suggestions': captureSuggestionsFeature,

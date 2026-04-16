@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mockGetAgentBySlug = vi.fn()
-vi.mock('@/lib/db/queries/ai-agents', () => ({
-  getAgentBySlug: (slug: string) => mockGetAgentBySlug(slug),
+const mockGetFeatureConfig = vi.fn()
+vi.mock('@/lib/ai/features/registry', () => ({
+  getFeatureConfig: (slug: string) => mockGetFeatureConfig(slug),
 }))
 
 const mockGetLayer = vi.fn()
@@ -18,12 +18,13 @@ vi.mock('@/lib/ai/skills/resolver', () => ({
 
 import { buildAIInput } from '@/lib/ai/input-builder'
 
-const FAST_RESILIENCE = { layerTimeout: 100, fallbackOnLayerError: true }
+const FAST_RESILIENCE = { layerTimeout: 100, totalTimeout: 1000, fallbackOnLayerError: true }
 
-function fakeConfig(overrides?: Partial<any>) {
+function fakeFeature(overrides?: Partial<any>) {
   return {
     slug: 'hypothesis',
-    version: 1,
+    label: 'Hypothesis',
+    description: null,
     mode: 'generateObject',
     model: 'standard',
     layers: [],
@@ -31,8 +32,10 @@ function fakeConfig(overrides?: Partial<any>) {
     tools: [],
     schemaSlug: 'hypothesis',
     langfusePromptName: 'hypothesis',
+    systemPrompt: 'You are…',
     maxOutputTokens: 1000,
     resilience: FAST_RESILIENCE,
+    enabled: true,
     ...overrides,
   }
 }
@@ -47,13 +50,13 @@ describe('buildAIInput', () => {
     })
   })
 
-  it('throws when the agent slug is unknown', async () => {
-    mockGetAgentBySlug.mockResolvedValue(null)
-    await expect(buildAIInput('nope', {})).rejects.toThrow(/Unknown AI agent/)
+  it('throws when the feature slug is not in the registry', async () => {
+    mockGetFeatureConfig.mockReturnValue(null)
+    await expect(buildAIInput('nope', {})).rejects.toThrow(/Unknown AI feature/)
   })
 
-  it('returns empty structure when the agent has no layers and no skills', async () => {
-    mockGetAgentBySlug.mockResolvedValue(fakeConfig())
+  it('returns empty structure when the feature has no layers and no skills', async () => {
+    mockGetFeatureConfig.mockReturnValue(fakeFeature())
 
     const result = await buildAIInput('hypothesis', { clientId: 'c1' })
 
@@ -65,8 +68,8 @@ describe('buildAIInput', () => {
   })
 
   it('merges template vars from every resolved layer', async () => {
-    mockGetAgentBySlug.mockResolvedValue(
-      fakeConfig({
+    mockGetFeatureConfig.mockReturnValue(
+      fakeFeature({
         layers: [
           { layer: 'l2-client', options: {} },
           { layer: 'l3-process', options: {} },
@@ -98,8 +101,8 @@ describe('buildAIInput', () => {
   })
 
   it('layers that time out fall back to empty results (resilience)', async () => {
-    mockGetAgentBySlug.mockResolvedValue(
-      fakeConfig({ layers: [{ layer: 'l2-client', options: {} }] })
+    mockGetFeatureConfig.mockReturnValue(
+      fakeFeature({ layers: [{ layer: 'l2-client', options: {} }] })
     )
     mockGetLayer.mockReturnValue({
       name: 'l2-client',
@@ -114,8 +117,8 @@ describe('buildAIInput', () => {
   })
 
   it('skill contextEnrichments overlay on top of layer vars', async () => {
-    mockGetAgentBySlug.mockResolvedValue(
-      fakeConfig({
+    mockGetFeatureConfig.mockReturnValue(
+      fakeFeature({
         layers: [{ layer: 'l2-client', options: {} }],
         skills: ['domain-language'],
       })
@@ -139,8 +142,8 @@ describe('buildAIInput', () => {
   })
 
   it('caller overrides win over both layers and skills', async () => {
-    mockGetAgentBySlug.mockResolvedValue(
-      fakeConfig({
+    mockGetFeatureConfig.mockReturnValue(
+      fakeFeature({
         layers: [{ layer: 'l2-client', options: {} }],
         skills: ['domain-language'],
       })

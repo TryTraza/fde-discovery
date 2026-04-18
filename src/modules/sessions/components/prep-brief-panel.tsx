@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
-  Sparkles,
+  Zap,
   RefreshCw,
   MessageSquare,
   Lightbulb,
@@ -133,7 +133,7 @@ export function PrepBriefPanel({
           </>
         ) : (
           <>
-            <Sparkles className="size-8 text-muted-foreground" />
+            <Zap className="size-8 text-muted-foreground" />
             <div>
               <p className="font-medium">No prep brief yet</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -150,7 +150,7 @@ export function PrepBriefPanel({
                 </Button>
               )}
               <Button onClick={handleGenerate}>
-                <Sparkles className="mr-1.5 size-3.5" />
+                <Zap className="mr-1.5 size-3.5" />
                 Generate Prep Brief
               </Button>
             </div>

@@ -6,7 +6,7 @@ import { CollapsibleCard } from '@/components/shared/collapsible-card'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import {
-  Sparkles,
+  Zap,
   RefreshCw,
   ChevronRight,
   MessageSquare,
@@ -65,7 +65,7 @@ export function PrepBriefCard({ sessionId, prepBrief, mutateSession }: PrepBrief
             session.
           </p>
           <Button size="sm" variant="outline" onClick={handleGenerate} disabled={isLoading}>
-            <Sparkles className="mr-1.5 size-3.5" />
+            <Zap className="mr-1.5 size-3.5" />
             {isLoading ? 'Generating...' : 'Generate Prep Brief'}
           </Button>
         </div>

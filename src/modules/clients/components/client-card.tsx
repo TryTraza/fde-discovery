@@ -13,7 +13,7 @@ interface ClientCardProps {
     status: string
     hqLocation?: string | null
     website?: string | null
-    createdAt: string
+    createdAt: Date | string
   }
 }
 

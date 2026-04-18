@@ -34,7 +34,7 @@ import {
   MessageSquare,
   ClipboardList,
   PenLine,
-  Sparkles,
+  Zap,
 } from 'lucide-react'
 import { ShadowingCapturePanel } from './shadowing-capture-panel'
 import { SynthesisPanels } from './synthesis-panels'
@@ -52,7 +52,7 @@ interface SessionOverviewProps {
 const sections = [
   { id: 'preparation', label: 'Preparation', icon: ClipboardList },
   { id: 'capture', label: 'Session Capture', icon: PenLine },
-  { id: 'results', label: 'Synthesis', icon: Sparkles },
+  { id: 'results', label: 'Synthesis', icon: Zap },
 ] as const
 
 type SectionId = (typeof sections)[number]['id']

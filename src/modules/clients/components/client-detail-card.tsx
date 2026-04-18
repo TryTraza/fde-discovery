@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { clientsService } from '@/modules/clients/services/clients-service'
 import { ApiError } from '@/lib/api-client'
 import type { Client, ClientUpdateInput } from '@/modules/clients/types'
@@ -80,7 +81,7 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
           onBlur={(val) => patchField('hqLocation', val, client.hqLocation ?? '')}
         />
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Status</label>
+          <Label className="text-xs font-medium text-muted-foreground">Status</Label>
           <div className="flex items-center gap-2">
             <StatusBadge status={client.status} />
             <Select
@@ -103,7 +104,7 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
           </div>
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Notes</label>
+          <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
           <InlineTextarea
             value={client.notes ?? ''}
             onBlur={(val) => patchField('notes', val, client.notes ?? '')}
@@ -127,7 +128,7 @@ function InlineField({
 
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}

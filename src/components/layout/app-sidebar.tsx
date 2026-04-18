@@ -30,6 +30,7 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar'
 
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const secondaryNavItems = [
@@ -263,32 +264,24 @@ export function AppSidebar() {
         )}
       </SidebarContent>
       <SidebarFooter>
-        <SidebarSeparator />
-        <SidebarGroup>
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {secondaryNavItems.map((item) => {
-                const isActive = !('external' in item) && pathname.startsWith(item.href)
-                const linkProps =
-                  'external' in item ? { target: '_blank', rel: 'noopener noreferrer' } : {}
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      render={<Link href={item.href} {...linkProps} />}
-                      isActive={isActive}
-                      tooltip={item.label}
-                    >
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
         <SidebarMenu>
+          {secondaryNavItems.map((item) => {
+            const isActive = !('external' in item) && pathname.startsWith(item.href)
+            const linkProps =
+              'external' in item ? { target: '_blank', rel: 'noopener noreferrer' } : {}
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  render={<Link href={item.href} {...linkProps} />}
+                  isActive={isActive}
+                  tooltip={item.label}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" tooltip={user?.fullName ?? 'Account'}>
               <UserButton />

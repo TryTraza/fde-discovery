@@ -6,7 +6,15 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2, ChevronDown, ChevronRight, X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const confidenceColors = {
@@ -56,14 +64,16 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
     <div ref={setNodeRef} style={style} className="border rounded-lg p-4 bg-background">
       <div className="flex items-start gap-3">
         {/* Drag handle */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           {...attributes}
           {...listeners}
           className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
           aria-label="Drag to reorder"
         >
           <GripVertical className="size-5" />
-        </button>
+        </Button>
 
         {/* Order number */}
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-semibold flex items-center justify-center">
@@ -79,15 +89,21 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
               className="h-8 font-medium text-sm"
               placeholder="Step name"
             />
-            <select
+            <Select
               value={step.confidence}
-              onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
-              className={`text-xs px-2 py-1 rounded-full border-0 cursor-pointer ${confidenceColors[step.confidence]}`}
+              onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
             >
-              <option value="confirmed">confirmed</option>
-              <option value="inferred">inferred</option>
-              <option value="missing">missing</option>
-            </select>
+              <SelectTrigger
+                className={`h-auto text-xs px-2 py-1 rounded-full border-0 w-auto ${confidenceColors[step.confidence]}`}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="confirmed">confirmed</SelectItem>
+                <SelectItem value="inferred">inferred</SelectItem>
+                <SelectItem value="missing">missing</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Textarea
@@ -107,13 +123,15 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
               >
                 {system.name}
                 {system.confirmed && <span className="text-green-600">&#10003;</span>}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={() => removeSystem(system.name)}
-                  className="ml-0.5 hover:text-destructive"
+                  className="ml-0.5 hover:text-destructive h-auto w-auto p-0"
                   aria-label={`Remove ${system.name}`}
                 >
                   <X className="size-3" />
-                </button>
+                </Button>
               </span>
             ))}
             <form
@@ -138,16 +156,18 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
           </div>
 
           {/* Expandable details */}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs text-muted-foreground mt-2 hover:text-foreground"
+            className="flex items-center gap-1 text-xs text-muted-foreground mt-2 hover:text-foreground h-auto px-0 py-0"
           >
             {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
             {step.edgeCases.length > 0
               ? `${step.edgeCases.length} edge case${step.edgeCases.length !== 1 ? 's' : ''}`
               : 'Details'}
             {step.notes ? ' · has notes' : ''}
-          </button>
+          </Button>
 
           {expanded && (
             <div className="mt-2 pt-2 border-t space-y-2">

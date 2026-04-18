@@ -96,7 +96,7 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
   ).length
 
   return (
-    <div className="space-y-6 min-w-0 overflow-hidden">
+    <div className="space-y-6 pt-4 md:pt-6 min-w-0 overflow-hidden">
       {/* Header: title + status badge + delete */}
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold truncate">{process.name}</h1>

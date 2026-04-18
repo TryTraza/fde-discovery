@@ -10,7 +10,7 @@ export default function ClientsPage() {
   const mutateRef = useRef<() => void>(() => {})
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pt-4 md:pt-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Clients</h1>
         <CreateClientDialog onCreated={() => mutateRef.current()}>

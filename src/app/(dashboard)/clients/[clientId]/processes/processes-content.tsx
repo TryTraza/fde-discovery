@@ -10,7 +10,7 @@ export default function ProcessesContent({ clientId }: { clientId: string }) {
   const mutateRef = useRef<() => void>(() => {})
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4 md:pt-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Processes</h1>
         <CreateProcessDialog clientId={clientId} onCreated={() => mutateRef.current()}>

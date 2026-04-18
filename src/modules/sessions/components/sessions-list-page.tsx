@@ -22,7 +22,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
 
   if (isLoading) {
     return (
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 pt-4 md:pt-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-16" />
         ))}
@@ -31,7 +31,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4 md:pt-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Sessions</h1>
         <Button size="sm" onClick={() => setDialogOpen(true)}>

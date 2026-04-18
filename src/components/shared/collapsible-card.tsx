@@ -29,10 +29,10 @@ export function CollapsibleCard({
           <div className="flex items-center justify-between">
             <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer hover:text-foreground/80">
               <ChevronDown
-                className={`size-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
+                className={`size-4 text-muted-foreground/50 transition-transform ${open ? '' : '-rotate-90'}`}
               />
               <CardTitle className="text-base flex items-center gap-1.5">
-                {Icon && <Icon className="size-4 text-muted-foreground" />}
+                {Icon && <Icon className="size-4 text-muted-foreground/50" />}
                 {title}
               </CardTitle>
             </CollapsibleTrigger>

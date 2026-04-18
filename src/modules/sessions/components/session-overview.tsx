@@ -227,7 +227,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
     | undefined
 
   return (
-    <div className="space-y-6 min-w-0">
+    <div className="space-y-6 pt-4 md:pt-6 min-w-0">
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">

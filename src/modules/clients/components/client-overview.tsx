@@ -106,7 +106,6 @@ export function ClientOverview({ clientId }: { clientId: string }) {
         </div>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
           <TabsTrigger value="processes">Processes</TabsTrigger>
         </TabsList>
       </div>
@@ -114,9 +113,6 @@ export function ClientOverview({ clientId }: { clientId: string }) {
       <TabsContent value="overview" className="space-y-6">
         <ClientDetailCard client={client} clientId={clientId} mutateClient={mutateClient} />
         <ContactsSection clientId={clientId} mutateClient={mutateClient} />
-      </TabsContent>
-
-      <TabsContent value="intelligence" className="grid gap-6 lg:grid-cols-2">
         <CompanyProfileCard clientId={clientId} profile={client.profile ?? null} />
         <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
       </TabsContent>

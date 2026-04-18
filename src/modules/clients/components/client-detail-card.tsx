@@ -48,15 +48,6 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
       actions={saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined}
     >
       <div className="space-y-1">
-        <div className="space-y-1">
-          <Label variant="field">Stage</Label>
-          <ClientStageStepper
-            clientId={clientId}
-            status={client.status}
-            onUpdated={mutateClient}
-            disabled={!isAdmin}
-          />
-        </div>
         <InlineField
           label="Name"
           value={client.name}
@@ -82,6 +73,15 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
           <InlineTextarea
             value={client.notes ?? ''}
             onBlur={(val) => patchField('notes', val, client.notes ?? '')}
+          />
+        </div>
+        <div className="space-y-1 pt-2">
+          <Label variant="field">Stage</Label>
+          <ClientStageStepper
+            clientId={clientId}
+            status={client.status}
+            onUpdated={mutateClient}
+            disabled={!isAdmin}
           />
         </div>
       </div>

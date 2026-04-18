@@ -26,7 +26,7 @@ export function CollapsibleCard({
   return (
     <Card>
       <Collapsible open={open} onOpenChange={setOpen}>
-        <CardHeader className="pb-3">
+        <CardHeader className={open ? 'pb-3' : ''}>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer hover:text-foreground/80">
               <ChevronDown

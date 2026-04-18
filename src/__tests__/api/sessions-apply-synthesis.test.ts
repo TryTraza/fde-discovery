@@ -11,6 +11,7 @@ vi.mock('@clerk/nextjs/server', () => ({
 
 vi.mock('@/lib/db/queries/sessions', () => ({
   getSessionById: vi.fn(),
+  sessionIsLinkedToProcess: vi.fn(),
 }))
 
 vi.mock('@/lib/db/queries/processes', () => ({
@@ -37,18 +38,19 @@ vi.mock('@/lib/utils/merge-process-model', () => ({
 // --- Imports (after mocks) ---
 
 import { POST } from '@/app/api/sessions/[sessionId]/apply-synthesis/route'
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, sessionIsLinkedToProcess } from '@/lib/db/queries/sessions'
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 
 // --- Helpers ---
 
 const SESSION_ID = 's1'
+const TARGET_PROCESS_UUID = 'a1000000-0000-4000-8000-000000000001'
 
 function createRequest(body: Record<string, unknown> = {}): Request {
   return new Request(`http://localhost/api/sessions/${SESSION_ID}/apply-synthesis`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ targetProcessId: TARGET_PROCESS_UUID, ...body }),
   })
 }
 
@@ -77,7 +79,7 @@ const fakeSynthesis = {
 
 const fakeSession = {
   id: SESSION_ID,
-  processId: 'p1',
+  processId: TARGET_PROCESS_UUID,
   type: 'discovery',
   status: 'synthesis_done',
   synthesisOutput: fakeSynthesis,
@@ -85,14 +87,14 @@ const fakeSession = {
 
 const fakeProcessModel = {
   id: 'pm-1',
-  processId: 'p1',
+  processId: TARGET_PROCESS_UUID,
   steps: [],
   edgeCases: [],
   systems: [],
 }
 
 const fakeProcess = {
-  id: 'p1',
+  id: TARGET_PROCESS_UUID,
   name: 'Purchasing',
   description: 'Buy things',
   processModel: fakeProcessModel,
@@ -103,6 +105,7 @@ const fakeProcess = {
 describe('POST /api/sessions/[sessionId]/apply-synthesis', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(sessionIsLinkedToProcess).mockResolvedValue(true)
     mockTransaction.mockImplementation(async (fn: any) => {
       const tx = {
         insert: vi.fn().mockReturnValue({
@@ -155,6 +158,15 @@ describe('POST /api/sessions/[sessionId]/apply-synthesis', () => {
 
     const res = await POST(createRequest(), withParams(SESSION_ID))
     expect(res.status).toBe(404)
+  })
+
+  it('returns 400 when session is not linked to target process', async () => {
+    setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
+    vi.mocked(getSessionById).mockResolvedValue(fakeSession as any)
+    vi.mocked(sessionIsLinkedToProcess).mockResolvedValue(false)
+
+    const res = await POST(createRequest(), withParams(SESSION_ID))
+    expect(res.status).toBe(400)
   })
 
   it('applies all sections by default', async () => {

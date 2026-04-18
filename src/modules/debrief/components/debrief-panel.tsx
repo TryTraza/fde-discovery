@@ -24,7 +24,6 @@ import { ApiError } from '@/lib/api-client'
 
 interface DebriefPanelProps {
   sessionId: string
-  processId: string
   onComplete: () => void
 }
 
@@ -38,7 +37,7 @@ interface AnswerState {
   priority?: Priority
 }
 
-export function DebriefPanel({ sessionId, processId, onComplete }: DebriefPanelProps) {
+export function DebriefPanel({ sessionId, onComplete }: DebriefPanelProps) {
   const [debriefEvents, setDebriefEvents] = useState<EventLog[]>([])
   const [allEvents, setAllEvents] = useState<EventLog[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)

@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { RefreshCw, Sparkles } from 'lucide-react'
+import { RefreshCw, Bot } from 'lucide-react'
 import { clientsService } from '@/modules/clients/services/clients-service'
 
 const RESEARCH_POLL_DELAY_MS = 5000
@@ -37,15 +37,11 @@ export function AISummaryCard({ client, clientId, mutateClient }: AISummaryCardP
 
   return (
     <CollapsibleCard
-      title={
-        <span className="flex items-center gap-1.5">
-          <Sparkles className="size-4" />
-          AI Research
-        </span>
-      }
+      title="AI Research"
+      icon={Bot}
       actions={
         <Button variant="outline" size="sm" onClick={onResearchMore} disabled={researching}>
-          <RefreshCw className={`mr-1 size-3.5 ${researching ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`mr-1 size-3.5 text-muted-foreground/50 ${researching ? 'animate-spin' : ''}`} />
           {researching ? 'Researching...' : 'Research more'}
         </Button>
       }

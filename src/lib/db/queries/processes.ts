@@ -1,14 +1,17 @@
-import { eq, and, isNull, desc } from 'drizzle-orm'
+import { eq, and, isNull, desc, or, inArray } from 'drizzle-orm'
 import { db } from '../index'
 import {
   processes,
   processModels,
   processModelSnapshots,
   sessions,
+  sessionProcessLinks,
   openQuestions,
   type SnapshotTrigger,
   type NewProcess,
 } from '../schema'
+import type { ProcessStep, EdgeCase, SystemEntry } from '../types'
+import type { ProcessGraph } from '@/lib/ai/contracts'
 
 const notDeleted = isNull(processes.deletedAt)
 
@@ -66,10 +69,19 @@ export async function getProcessWithModel(id: string) {
 export async function getProcessWithFullContext(id: string) {
   const process = await getProcessWithModel(id)
   if (!process) return null
+  const linkedRows = await db
+    .select({ sessionId: sessionProcessLinks.sessionId })
+    .from(sessionProcessLinks)
+    .where(eq(sessionProcessLinks.processId, id))
+  const linkedIds = linkedRows.map((r) => r.sessionId)
+  const sessionCond =
+    linkedIds.length === 0
+      ? eq(sessions.processId, id)
+      : or(eq(sessions.processId, id), inArray(sessions.id, linkedIds))
   const processSessions = await db
     .select()
     .from(sessions)
-    .where(and(eq(sessions.processId, id), isNull(sessions.deletedAt)))
+    .where(and(sessionCond, isNull(sessions.deletedAt)))
     .orderBy(desc(sessions.createdAt))
   return { ...process, sessions: processSessions }
 }
@@ -93,18 +105,18 @@ export async function getProcessModel(processId: string) {
 
 export async function updateProcessModel(
   processId: string,
-  data: { steps?: any; edgeCases?: any; systems?: any; graph?: any }
+  data: { steps?: ProcessStep[]; edgeCases?: EdgeCase[]; systems?: SystemEntry[]; graph?: ProcessGraph | null }
 ) {
   // Auto-derive graph when caller only passes legacy fields, so graph stays in
   // sync until legacy columns are dropped. Explicit `graph` in data wins.
-  let nextData = data
+  let nextData: typeof data & { graph?: ProcessGraph | null } = data
   if (data.graph === undefined && (data.steps || data.edgeCases || data.systems)) {
     const current = await getProcessModel(processId)
     if (current) {
       const merged = {
-        steps: (data.steps ?? current.steps ?? []) as any[],
-        edgeCases: (data.edgeCases ?? current.edgeCases ?? []) as any[],
-        systems: (data.systems ?? current.systems ?? []) as any[],
+        steps: (data.steps ?? (current.steps as ProcessStep[]) ?? []),
+        edgeCases: (data.edgeCases ?? (current.edgeCases as EdgeCase[]) ?? []),
+        systems: (data.systems ?? (current.systems as SystemEntry[]) ?? []),
       }
       try {
         const { buildGraphFromLegacyModel } = await import('@/lib/ai/graph/build-graph')
@@ -142,7 +154,7 @@ export async function createSnapshot(data: {
   processModelId: string
   trigger: SnapshotTrigger
   sessionId?: string
-  state: any
+  state: unknown
 }) {
   const [snapshot] = await db.insert(processModelSnapshots).values(data).returning()
   return snapshot

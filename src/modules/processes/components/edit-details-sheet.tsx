@@ -8,6 +8,7 @@ import { processesService } from '@/modules/processes/services/processes-service
 import { ApiError } from '@/lib/api-client'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -84,7 +85,7 @@ export function EditDetailsSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-5 px-4 pb-6">
+        <div className="space-y-5 px-6 pb-8">
           <InlineField
             label="Name"
             value={process.name}
@@ -92,7 +93,7 @@ export function EditDetailsSheet({
           />
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Status</label>
+            <Label variant="field">Status</Label>
             <div className="flex items-center gap-2">
               <ProcessStatusBadge status={process.status} />
               {allowedTransitions.length > 0 ? (
@@ -123,7 +124,7 @@ export function EditDetailsSheet({
           />
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Description</label>
+            <Label variant="field">Description</Label>
             <InlineTextarea
               value={process.description ?? ''}
               onBlur={(val) => patchField('description', val, process.description ?? '')}
@@ -133,7 +134,7 @@ export function EditDetailsSheet({
 
           {process.processTypeL1 && (
             <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Process Type</label>
+              <Label variant="field">Process Type</Label>
               <p className="text-sm">{process.processTypeL1}</p>
             </div>
           )}
@@ -158,13 +159,12 @@ function InlineField({
 
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
+      <Label variant="field">{label}</Label>
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={() => onBlur(localValue)}
         placeholder={placeholder}
-        className="h-8"
       />
     </div>
   )

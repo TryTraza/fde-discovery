@@ -10,22 +10,33 @@ const dateString = z
   .string()
   .refine((val) => !isNaN(new Date(val).getTime()), { message: 'Invalid date string' })
 
-export const createSessionSchema = z.object({
-  processId: z.string().uuid(),
-  type: sessionTypeZod,
-  title: z.string().min(1).max(200),
-  date: dateString,
-  contactIds: z
-    .array(z.string().uuid())
-    .optional()
-    .default([])
-    .transform((ids) => [...new Set(ids)]), // Deduplicate
-  interviewAnswers: z
-    .object({
-      questions: z.array(z.object({ question: z.string(), answer: z.string() })),
-    })
-    .optional(),
-})
+export const createSessionSchema = z
+  .object({
+    clientId: z.string().uuid(),
+    processId: z.string().uuid().optional(),
+    processIds: z.array(z.string().uuid()).optional().default([]),
+    type: sessionTypeZod,
+    title: z.string().min(1).max(200),
+    date: dateString,
+    contactIds: z
+      .array(z.string().uuid())
+      .optional()
+      .default([])
+      .transform((ids) => [...new Set(ids)]),
+    interviewAnswers: z
+      .object({
+        questions: z.array(z.object({ question: z.string(), answer: z.string() })),
+      })
+      .optional(),
+  })
+  .transform((data) => {
+    const ids = new Set<string>(data.processIds)
+    if (data.processId) ids.add(data.processId)
+    return {
+      ...data,
+      resolvedProcessIds: [...ids],
+    }
+  })
 
 // PATCH schema — only for API route. Internal callers (Steps 6, 7) bypass Zod.
 export const updateSessionSchema = z.object({

@@ -3,71 +3,59 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useSessions } from '@/modules/sessions/hooks/use-sessions'
-import { useProcess } from '@/modules/processes/hooks/use-processes'
+import { type SessionRecord } from '@/modules/sessions/services/sessions-service'
 import { getSessionTypeLabel } from '@/lib/utils/session-labels'
 import { SessionStatusBadge } from './session-status-badge'
 import { CreateSessionDialog } from './create-session-dialog'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, Plus, CalendarDays } from 'lucide-react'
+import { Plus, CalendarDays } from 'lucide-react'
 
 interface SessionsListPageProps {
   clientId: string
-  processId: string
+  /** When set, only sessions linked to this process are listed */
+  processId?: string
+  showTitle?: boolean
 }
 
-export function SessionsListPage({ clientId, processId }: SessionsListPageProps) {
-  const { sessions, isLoading, error, mutateSessions } = useSessions(processId)
-  const { process } = useProcess(clientId, processId)
+export function SessionsListPage({
+  clientId,
+  processId,
+  showTitle = true,
+}: SessionsListPageProps) {
+  const { sessions, isLoading, error, mutateSessions } = useSessions(clientId, processId ?? null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-16" />
-          ))}
-        </div>
+      <div className="space-y-1.5 pt-4 md:pt-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-16" />
+        ))}
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/clients/${clientId}/processes/${processId}`}
-            className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-          >
-            <ArrowLeft className="size-4" />
-          </Link>
-          <h1 className="text-2xl font-bold">Sessions</h1>
-          {process && <span className="text-muted-foreground text-sm">— {process.name}</span>}
-        </div>
-        <Button onClick={() => setDialogOpen(true)}>
+    <div className="space-y-6 pt-4 md:pt-6">
+      <div className={`flex items-center ${showTitle ? 'justify-between' : 'justify-end'}`}>
+        {showTitle ? <h1 className="text-2xl font-bold">Sessions</h1> : null}
+        <Button size="sm" onClick={() => setDialogOpen(true)}>
           <Plus className="mr-1.5 size-4" />
           New Session
         </Button>
       </div>
 
       {error ? (
-        <div className="text-center py-8">
+        <div className="text-center py-4">
           <p className="text-sm text-muted-foreground mb-2">Failed to load sessions.</p>
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => mutateSessions()}
-            className="h-auto p-0 underline"
-          >
+          <Button variant="link" size="sm" onClick={() => mutateSessions()} className="h-auto p-0 underline">
             Retry
           </Button>
         </div>
       ) : sessions.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground mb-4">
+        <div className="text-center py-6 border rounded-lg">
+          <p className="text-muted-foreground mb-2">
             No sessions yet. Create one to start gathering data.
           </p>
           <Button variant="outline" onClick={() => setDialogOpen(true)}>
@@ -77,10 +65,10 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
         </div>
       ) : (
         <div className="grid gap-3">
-          {sessions.map((session: any) => (
+          {sessions.map((session: SessionRecord) => (
             <Link
               key={session.id}
-              href={`/clients/${clientId}/processes/${processId}/sessions/${session.id}`}
+              href={`/clients/${clientId}/sessions/${session.id}`}
               className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
             >
               <div className="space-y-1">
@@ -105,8 +93,8 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         clientId={clientId}
-        processId={processId}
-        onCreated={() => mutateSessions()}
+        defaultProcessId={processId}
+        onCreated={mutateSessions}
       />
     </div>
   )

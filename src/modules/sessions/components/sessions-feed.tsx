@@ -9,6 +9,7 @@ import { getSessionTypeLabel } from '@/lib/utils/session-labels'
 import { CreateSessionDialog } from '@/modules/sessions/components/create-session-dialog'
 import { SuggestedNextSession } from './suggested-next-session'
 import type { ProcessStepParsed } from '@/lib/validations/process'
+import type { SessionRecord } from '@/modules/sessions/services/sessions-service'
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   completed: 'bg-emerald-500',
@@ -27,9 +28,9 @@ const STATUS_LABELS: Record<string, string> = {
 interface SessionsFeedProps {
   clientId: string
   processId: string
-  sessions: any[]
+  sessions: SessionRecord[]
   isLoading: boolean
-  error: any
+  error: Error | null
   mutateSessions: () => void
   steps: ProcessStepParsed[]
   processStatus: string
@@ -49,8 +50,7 @@ export function SessionsFeed({
 
   return (
     <>
-      <div className="space-y-3">
-        {/* Header */}
+      <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarDays className="size-4 text-muted-foreground" />
@@ -62,7 +62,6 @@ export function SessionsFeed({
           </Button>
         </div>
 
-        {/* Content */}
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
@@ -87,10 +86,10 @@ export function SessionsFeed({
           </p>
         ) : (
           <div className="space-y-1">
-            {sessions.map((session: any) => (
+            {sessions.map((session) => (
               <Link
                 key={session.id}
-                href={`/clients/${clientId}/processes/${processId}/sessions/${session.id}`}
+                href={`/clients/${clientId}/sessions/${session.id}`}
                 className="flex items-center gap-3 py-2 px-2 hover:bg-muted/50 rounded-md transition-colors"
               >
                 <span
@@ -111,7 +110,7 @@ export function SessionsFeed({
             ))}
 
             <Link
-              href={`/clients/${clientId}/processes/${processId}/sessions`}
+              href={`/clients/${clientId}/sessions`}
               className={buttonVariants({ size: 'sm', variant: 'ghost', className: 'w-full mt-1' })}
             >
               View All
@@ -120,7 +119,6 @@ export function SessionsFeed({
           </div>
         )}
 
-        {/* Suggested next session */}
         <SuggestedNextSession steps={steps} sessions={sessions} processStatus={processStatus} />
       </div>
 
@@ -128,7 +126,7 @@ export function SessionsFeed({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         clientId={clientId}
-        processId={processId}
+        defaultProcessId={processId}
         onCreated={() => mutateSessions()}
       />
     </>

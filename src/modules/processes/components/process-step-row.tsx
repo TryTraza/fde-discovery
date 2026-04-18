@@ -6,7 +6,16 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2, X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { labelVariants } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
@@ -75,7 +84,9 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
         onClick={() => setExpanded(!expanded)}
       >
         {/* Drag handle */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           {...attributes}
           {...listeners}
           className="flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
@@ -83,7 +94,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           onClick={(e) => e.stopPropagation()}
         >
           <GripVertical className="size-4" />
-        </button>
+        </Button>
 
         {/* Confidence bar */}
         <div
@@ -139,28 +150,27 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
       {expanded && (
         <div
           className={cn(
-            'border border-t-0 rounded-b-lg px-4 py-3 space-y-3 bg-background',
+            'border border-t-0 rounded-b-lg px-5 py-4 space-y-5 bg-background',
             isMissing && 'border-dashed border-red-300 dark:border-red-800'
           )}
         >
           {/* Name input */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Name</label>
+            <Label variant="field">Name</Label>
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
-              className="h-8 text-sm"
               placeholder="Step name"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Description</label>
+            <Label variant="field">Description</Label>
             <Textarea
               value={step.description}
               onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
-              className="text-sm min-h-[36px] resize-none"
+              className="resize-none"
               placeholder="Step description"
               rows={2}
             />
@@ -168,21 +178,27 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Confidence */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Confidence</label>
-            <select
+            <Label variant="field">Confidence</Label>
+            <Select
               value={step.confidence}
-              onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
-              className={`text-xs px-2 py-1 rounded-full border-0 cursor-pointer ${confidenceBadgeColors[step.confidence]}`}
+              onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
             >
-              <option value="confirmed">confirmed</option>
-              <option value="inferred">inferred</option>
-              <option value="missing">missing</option>
-            </select>
+              <SelectTrigger
+                className={`h-auto text-xs px-2 py-1 rounded-full border-0 w-auto ${confidenceBadgeColors[step.confidence]}`}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="confirmed">confirmed</SelectItem>
+                <SelectItem value="inferred">inferred</SelectItem>
+                <SelectItem value="missing">missing</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Systems */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Systems</label>
+            <Label variant="field">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
                 <span
@@ -191,13 +207,15 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
                 >
                   {system.name}
                   {system.confirmed && <span className="text-green-600">&#10003;</span>}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => removeSystem(system.name)}
-                    className="ml-0.5 hover:text-destructive"
+                    className="ml-0.5 hover:text-destructive h-auto w-auto p-0"
                     aria-label={`Remove ${system.name}`}
                   >
                     <X className="size-3" />
-                  </button>
+                  </Button>
                 </span>
               ))}
               <form
@@ -211,7 +229,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
                   value={newSystem}
                   onChange={(e) => setNewSystem(e.target.value)}
                   placeholder="+ system"
-                  className="h-6 w-24 text-xs px-2"
+                  className="h-7 w-28 text-xs px-3"
                 />
                 {newSystem.trim() && (
                   <Button type="submit" variant="ghost" size="icon-xs">
@@ -224,11 +242,11 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Notes */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Notes</label>
+            <Label variant="field">Notes</Label>
             <Textarea
               value={step.notes}
               onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
-              className="text-sm min-h-[36px] resize-none"
+              className="resize-none"
               placeholder="Notes about this step"
               rows={2}
             />
@@ -237,7 +255,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           {/* Edge cases */}
           {step.edgeCases.length > 0 && (
             <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
+              <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (
                   <li key={i}>

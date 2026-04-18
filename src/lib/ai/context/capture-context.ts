@@ -1,4 +1,4 @@
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, getPrimaryProcessIdForSession } from '@/lib/db/queries/sessions'
 import { getEventsBySessionId } from '@/lib/db/queries/events'
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 import { getL1 } from '@/lib/domain/l1'
@@ -31,7 +31,8 @@ export async function buildCaptureContext(sessionId: string): Promise<CaptureCon
     }
   }
 
-  const process = await getProcessWithModel(session.processId)
+  const primaryPid = await getPrimaryProcessIdForSession(session)
+  const process = primaryPid ? await getProcessWithModel(primaryPid) : null
 
   let l1Library = null
   if (process?.processTypeL1) {

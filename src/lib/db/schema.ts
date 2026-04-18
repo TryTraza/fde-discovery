@@ -8,6 +8,7 @@ import {
   jsonb,
   pgEnum,
   date,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
@@ -17,6 +18,15 @@ import type {
   ProcessHypothesis,
   ResearchNoteResult,
 } from '@/lib/ai/contracts'
+import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
+import type {
+  InterviewAnswers,
+  PrepBrief,
+  DebriefAnswers,
+  ShadowingConfig,
+  ValidationConfig,
+  DemoConfig,
+} from '@/lib/db/types'
 
 // ====================================================================
 // ENUMS — 9 total
@@ -25,8 +35,9 @@ import type {
 export const clientStatusEnum = pgEnum('client_status', [
   'prospecting',
   'active_poc',
-  'demo_ready',
-  'closed',
+  'contracted',
+  'expanding',
+  'inactive',
 ])
 
 export const processStatusEnum = pgEnum('process_status', [
@@ -113,7 +124,7 @@ export const SNAPSHOT_TRIGGERS = snapshotTriggerEnum.enumValues
 export type SnapshotTrigger = (typeof SNAPSHOT_TRIGGERS)[number]
 
 // ====================================================================
-// TABLES — 11 total
+// TABLES — 12 total
 // ====================================================================
 
 // TABLE 1: clients
@@ -197,26 +208,27 @@ export const processModelSnapshots = pgTable('process_model_snapshots', {
 // TABLE 6: sessions
 export const sessions = pgTable('sessions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  processId: uuid('process_id')
+  clientId: uuid('client_id')
     .notNull()
-    .references(() => processes.id),
+    .references(() => clients.id),
+  processId: uuid('process_id').references(() => processes.id),
   type: sessionTypeEnum('type').notNull(),
   title: text('title').notNull(),
   date: date('date').notNull(),
   status: sessionStatusEnum('status').default('planned').notNull(),
   durationMinutes: integer('duration_minutes'),
   createdBy: text('created_by'),
-  interviewAnswers: jsonb('interview_answers'), // InterviewAnswers
-  prepBrief: jsonb('prep_brief'), // PrepBrief
-  questionsAsked: jsonb('questions_asked'), // boolean[]
-  transcriptText: text('transcript_text'), // Pasted from Granola or recording tool
-  notes: text('notes'), // User's own notes/observations
+  interviewAnswers: jsonb('interview_answers').$type<InterviewAnswers>(),
+  prepBrief: jsonb('prep_brief'),
+  questionsAsked: jsonb('questions_asked').$type<boolean[]>(),
+  transcriptText: text('transcript_text'),
+  notes: text('notes'),
   aiSummary: text('ai_summary'),
-  synthesisOutput: jsonb('synthesis_output'),
-  debriefAnswers: jsonb('debrief_answers'), // DebriefAnswers
-  shadowingConfig: jsonb('shadowing_config'), // ShadowingConfig
-  validationConfig: jsonb('validation_config'), // ValidationConfig
-  demoConfig: jsonb('demo_config'), // DemoConfig
+  synthesisOutput: jsonb('synthesis_output').$type<SynthesisOutput>(),
+  debriefAnswers: jsonb('debrief_answers').$type<DebriefAnswers>(),
+  shadowingConfig: jsonb('shadowing_config').$type<ShadowingConfig>(),
+  validationConfig: jsonb('validation_config').$type<ValidationConfig>(),
+  demoConfig: jsonb('demo_config').$type<DemoConfig>(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -233,6 +245,26 @@ export const sessionContacts = pgTable('session_contacts', {
     .references(() => contacts.id),
   roleInSession: text('role_in_session'),
 })
+
+// TABLE 7b: session_process_links (sessions ↔ processes M:M)
+export const sessionProcessLinks = pgTable(
+  'session_process_links',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => sessions.id, { onDelete: 'cascade' }),
+    processId: uuid('process_id')
+      .notNull()
+      .references(() => processes.id),
+  },
+  (table) => [
+    uniqueIndex('session_process_links_session_process_uidx').on(
+      table.sessionId,
+      table.processId
+    ),
+  ]
+)
 
 // TABLE 8: event_logs (shadowing capture events)
 export const eventLogs = pgTable('event_logs', {
@@ -304,6 +336,7 @@ export const researchNotes = pgTable('research_notes', {
 export const clientsRelations = relations(clients, ({ many }) => ({
   contacts: many(contacts),
   processes: many(processes),
+  sessions: many(sessions),
   researchNotes: many(researchNotes),
 }))
 
@@ -316,6 +349,7 @@ export const processesRelations = relations(processes, ({ one, many }) => ({
   client: one(clients, { fields: [processes.clientId], references: [clients.id] }),
   processModel: one(processModels),
   sessions: many(sessions),
+  sessionProcessLinks: many(sessionProcessLinks),
   artifacts: many(artifacts),
   openQuestions: many(openQuestions),
   researchNotes: many(researchNotes),
@@ -335,11 +369,24 @@ export const processModelSnapshotsRelations = relations(processModelSnapshots, (
 }))
 
 export const sessionsRelations = relations(sessions, ({ one, many }) => ({
+  client: one(clients, { fields: [sessions.clientId], references: [clients.id] }),
   process: one(processes, { fields: [sessions.processId], references: [processes.id] }),
   sessionContacts: many(sessionContacts),
+  sessionProcessLinks: many(sessionProcessLinks),
   eventLogs: many(eventLogs),
   artifacts: many(artifacts),
   openQuestions: many(openQuestions),
+}))
+
+export const sessionProcessLinksRelations = relations(sessionProcessLinks, ({ one }) => ({
+  session: one(sessions, {
+    fields: [sessionProcessLinks.sessionId],
+    references: [sessions.id],
+  }),
+  process: one(processes, {
+    fields: [sessionProcessLinks.processId],
+    references: [processes.id],
+  }),
 }))
 
 export const sessionContactsRelations = relations(sessionContacts, ({ one }) => ({
@@ -411,6 +458,9 @@ export type NewSession = typeof sessions.$inferInsert
 
 export type SessionContact = typeof sessionContacts.$inferSelect
 export type NewSessionContact = typeof sessionContacts.$inferInsert
+
+export type SessionProcessLink = typeof sessionProcessLinks.$inferSelect
+export type NewSessionProcessLink = typeof sessionProcessLinks.$inferInsert
 
 export type EventLog = typeof eventLogs.$inferSelect
 export type NewEventLog = typeof eventLogs.$inferInsert

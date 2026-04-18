@@ -12,6 +12,7 @@ import { getAIGateway } from '@/lib/ai/gateway-factory'
 import { persistHypothesisResult } from '@/lib/ai/hypothesis/persist'
 import { createProcessSchema } from '@/lib/validations/process'
 import { parseJSON } from '@/lib/api/utils'
+import type { Process } from '@/lib/db/schema'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -47,7 +48,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       )
     }
 
-    let process: any
+    let process: Process | undefined
     try {
       process = await createProcess({
         clientId: id,

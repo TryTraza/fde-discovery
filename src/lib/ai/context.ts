@@ -3,6 +3,7 @@ import {
   getSessionById,
   listSessionContacts,
   getCompletedSessionsByProcess,
+  getPrimaryProcessIdForSession,
 } from '@/lib/db/queries/sessions'
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 import { getClientById } from '@/lib/db/queries/clients'
@@ -75,18 +76,18 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
   const session = await getSessionById(sessionId)
   if (!session) throw new Error('Session not found')
 
-  const process = await getProcessWithModel(session.processId)
-  if (!process) throw new Error('Process not found')
-
-  const client = await getClientById(process.clientId)
+  const client = await getClientById(session.clientId)
   if (!client) throw new Error('Client not found')
+
+  const primaryProcessId = await getPrimaryProcessIdForSession(session)
+  const process = primaryProcessId ? await getProcessWithModel(primaryProcessId) : null
 
   const [contacts, completedSessions] = await Promise.all([
     listSessionContacts(sessionId),
-    getCompletedSessionsByProcess(session.processId),
+    primaryProcessId ? getCompletedSessionsByProcess(primaryProcessId) : Promise.resolve([]),
   ])
 
-  const pm = process.processModel
+  const pm = process?.processModel ?? null
 
   // For shadowing sessions, load events for synthesis context
   let shadowingFields: Pick<SessionContext, 'events' | 'debriefAnswers' | 'notes'> = {}
@@ -116,13 +117,13 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
       notes: client.notes,
     },
     process: {
-      id: process.id,
-      name: process.name,
-      description: process.description,
-      status: process.status,
-      hypothesisText: process.hypothesisText,
-      departmentTag: process.departmentTag,
-      processTypeL1: process.processTypeL1,
+      id: process?.id ?? '',
+      name: process?.name ?? '(No process linked)',
+      description: process?.description ?? null,
+      status: process?.status ?? 'draft',
+      hypothesisText: process?.hypothesisText ?? null,
+      departmentTag: process?.departmentTag ?? null,
+      processTypeL1: process?.processTypeL1 ?? null,
       model: pm
         ? {
             steps: (pm.steps as any[]) ?? [],

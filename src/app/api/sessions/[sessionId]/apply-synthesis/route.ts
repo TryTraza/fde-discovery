@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server'
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { applySynthesisSchema } from '@/lib/validations/apply-synthesis'
 import { mergeSteps, mergeEdgeCases, mergeSystems } from '@/lib/utils/merge-process-model'
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, sessionIsLinkedToProcess } from '@/lib/db/queries/sessions'
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 import { db } from '@/lib/db'
 import { processModels, processModelSnapshots, openQuestions } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 import { buildGraphFromLegacyModel } from '@/lib/ai/graph/build-graph'
+import { parseJSON } from '@/lib/api/utils'
 
 export async function POST(
   request: Request,
@@ -26,7 +27,9 @@ export async function POST(
       return NextResponse.json({ error: 'No synthesis result' }, { status: 400 })
     }
 
-    const bodyRaw = await request.json().catch(() => ({}))
+    const { data: bodyRaw, error: parseErr } = await parseJSON(request)
+    if (parseErr) return parseErr
+
     const parsed = applySynthesisSchema.safeParse(bodyRaw)
     if (!parsed.success) {
       return NextResponse.json(
@@ -35,20 +38,28 @@ export async function POST(
       )
     }
     const options = parsed.data
+    const targetProcessId = options.targetProcessId
     const synthesis = synthesisData
 
-    const process = await getProcessWithModel(session.processId)
+    const linked = await sessionIsLinkedToProcess(sessionId, targetProcessId)
+    if (!linked) {
+      return NextResponse.json(
+        { error: 'Session is not linked to the target process' },
+        { status: 400 }
+      )
+    }
+
+    const process = await getProcessWithModel(targetProcessId)
     if (!process) return NextResponse.json({ error: 'Process not found' }, { status: 404 })
 
     const result = await db.transaction(async (tx) => {
       let currentModel = process.processModel
 
-      // Create empty model if none exists
       if (!currentModel) {
         const [created] = await tx
           .insert(processModels)
           .values({
-            processId: session.processId,
+            processId: targetProcessId,
             steps: [],
             systems: [],
             edgeCases: [],
@@ -57,7 +68,6 @@ export async function POST(
         currentModel = created
       }
 
-      // Snapshot current state before changes
       await tx.insert(processModelSnapshots).values({
         processModelId: currentModel.id,
         trigger: 'synthesis_apply',
@@ -69,7 +79,6 @@ export async function POST(
         sessionId,
       })
 
-      // Merge
       let updatedSteps = [...((currentModel.steps as any[]) ?? [])]
       let updatedEdgeCases = [...((currentModel.edgeCases as any[]) ?? [])]
       let updatedSystems = [...((currentModel.systems as any[]) ?? [])]
@@ -79,8 +88,6 @@ export async function POST(
         updatedEdgeCases = mergeEdgeCases(updatedEdgeCases, synthesis.edgeCases)
       if (options.applySystems) updatedSystems = mergeSystems(updatedSystems, synthesis.systems)
 
-      // Derive graph from merged legacy shape (dual-write — graph stays in sync
-      // with steps/edgeCases/systems until the legacy columns are dropped).
       let graph: ReturnType<typeof buildGraphFromLegacyModel> | null = null
       try {
         graph = buildGraphFromLegacyModel({
@@ -92,7 +99,6 @@ export async function POST(
         console.warn(`[apply-synthesis] Could not build graph for process_model ${currentModel.id}:`, err)
       }
 
-      // Update model
       await tx
         .update(processModels)
         .set({
@@ -104,11 +110,10 @@ export async function POST(
         })
         .where(eq(processModels.id, currentModel.id))
 
-      // Insert open questions
       if (options.applyQuestions && synthesis.openQuestions.length > 0) {
         for (const q of synthesis.openQuestions) {
           await tx.insert(openQuestions).values({
-            processId: session.processId,
+            processId: targetProcessId,
             sessionId,
             text: q.text,
             priority: q.priority,

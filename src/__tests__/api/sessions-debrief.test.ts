@@ -12,6 +12,7 @@ vi.mock('@clerk/nextjs/server', () => ({
 vi.mock('@/lib/db/queries/sessions', () => ({
   getSessionById: vi.fn(),
   updateSession: vi.fn(),
+  getPrimaryProcessIdForSession: vi.fn(),
 }))
 
 vi.mock('@/lib/db/queries/events', () => ({
@@ -57,7 +58,7 @@ vi.mock('drizzle-orm', () => ({
 // --- Imports (after mocks) ---
 
 import { POST, GET } from '@/app/api/sessions/[sessionId]/debrief/route'
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, getPrimaryProcessIdForSession } from '@/lib/db/queries/sessions'
 import { getEventsBySessionId, getDebriefEvents } from '@/lib/db/queries/events'
 import { db } from '@/lib/db'
 
@@ -88,6 +89,7 @@ function withParams(sessionId: string) {
 
 const fakeShadowingSession = {
   id: SESSION_ID,
+  clientId: 'c1',
   processId: 'p1',
   type: 'shadowing',
   status: 'completed',
@@ -130,6 +132,7 @@ describe('POST /api/sessions/[sessionId]/debrief', () => {
     ;(db.transaction as any).mockImplementation(async (fn: any) => fn(mockTx))
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     vi.mocked(getSessionById).mockResolvedValue(fakeShadowingSession as any)
+    vi.mocked(getPrimaryProcessIdForSession).mockResolvedValue('p1')
     vi.mocked(getEventsBySessionId).mockResolvedValue(fakeEvents as any)
   })
 

@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, requireUserId, handleAPIError } from '@/lib/auth/utils'
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, getPrimaryProcessIdForSession } from '@/lib/db/queries/sessions'
 import { getEventsBySessionId, getDebriefEvents } from '@/lib/db/queries/events'
 import { db } from '@/lib/db'
 import { sessions, eventLogs, openQuestions } from '@/lib/db/schema'
@@ -54,6 +54,14 @@ export async function POST(
       )
     }
 
+    const primaryProcessId = await getPrimaryProcessIdForSession(session)
+    if (!primaryProcessId) {
+      return NextResponse.json(
+        { error: 'Link this session to at least one process before completing debrief' },
+        { status: 422 }
+      )
+    }
+
     // Parse and validate body
     const body = await req.json()
     const result = debriefSubmissionSchema.safeParse(body)
@@ -93,6 +101,8 @@ export async function POST(
       })),
     ]
 
+    // db.transaction() used directly — the tx context must thread through every
+    // Drizzle statement for atomicity; query-layer functions don't accept tx.
     await db.transaction(async (tx) => {
       for (let i = 0; i < processedItems.length; i++) {
         const item = processedItems[i]
@@ -108,7 +118,7 @@ export async function POST(
           const [created] = await tx
             .insert(openQuestions)
             .values({
-              processId: session.processId,
+              processId: primaryProcessId,
               sessionId: sessionId,
               text,
               priority: item.priority!,

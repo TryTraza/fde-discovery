@@ -2,19 +2,15 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { StatusBadge } from './status-badge'
+import { SlidersHorizontal } from 'lucide-react'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'
+import { ClientStageStepper } from './client-stage-stepper'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { clientsService } from '@/modules/clients/services/clients-service'
 import { ApiError } from '@/lib/api-client'
+import { useRole } from '@/lib/hooks/use-role'
 import type { Client, ClientUpdateInput } from '@/modules/clients/types'
 
 interface ClientDetailCardProps {
@@ -23,15 +19,9 @@ interface ClientDetailCardProps {
   mutateClient: () => void
 }
 
-const STATUS_OPTIONS = [
-  { value: 'prospecting', label: 'Prospecting' },
-  { value: 'active_poc', label: 'Active POC' },
-  { value: 'demo_ready', label: 'Demo Ready' },
-  { value: 'closed', label: 'Closed' },
-]
-
 export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetailCardProps) {
   const [saving, setSaving] = useState(false)
+  const { isAdmin } = useRole()
 
   async function patchField(field: keyof ClientUpdateInput, value: string, originalValue: string) {
     if (value === originalValue) return
@@ -54,11 +44,10 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
   return (
     <CollapsibleCard
       title="Details"
-      actions={
-        saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined
-      }
+      icon={SlidersHorizontal}
+      actions={saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined}
     >
-      <div className="space-y-4">
+      <div className="space-y-1">
         <InlineField
           label="Name"
           value={client.name}
@@ -80,33 +69,19 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
           onBlur={(val) => patchField('hqLocation', val, client.hqLocation ?? '')}
         />
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Status</label>
-          <div className="flex items-center gap-2">
-            <StatusBadge status={client.status} />
-            <Select
-              value={client.status}
-              onValueChange={(val) => {
-                if (val && val !== client.status) patchField('status', val, client.status)
-              }}
-            >
-              <SelectTrigger size="sm" className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Notes</label>
+          <Label variant="field">Notes</Label>
           <InlineTextarea
             value={client.notes ?? ''}
             onBlur={(val) => patchField('notes', val, client.notes ?? '')}
+          />
+        </div>
+        <div className="space-y-1 pt-2">
+          <Label variant="field">Stage</Label>
+          <ClientStageStepper
+            clientId={clientId}
+            status={client.status}
+            onUpdated={mutateClient}
+            disabled={!isAdmin}
           />
         </div>
       </div>
@@ -127,12 +102,11 @@ function InlineField({
 
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
+      <Label variant="field">{label}</Label>
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={() => onBlur(localValue)}
-        className="h-8"
       />
     </div>
   )

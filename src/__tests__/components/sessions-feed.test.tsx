@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { SessionsFeed } from '@/modules/sessions/components/sessions-feed'
+import type { SessionRecord } from '@/modules/sessions/services/sessions-service'
 
 // Mock next/link
 vi.mock('next/link', () => ({
@@ -21,7 +22,7 @@ vi.mock('@/modules/sessions/components/suggested-next-session', () => ({
   SuggestedNextSession: () => <div data-testid="suggested-next-session" />,
 }))
 
-const mockSessions = [
+const mockSessions: SessionRecord[] = [
   {
     id: '1',
     title: 'Discovery Interview',
@@ -37,7 +38,7 @@ const mockSessions = [
     date: '2026-03-12',
   },
   { id: '3', title: 'Validation Call', type: 'validation', status: 'planned', date: '2026-03-15' },
-]
+] as unknown as SessionRecord[]
 
 describe('SessionsFeed', () => {
   const defaultProps = {
@@ -45,7 +46,7 @@ describe('SessionsFeed', () => {
     processId: 'p1',
     sessions: mockSessions,
     isLoading: false,
-    error: undefined,
+    error: null,
     mutateSessions: vi.fn(),
     steps: [],
     processStatus: 'mapping',

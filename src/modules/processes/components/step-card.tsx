@@ -6,7 +6,17 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2, ChevronDown, ChevronRight, X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { labelVariants } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const confidenceColors = {
@@ -56,14 +66,16 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
     <div ref={setNodeRef} style={style} className="border rounded-lg p-4 bg-background">
       <div className="flex items-start gap-3">
         {/* Drag handle */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           {...attributes}
           {...listeners}
           className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
           aria-label="Drag to reorder"
         >
           <GripVertical className="size-5" />
-        </button>
+        </Button>
 
         {/* Order number */}
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-semibold flex items-center justify-center">
@@ -76,26 +88,32 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
-              className="h-8 font-medium text-sm"
+              className="font-medium"
               placeholder="Step name"
             />
-            <select
+            <Select
               value={step.confidence}
-              onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
-              className={`text-xs px-2 py-1 rounded-full border-0 cursor-pointer ${confidenceColors[step.confidence]}`}
+              onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
             >
-              <option value="confirmed">confirmed</option>
-              <option value="inferred">inferred</option>
-              <option value="missing">missing</option>
-            </select>
+              <SelectTrigger
+                className={`h-auto text-xs px-2 py-1 rounded-full border-0 w-auto ${confidenceColors[step.confidence]}`}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="confirmed">confirmed</SelectItem>
+                <SelectItem value="inferred">inferred</SelectItem>
+                <SelectItem value="missing">missing</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Textarea
             value={step.description}
             onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
-            className="text-sm min-h-[36px] resize-none"
+            className="resize-none"
             placeholder="Step description"
-            rows={1}
+            rows={2}
           />
 
           {/* Systems — always visible, editable */}
@@ -107,13 +125,15 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
               >
                 {system.name}
                 {system.confirmed && <span className="text-green-600">&#10003;</span>}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={() => removeSystem(system.name)}
-                  className="ml-0.5 hover:text-destructive"
+                  className="ml-0.5 hover:text-destructive h-auto w-auto p-0"
                   aria-label={`Remove ${system.name}`}
                 >
                   <X className="size-3" />
-                </button>
+                </Button>
               </span>
             ))}
             <form
@@ -127,7 +147,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
                 value={newSystem}
                 onChange={(e) => setNewSystem(e.target.value)}
                 placeholder="+ system"
-                className="h-6 w-24 text-xs px-2"
+                className="h-8 w-28 text-xs px-3"
               />
               {newSystem.trim() && (
                 <Button type="submit" variant="ghost" size="icon-xs">
@@ -138,32 +158,34 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
           </div>
 
           {/* Expandable details */}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs text-muted-foreground mt-2 hover:text-foreground"
+            className="flex items-center gap-1 text-xs text-muted-foreground mt-2 hover:text-foreground h-auto px-0 py-0"
           >
             {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
             {step.edgeCases.length > 0
               ? `${step.edgeCases.length} edge case${step.edgeCases.length !== 1 ? 's' : ''}`
               : 'Details'}
             {step.notes ? ' · has notes' : ''}
-          </button>
+          </Button>
 
           {expanded && (
             <div className="mt-2 pt-2 border-t space-y-2">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Notes</label>
+              <div className="space-y-1">
+                <Label variant="field">Notes</Label>
                 <Textarea
                   value={step.notes}
                   onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
-                  className="text-sm min-h-[36px] resize-none mt-1"
+                  className="resize-none"
                   placeholder="Notes about this step"
                   rows={2}
                 />
               </div>
               {step.edgeCases.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
+                <div className="space-y-1">
+                  <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
                   <ul className="text-sm list-disc list-inside">
                     {step.edgeCases.map((ec: any, i: number) => (
                       <li key={i}>

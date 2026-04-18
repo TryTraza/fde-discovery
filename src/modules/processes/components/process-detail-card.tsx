@@ -6,8 +6,10 @@ import { ProcessStatusBadge } from './process-status-badge'
 import { VALID_TRANSITIONS, type ProcessStatus } from '@/lib/validations/process'
 import { processesService } from '@/modules/processes/services/processes-service'
 import { ApiError } from '@/lib/api-client'
+import { SlidersHorizontal } from 'lucide-react'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -69,18 +71,17 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
   return (
     <CollapsibleCard
       title="Details"
-      actions={
-        saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined
-      }
+      icon={SlidersHorizontal}
+      actions={saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined}
     >
-      <div className="space-y-4">
+      <div className="space-y-1">
         <InlineField
           label="Name"
           value={process.name}
           onBlur={(val) => patchField('name', val, process.name)}
         />
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Status</label>
+          <Label variant="field">Status</Label>
           <div className="flex items-center gap-2">
             <ProcessStatusBadge status={process.status} />
             {allowedTransitions.length > 0 ? (
@@ -109,7 +110,7 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
           placeholder="Add department..."
         />
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Description</label>
+          <Label variant="field">Description</Label>
           <InlineTextarea
             value={process.description ?? ''}
             onBlur={(val) => patchField('description', val, process.description ?? '')}
@@ -118,7 +119,7 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
         </div>
         {process.processTypeL1 && (
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Process Type</label>
+            <Label variant="field">Process Type</Label>
             <p className="text-sm">{process.processTypeL1}</p>
           </div>
         )}
@@ -142,13 +143,12 @@ function InlineField({
 
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
+      <Label variant="field">{label}</Label>
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={() => onBlur(localValue)}
         placeholder={placeholder}
-        className="h-8"
       />
     </div>
   )

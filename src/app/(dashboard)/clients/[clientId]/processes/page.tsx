@@ -1,6 +1,6 @@
-import { ProcessesList } from '@/modules/processes/components/processes-list'
+import ProcessesContent from './processes-content'
 
 export default async function ProcessesPage({ params }: { params: Promise<{ clientId: string }> }) {
   const { clientId } = await params
-  return <ProcessesList clientId={clientId} />
+  return <ProcessesContent clientId={clientId} />
 }

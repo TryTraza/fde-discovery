@@ -2,6 +2,7 @@ import {
   getSessionById,
   listSessionContacts,
   getCompletedSessionsByProcess,
+  getPrimaryProcessIdForSession,
 } from '@/lib/db/queries/sessions'
 import { getEventsBySessionId } from '@/lib/db/queries/events'
 import {
@@ -24,16 +25,19 @@ export const l4SessionLayer: ContextLayer<L4Options> = {
     const session = await getSessionById(params.sessionId)
     if (!session) return EMPTY_LAYER_RESULT
 
+    const primaryProcessId = await getPrimaryProcessIdForSession(session)
+
     const eventsMode = options?.events ?? 'none'
     const includeContacts = options?.contacts ?? false
     const includePrior = options?.priorSessions ?? false
     const includeDebrief = options?.debrief ?? false
 
-    // Run parallel fetches for enabled sections
     const [events, contacts, priorSessions] = await Promise.all([
       eventsMode !== 'none' ? getEventsBySessionId(params.sessionId) : Promise.resolve([]),
       includeContacts ? listSessionContacts(params.sessionId) : Promise.resolve([]),
-      includePrior ? getCompletedSessionsByProcess(session.processId) : Promise.resolve([]),
+      includePrior && primaryProcessId
+        ? getCompletedSessionsByProcess(primaryProcessId)
+        : Promise.resolve([]),
     ])
 
     // Pre-render events section
@@ -81,7 +85,7 @@ export const l4SessionLayer: ContextLayer<L4Options> = {
     // Pre-render debrief section
     let debriefSection = ''
     if (includeDebrief && session.debriefAnswers) {
-      const answers = session.debriefAnswers as Record<string, unknown>
+      const answers = session.debriefAnswers as unknown as Record<string, unknown>
       debriefSection = '## Debrief Answers\n' + JSON.stringify(answers, null, 2)
     }
 

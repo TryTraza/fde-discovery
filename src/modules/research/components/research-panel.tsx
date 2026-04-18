@@ -3,12 +3,16 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useResearchContext } from '@/modules/research/hooks/use-research-context'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash2, Loader2, ArrowUp } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+
+const MIN_WIDTH = 320
+const MAX_WIDTH = 800
+const DEFAULT_WIDTH = 380
 
 interface ResearchPanelProps {
   open: boolean
@@ -18,6 +22,10 @@ interface ResearchPanelProps {
 export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
   const { clientId, processId } = useResearchContext()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(DEFAULT_WIDTH)
+  const isDragging = useRef(false)
+  const startX = useRef(0)
+  const startWidth = useRef(0)
 
   const transport = useMemo(
     () =>
@@ -29,7 +37,6 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
   )
 
   const { messages, sendMessage, status, setMessages, error } = useChat({ transport })
-
   const [inputValue, setInputValue] = useState('')
 
   useEffect(() => {
@@ -37,6 +44,32 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  const onMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging.current) return
+    const delta = startX.current - e.clientX
+    const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth.current + delta))
+    setWidth(next)
+  }, [])
+
+  const onMouseUp = useCallback(() => {
+    isDragging.current = false
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('mouseup', onMouseUp)
+  }, [onMouseMove])
+
+  function handleDragStart(e: React.MouseEvent) {
+    e.preventDefault()
+    isDragging.current = true
+    startX.current = e.clientX
+    startWidth.current = width
+    document.body.style.cursor = 'ew-resize'
+    document.body.style.userSelect = 'none'
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }
 
   function handleSubmitMessage(e: React.FormEvent) {
     e.preventDefault()
@@ -53,15 +86,25 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-[420px] p-0 flex flex-col">
-        <SheetHeader className="p-4 border-b flex-row items-center justify-between space-y-0">
+      <SheetContent
+        side="right"
+        style={{ width, maxWidth: 'none' }}
+        className="p-0 flex flex-col transition-none"
+      >
+        {/* Drag handle */}
+        <div
+          onMouseDown={handleDragStart}
+          className="absolute left-0 top-0 h-full w-1 cursor-ew-resize hover:bg-primary/20 transition-colors z-10"
+        />
+
+        <div className="flex items-center justify-between p-4 border-b">
           <SheetTitle className="flex items-center gap-2">AI Research</SheetTitle>
           {messages.length > 0 && (
             <Button variant="ghost" size="icon-sm" onClick={handleClear}>
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
-        </SheetHeader>
+        </div>
 
         <div className="flex-1 flex flex-col overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -116,13 +159,13 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
             )}
           </div>
 
-          <form onSubmit={handleSubmitMessage} className="border-t p-3">
-            <div className="flex gap-2">
+          <form onSubmit={handleSubmitMessage} className="p-3">
+            <div className="relative">
               <Textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask a research question..."
-                className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+                className="min-h-[64px] max-h-[120px] resize-none pr-12 py-3 bg-gray-50"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()
@@ -132,12 +175,16 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
               />
               <Button
                 type="submit"
-                size="sm"
+                size="icon"
+                className="absolute bottom-2 right-2 h-7 w-7 rounded-full"
                 disabled={!inputValue.trim() || status === 'streaming'}
               >
-                Send
+                <ArrowUp className="h-3.5 w-3.5" />
               </Button>
             </div>
+            <p className="text-[11px] text-muted-foreground mt-1.5 text-center">
+              Enter to send · Shift+Enter for new line
+            </p>
           </form>
         </div>
       </SheetContent>

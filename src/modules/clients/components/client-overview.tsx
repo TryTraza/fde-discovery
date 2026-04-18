@@ -11,6 +11,8 @@ import { AISummaryCard } from './ai-summary-card'
 import { CompanyProfileCard } from './company-profile-card'
 import { ContactsSection } from '@/modules/contacts/components/contacts-section'
 import { ProcessesSection } from './processes-section'
+import { SessionsListPage } from '@/modules/sessions/components/sessions-list-page'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -53,7 +55,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pt-4 md:pt-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-[200px]" />
         <Skeleton className="h-[150px]" />
@@ -63,7 +65,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
 
   if (error || !client) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 pt-4 md:pt-6">
         <p className="text-muted-foreground">Client not found.</p>
         <Link href="/clients" className={buttonVariants({ variant: 'outline' })}>
           <ArrowLeft className="mr-1.5 size-4" />
@@ -74,51 +76,56 @@ export function ClientOverview({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/clients" className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}>
-            <ArrowLeft className="size-4" />
-          </Link>
+    <Tabs defaultValue="overview" className="space-y-0">
+      <div className="sticky top-0 z-10 bg-background -mx-4 px-4 pt-3 md:-mx-6 md:px-6 md:pt-4 pb-3 space-y-2">
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">{client.name}</h1>
+          {isAdmin && (
+            <>
+              <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="size-4" />
+              </Button>
+              <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete client</DialogTitle>
+                    <DialogDescription>
+                      This will soft-delete <strong>{client.name}</strong> and all associated contacts
+                      and processes. This action cannot be easily undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+                    <Button variant="destructive" onClick={onDelete} disabled={deleting}>
+                      {deleting ? 'Deleting...' : 'Delete'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
         </div>
-        {isAdmin && (
-          <>
-            <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 size-3.5" />
-              Delete
-            </Button>
-            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete client</DialogTitle>
-                  <DialogDescription>
-                    This will soft-delete <strong>{client.name}</strong> and all associated contacts
-                    and processes. This action cannot be easily undone.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-                  <Button variant="destructive" onClick={onDelete} disabled={deleting}>
-                    {deleting ? 'Deleting...' : 'Delete'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </>
-        )}
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="sessions">Sessions</TabsTrigger>
+          <TabsTrigger value="processes">Processes</TabsTrigger>
+        </TabsList>
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
-          <ClientDetailCard client={client} clientId={clientId} mutateClient={mutateClient} />
-          <ContactsSection clientId={clientId} mutateClient={mutateClient} />
-        </div>
-        <div className="space-y-6">
-          <CompanyProfileCard clientId={clientId} profile={client.profile ?? null} />
-          <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
-          <ProcessesSection clientId={clientId} />
-        </div>
-      </div>
-    </div>
+
+      <TabsContent value="overview" className="space-y-6">
+        <ClientDetailCard client={client} clientId={clientId} mutateClient={mutateClient} />
+        <ContactsSection clientId={clientId} mutateClient={mutateClient} />
+        <CompanyProfileCard clientId={clientId} profile={client.profile ?? null} />
+        <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
+      </TabsContent>
+
+      <TabsContent value="sessions">
+        <SessionsListPage clientId={clientId} showTitle={false} />
+      </TabsContent>
+
+      <TabsContent value="processes">
+        <ProcessesSection clientId={clientId} />
+      </TabsContent>
+    </Tabs>
   )
 }

@@ -4,6 +4,7 @@ vi.mock('@/lib/db/queries/sessions', () => ({
   getSessionById: vi.fn(),
   listSessionContacts: vi.fn(),
   getCompletedSessionsByProcess: vi.fn(),
+  getPrimaryProcessIdForSession: vi.fn(),
 }))
 
 vi.mock('@/lib/db/queries/processes', () => ({
@@ -23,6 +24,7 @@ import {
   getSessionById,
   listSessionContacts,
   getCompletedSessionsByProcess,
+  getPrimaryProcessIdForSession,
 } from '@/lib/db/queries/sessions'
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 import { getClientById } from '@/lib/db/queries/clients'
@@ -56,6 +58,7 @@ const fakeProcess = {
 
 const fakeSession = {
   id: 'ses1',
+  clientId: 'c1',
   processId: 'p1',
   type: 'discovery',
   title: 'Kickoff',
@@ -85,7 +88,10 @@ const fakePriorSession = {
 }
 
 describe('buildSessionContext', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(getPrimaryProcessIdForSession).mockResolvedValue('p1')
+  })
 
   it('returns full L1+L2+L3 context chain', async () => {
     vi.mocked(getSessionById).mockResolvedValue(fakeSession as any)
@@ -146,10 +152,17 @@ describe('buildSessionContext', () => {
     await expect(buildSessionContext('missing')).rejects.toThrow('Session not found')
   })
 
-  it('throws when process not found', async () => {
-    vi.mocked(getSessionById).mockResolvedValue(fakeSession as any)
+  it('uses placeholder process when no process is linked', async () => {
+    vi.mocked(getSessionById).mockResolvedValue({ ...fakeSession, processId: null } as any)
+    vi.mocked(getPrimaryProcessIdForSession).mockResolvedValue(null)
     vi.mocked(getProcessWithModel).mockResolvedValue(null as any)
-    await expect(buildSessionContext('ses1')).rejects.toThrow('Process not found')
+    vi.mocked(getClientById).mockResolvedValue(fakeClient as any)
+    vi.mocked(listSessionContacts).mockResolvedValue([])
+    vi.mocked(getCompletedSessionsByProcess).mockResolvedValue([])
+
+    const ctx = await buildSessionContext('ses1')
+    expect(ctx.process.name).toBe('(No process linked)')
+    expect(ctx.client.name).toBe('Acme Corp')
   })
 
   it('throws when client not found', async () => {

@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
-  Sparkles,
+  Zap,
   RefreshCw,
   MessageSquare,
   Lightbulb,
@@ -23,7 +23,7 @@ import { ApiError, ApiKeyMissingError } from '@/lib/api-client'
 
 interface PrepBriefPanelProps {
   sessionId: string
-  processId: string
+  processId: string | null
   prepBrief: PrepBrief | null
   mutateSession: () => void
   interviewAnswers?: { question: string; answer: string }[]
@@ -93,8 +93,21 @@ export function PrepBriefPanel({
     setShowInterview(false)
   }
 
+  if (showInterview && !interviewAnswers && !processId) {
+    return (
+      <div className="max-w-lg mx-auto py-8 space-y-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          Link this session to a process to run the prep interview, or skip to continue.
+        </p>
+        <Button type="button" variant="outline" onClick={handleInterviewSkip}>
+          Skip
+        </Button>
+      </div>
+    )
+  }
+
   // Interview step
-  if (showInterview && !interviewAnswers) {
+  if (showInterview && !interviewAnswers && processId) {
     return (
       <div className="max-w-lg mx-auto py-8 space-y-4">
         <div className="text-center space-y-1">
@@ -123,7 +136,7 @@ export function PrepBriefPanel({
       <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
         {isLoading ? (
           <>
-            <RefreshCw className="size-8 text-muted-foreground animate-spin" />
+            <RefreshCw className="size-8 text-muted-foreground/50 animate-spin" />
             <div>
               <p className="font-medium">Generating your prep brief...</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -133,7 +146,7 @@ export function PrepBriefPanel({
           </>
         ) : (
           <>
-            <Sparkles className="size-8 text-muted-foreground" />
+            <Zap className="size-8 text-muted-foreground" />
             <div>
               <p className="font-medium">No prep brief yet</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -150,7 +163,7 @@ export function PrepBriefPanel({
                 </Button>
               )}
               <Button onClick={handleGenerate}>
-                <Sparkles className="mr-1.5 size-3.5" />
+                <Zap className="mr-1.5 size-3.5" />
                 Generate Prep Brief
               </Button>
             </div>
@@ -233,7 +246,7 @@ export function PrepBriefPanel({
               disabled={isLoading}
               className="shrink-0"
             >
-              <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`size-3.5 text-muted-foreground/50 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
 

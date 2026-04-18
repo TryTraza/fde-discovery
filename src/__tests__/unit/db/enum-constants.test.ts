@@ -3,7 +3,13 @@ import * as schema from '@/lib/db/schema'
 
 describe('Schema enum constants', () => {
   it('exports CLIENT_STATUSES derived from clientStatusEnum', () => {
-    expect(schema.CLIENT_STATUSES).toEqual(['prospecting', 'active_poc', 'demo_ready', 'closed'])
+    expect(schema.CLIENT_STATUSES).toEqual([
+      'prospecting',
+      'active_poc',
+      'contracted',
+      'expanding',
+      'inactive',
+    ])
     // Must be the exact same reference as enumValues
     expect(schema.CLIENT_STATUSES).toBe(schema.clientStatusEnum.enumValues)
   })

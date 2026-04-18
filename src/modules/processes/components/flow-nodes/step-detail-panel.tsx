@@ -5,7 +5,15 @@ import { ChevronUp, ChevronDown, Trash2, Plus, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label, labelVariants } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
@@ -108,50 +116,55 @@ export function StepDetailPanel({
           </div>
         </SheetHeader>
 
-        <div className="space-y-4 px-4 pb-6">
+        <div className="space-y-5 px-6 pb-8">
           {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Name</label>
+          <div className="space-y-1">
+            <Label variant="field">Name</Label>
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
-              className="h-9 text-sm"
               placeholder="Step name"
             />
           </div>
 
           {/* Description */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Description</label>
+          <div className="space-y-1">
+            <Label variant="field">Description</Label>
             <Textarea
               value={step.description}
               onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
-              className="text-sm min-h-[60px] resize-none"
+              className="resize-none"
               placeholder="Step description"
               rows={3}
             />
           </div>
 
           {/* Confidence */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Confidence</label>
-            <select
+          <div className="space-y-1">
+            <Label variant="field">Confidence</Label>
+            <Select
               value={step.confidence}
-              onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
-              className={cn(
-                'text-xs px-2 py-1 rounded-full border-0 cursor-pointer',
-                confidenceBadgeColors[step.confidence]
-              )}
+              onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
             >
-              <option value="confirmed">confirmed</option>
-              <option value="inferred">inferred</option>
-              <option value="missing">missing</option>
-            </select>
+              <SelectTrigger
+                className={cn(
+                  'h-auto text-xs px-2 py-1 rounded-full border-0 w-auto',
+                  confidenceBadgeColors[step.confidence]
+                )}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="confirmed">confirmed</SelectItem>
+                <SelectItem value="inferred">inferred</SelectItem>
+                <SelectItem value="missing">missing</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Systems */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Systems</label>
+          <div className="space-y-1">
+            <Label variant="field">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
                 <span
@@ -160,13 +173,15 @@ export function StepDetailPanel({
                 >
                   {system.name}
                   {system.confirmed && <span className="text-green-600">&#10003;</span>}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => removeSystem(system.name)}
-                    className="ml-0.5 hover:text-destructive"
+                    className="ml-0.5 hover:text-destructive h-auto w-auto p-0"
                     aria-label={`Remove ${system.name}`}
                   >
                     <X className="size-3" />
-                  </button>
+                  </Button>
                 </span>
               ))}
               <form
@@ -180,7 +195,7 @@ export function StepDetailPanel({
                   value={newSystem}
                   onChange={(e) => setNewSystem(e.target.value)}
                   placeholder="+ system"
-                  className="h-6 w-24 text-xs px-2"
+                  className="h-8 w-28 text-xs px-3"
                 />
                 {newSystem.trim() && (
                   <Button type="submit" variant="ghost" size="icon-xs">
@@ -192,12 +207,12 @@ export function StepDetailPanel({
           </div>
 
           {/* Notes */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Notes</label>
+          <div className="space-y-1">
+            <Label variant="field">Notes</Label>
             <Textarea
               value={step.notes}
               onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
-              className="text-sm min-h-[60px] resize-none"
+              className="resize-none"
               placeholder="Notes about this step"
               rows={3}
             />
@@ -205,8 +220,8 @@ export function StepDetailPanel({
 
           {/* Edge cases (read-only) */}
           {step.edgeCases.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
+            <div className="space-y-1">
+              <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (
                   <li key={i}>
@@ -219,7 +234,7 @@ export function StepDetailPanel({
 
           {/* Gap warning */}
           {isMissing && (
-            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-md px-3 py-2">
+            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-lg px-3 py-2">
               This step has a gap — consider scheduling a shadowing session to observe it.
             </p>
           )}

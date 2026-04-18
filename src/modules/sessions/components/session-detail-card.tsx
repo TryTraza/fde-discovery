@@ -4,7 +4,7 @@ import { getSessionTypeLabel } from '@/lib/utils/session-labels'
 import { SessionStatusBadge } from './session-status-badge'
 import { Badge } from '@/components/ui/badge'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'
-import { CalendarDays, Clock, Users } from 'lucide-react'
+import { CalendarDays, Clock, Users, SlidersHorizontal } from 'lucide-react'
 
 interface SessionDetailCardProps {
   session: any
@@ -12,7 +12,7 @@ interface SessionDetailCardProps {
 
 export function SessionDetailCard({ session }: SessionDetailCardProps) {
   return (
-    <CollapsibleCard title="Details">
+    <CollapsibleCard title="Details" icon={SlidersHorizontal}>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Type</span>

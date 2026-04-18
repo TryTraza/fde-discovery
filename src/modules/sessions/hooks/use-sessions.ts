@@ -2,12 +2,14 @@ import useSWR from 'swr'
 import { sessionsService, type SessionRecord } from '@/modules/sessions/services/sessions-service'
 import { SESSION_KEYS } from '@/modules/sessions/lib/swr-keys'
 
-export function useSessions(processId: string | null) {
-  const enabled = Boolean(processId)
-  const key = enabled ? SESSION_KEYS.listForProcess(processId!) : null
+export function useSessions(clientId: string | null, processId?: string | null) {
+  const enabled = Boolean(clientId)
+  const key = enabled
+    ? SESSION_KEYS.listForClient(clientId!, processId ?? undefined)
+    : null
   const result = useSWR<SessionRecord[]>(
     key,
-    enabled ? () => sessionsService.listForProcess(processId!) : null
+    enabled ? () => sessionsService.listForClient(clientId!, processId ?? undefined) : null
   )
 
   return {

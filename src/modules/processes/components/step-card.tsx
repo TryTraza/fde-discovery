@@ -172,7 +172,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
           {expanded && (
             <div className="mt-2 pt-2 border-t space-y-2">
               <div>
-                <label className="text-xs font-medium text-muted-foreground">Notes</label>
+                <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
                 <Textarea
                   value={step.notes}
                   onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}

@@ -6,7 +6,15 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2, X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
@@ -75,7 +83,9 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
         onClick={() => setExpanded(!expanded)}
       >
         {/* Drag handle */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           {...attributes}
           {...listeners}
           className="flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
@@ -83,7 +93,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           onClick={(e) => e.stopPropagation()}
         >
           <GripVertical className="size-4" />
-        </button>
+        </Button>
 
         {/* Confidence bar */}
         <div
@@ -145,7 +155,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
         >
           {/* Name input */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Name</label>
+            <Label className="text-xs font-medium text-muted-foreground">Name</Label>
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
@@ -156,7 +166,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Description */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Description</label>
+            <Label className="text-xs font-medium text-muted-foreground">Description</Label>
             <Textarea
               value={step.description}
               onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
@@ -168,21 +178,27 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Confidence */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Confidence</label>
-            <select
+            <Label className="text-xs font-medium text-muted-foreground">Confidence</Label>
+            <Select
               value={step.confidence}
-              onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
-              className={`text-xs px-2 py-1 rounded-full border-0 cursor-pointer ${confidenceBadgeColors[step.confidence]}`}
+              onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
             >
-              <option value="confirmed">confirmed</option>
-              <option value="inferred">inferred</option>
-              <option value="missing">missing</option>
-            </select>
+              <SelectTrigger
+                className={`h-auto text-xs px-2 py-1 rounded-full border-0 w-auto ${confidenceBadgeColors[step.confidence]}`}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="confirmed">confirmed</SelectItem>
+                <SelectItem value="inferred">inferred</SelectItem>
+                <SelectItem value="missing">missing</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Systems */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Systems</label>
+            <Label className="text-xs font-medium text-muted-foreground">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
                 <span
@@ -191,13 +207,15 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
                 >
                   {system.name}
                   {system.confirmed && <span className="text-green-600">&#10003;</span>}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => removeSystem(system.name)}
-                    className="ml-0.5 hover:text-destructive"
+                    className="ml-0.5 hover:text-destructive h-auto w-auto p-0"
                     aria-label={`Remove ${system.name}`}
                   >
                     <X className="size-3" />
-                  </button>
+                  </Button>
                 </span>
               ))}
               <form
@@ -224,7 +242,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Notes */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Notes</label>
+            <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
             <Textarea
               value={step.notes}
               onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}

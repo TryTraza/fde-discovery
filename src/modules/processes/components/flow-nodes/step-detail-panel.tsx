@@ -5,7 +5,15 @@ import { ChevronUp, ChevronDown, Trash2, Plus, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
@@ -111,7 +119,7 @@ export function StepDetailPanel({
         <div className="space-y-4 px-4 pb-6">
           {/* Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Name</label>
+            <Label className="text-xs font-medium text-muted-foreground">Name</Label>
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
@@ -122,7 +130,7 @@ export function StepDetailPanel({
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Description</label>
+            <Label className="text-xs font-medium text-muted-foreground">Description</Label>
             <Textarea
               value={step.description}
               onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
@@ -134,24 +142,30 @@ export function StepDetailPanel({
 
           {/* Confidence */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Confidence</label>
-            <select
+            <Label className="text-xs font-medium text-muted-foreground">Confidence</Label>
+            <Select
               value={step.confidence}
-              onChange={(e) => onUpdate(step.id, 'confidence', e.target.value)}
-              className={cn(
-                'text-xs px-2 py-1 rounded-full border-0 cursor-pointer',
-                confidenceBadgeColors[step.confidence]
-              )}
+              onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
             >
-              <option value="confirmed">confirmed</option>
-              <option value="inferred">inferred</option>
-              <option value="missing">missing</option>
-            </select>
+              <SelectTrigger
+                className={cn(
+                  'h-auto text-xs px-2 py-1 rounded-full border-0 w-auto',
+                  confidenceBadgeColors[step.confidence]
+                )}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="confirmed">confirmed</SelectItem>
+                <SelectItem value="inferred">inferred</SelectItem>
+                <SelectItem value="missing">missing</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Systems */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Systems</label>
+            <Label className="text-xs font-medium text-muted-foreground">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
                 <span
@@ -160,13 +174,15 @@ export function StepDetailPanel({
                 >
                   {system.name}
                   {system.confirmed && <span className="text-green-600">&#10003;</span>}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => removeSystem(system.name)}
-                    className="ml-0.5 hover:text-destructive"
+                    className="ml-0.5 hover:text-destructive h-auto w-auto p-0"
                     aria-label={`Remove ${system.name}`}
                   >
                     <X className="size-3" />
-                  </button>
+                  </Button>
                 </span>
               ))}
               <form
@@ -193,7 +209,7 @@ export function StepDetailPanel({
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Notes</label>
+            <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
             <Textarea
               value={step.notes}
               onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}

@@ -74,13 +74,13 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
         saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-1">
         <InlineField
           label="Name"
           value={process.name}
           onBlur={(val) => patchField('name', val, process.name)}
         />
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label variant="field">Status</Label>
           <div className="flex items-center gap-2">
             <ProcessStatusBadge status={process.status} />
@@ -109,7 +109,7 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
           onBlur={(val) => patchField('departmentTag', val, process.departmentTag ?? '')}
           placeholder="Add department..."
         />
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label variant="field">Description</Label>
           <InlineTextarea
             value={process.description ?? ''}
@@ -118,7 +118,7 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
           />
         </div>
         {process.processTypeL1 && (
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Process Type</Label>
             <p className="text-sm">{process.processTypeL1}</p>
           </div>
@@ -142,7 +142,7 @@ function InlineField({
   const [localValue, setLocalValue] = useState(value)
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <Label variant="field">{label}</Label>
       <Input
         value={localValue}

@@ -49,7 +49,7 @@ export function ProcessesSection({ clientId }: ProcessesSectionProps) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-5">
             {Array.from({ length: 2 }).map((_, i) => (
               <Skeleton key={i} className="h-12" />
             ))}
@@ -66,12 +66,12 @@ export function ProcessesSection({ clientId }: ProcessesSectionProps) {
             No processes yet. Create one to start mapping.
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {(processes as ProcessSummary[]).slice(0, MAX_SHOWN).map((process) => (
               <Link
                 key={process.id}
                 href={`/clients/${clientId}/processes/${process.id}`}
-                className="flex items-center justify-between rounded-md border p-3 text-sm hover:bg-muted/50 transition-colors"
+                className="flex items-center justify-between rounded-md border p-4 text-sm hover:bg-muted/50 transition-colors"
               >
                 <div>
                   <span className="font-medium">{process.name}</span>

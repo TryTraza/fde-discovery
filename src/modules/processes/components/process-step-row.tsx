@@ -150,12 +150,12 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
       {expanded && (
         <div
           className={cn(
-            'border border-t-0 rounded-b-lg px-4 py-3 space-y-3 bg-background',
+            'border border-t-0 rounded-b-lg px-5 py-4 space-y-5 bg-background',
             isMissing && 'border-dashed border-red-300 dark:border-red-800'
           )}
         >
           {/* Name input */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Name</Label>
             <Input
               value={step.name}
@@ -165,7 +165,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Description</Label>
             <Textarea
               value={step.description}
@@ -177,7 +177,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           </div>
 
           {/* Confidence */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Confidence</Label>
             <Select
               value={step.confidence}
@@ -197,7 +197,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           </div>
 
           {/* Systems */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
@@ -229,7 +229,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
                   value={newSystem}
                   onChange={(e) => setNewSystem(e.target.value)}
                   placeholder="+ system"
-                  className="h-7 w-24 text-xs px-2"
+                  className="h-8 w-28 text-xs px-3"
                 />
                 {newSystem.trim() && (
                   <Button type="submit" variant="ghost" size="icon-xs">
@@ -241,7 +241,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           </div>
 
           {/* Notes */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Notes</Label>
             <Textarea
               value={step.notes}
@@ -254,7 +254,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Edge cases */}
           {step.edgeCases.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (

@@ -11,6 +11,7 @@ import { AISummaryCard } from './ai-summary-card'
 import { CompanyProfileCard } from './company-profile-card'
 import { ContactsSection } from '@/modules/contacts/components/contacts-section'
 import { ProcessesSection } from './processes-section'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -77,9 +78,6 @@ export function ClientOverview({ clientId }: { clientId: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/clients" className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}>
-            <ArrowLeft className="size-4" />
-          </Link>
           <h1 className="text-2xl font-bold">{client.name}</h1>
         </div>
         {isAdmin && (
@@ -108,17 +106,27 @@ export function ClientOverview({ clientId }: { clientId: string }) {
           </>
         )}
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
+          <TabsTrigger value="processes">Processes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
           <ClientDetailCard client={client} clientId={clientId} mutateClient={mutateClient} />
           <ContactsSection clientId={clientId} mutateClient={mutateClient} />
-        </div>
-        <div className="space-y-6">
+        </TabsContent>
+
+        <TabsContent value="intelligence" className="grid gap-6 lg:grid-cols-2">
           <CompanyProfileCard clientId={clientId} profile={client.profile ?? null} />
           <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
+        </TabsContent>
+
+        <TabsContent value="processes">
           <ProcessesSection clientId={clientId} />
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

@@ -7,7 +7,6 @@ import { ClientFilters } from './client-filters'
 import { CreateClientDialog } from './create-client-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ApiKeyBanner } from '@/components/shared/api-key-banner'
 import { Plus } from 'lucide-react'
 
 export function ClientList() {
@@ -27,7 +26,6 @@ export function ClientList() {
 
   return (
     <div className="space-y-6">
-      <ApiKeyBanner />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Clients</h1>
         <CreateClientDialog onCreated={mutateClients}>

@@ -147,7 +147,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
                 value={newSystem}
                 onChange={(e) => setNewSystem(e.target.value)}
                 placeholder="+ system"
-                className="h-7 w-24 text-xs px-2"
+                className="h-8 w-28 text-xs px-3"
               />
               {newSystem.trim() && (
                 <Button type="submit" variant="ghost" size="icon-xs">
@@ -173,7 +173,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
 
           {expanded && (
             <div className="mt-2 pt-2 border-t space-y-2">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label variant="field">Notes</Label>
                 <Textarea
                   value={step.notes}
@@ -184,7 +184,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
                 />
               </div>
               {step.edgeCases.length > 0 && (
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
                   <ul className="text-sm list-disc list-inside">
                     {step.edgeCases.map((ec: any, i: number) => (

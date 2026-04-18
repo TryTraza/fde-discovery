@@ -96,15 +96,9 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
   ).length
 
   return (
-    <div className="space-y-4 min-w-0 overflow-hidden">
-      {/* Header: back + title + status badge + delete */}
+    <div className="space-y-6 min-w-0 overflow-hidden">
+      {/* Header: title + status badge + delete */}
       <div className="flex items-center gap-3">
-        <Link
-          href={`/clients/${clientId}`}
-          className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-        >
-          <ArrowLeft className="size-4" />
-        </Link>
         <h1 className="text-2xl font-bold truncate">{process.name}</h1>
         <ProcessStatusBadge status={process.status} />
         {isAdmin && (
@@ -129,7 +123,7 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
 
       {/* Two-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,2fr)] gap-6 items-start">
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-6">
           <HypothesisCard process={process} clientId={clientId} mutateProcess={mutateProcess} />
           <HypothesisPanel hypothesis={process.hypothesis} />
           <ProcessFlow
@@ -139,7 +133,7 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
             mutateProcess={mutateProcess}
           />
         </div>
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-6">
           <SessionsFeed
             clientId={clientId}
             processId={processId}

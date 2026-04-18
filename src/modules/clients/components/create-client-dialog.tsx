@@ -85,13 +85,13 @@ export function CreateClientDialog({ onCreated, children }: CreateClientDialogPr
       }}
     >
       <DialogTrigger render={children as React.JSX.Element} />
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="gap-2 p-5 sm:max-w-md">
+        <DialogHeader className="gap-1">
           <DialogTitle>New Client</DialogTitle>
           <DialogDescription>Add a new client to start tracking.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={onSubmit} className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="name">Name *</Label>
             <Input
               id="name"
@@ -101,7 +101,7 @@ export function CreateClientDialog({ onCreated, children }: CreateClientDialogPr
             />
             {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name[0]}</p>}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="industry">Industry *</Label>
             <Input
               id="industry"
@@ -113,7 +113,7 @@ export function CreateClientDialog({ onCreated, children }: CreateClientDialogPr
               <p className="text-xs text-destructive">{fieldErrors.industry[0]}</p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="website">Website</Label>
             <Input
               id="website"
@@ -126,7 +126,7 @@ export function CreateClientDialog({ onCreated, children }: CreateClientDialogPr
               <p className="text-xs text-destructive">{fieldErrors.website[0]}</p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="hqLocation">HQ Location</Label>
             <Input
               id="hqLocation"
@@ -135,7 +135,7 @@ export function CreateClientDialog({ onCreated, children }: CreateClientDialogPr
               onChange={(e) => setFormData((d) => ({ ...d, hqLocation: e.target.value }))}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
@@ -145,7 +145,7 @@ export function CreateClientDialog({ onCreated, children }: CreateClientDialogPr
               rows={3}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="-mx-5 -mb-5 p-3">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Creating...' : 'Create Client'}
             </Button>

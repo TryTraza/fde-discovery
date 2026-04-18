@@ -11,58 +11,61 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-/**
- * Resolves UUID segments to human-readable names.
- * Returns a map of segment index → resolved name.
- *
- * Supported patterns:
- *   /clients/[clientId]                          → client name
- *   /clients/[clientId]/processes/[processId]    → client name + process name
- */
-function useResolvedNames(segments: string[]): Record<number, string> {
-  const names: Record<number, string> = {}
+interface ResolvedNames {
+  names: Record<number, string>
+  loading: Set<number>
+}
 
-  // Resolve client name: segments[0]=clients, segments[1]=uuid
+function useResolvedNames(segments: string[]): ResolvedNames {
+  const names: Record<number, string> = {}
+  const loading = new Set<number>()
+
   const clientIdx = segments[0] === 'clients' && segments[1] && UUID_RE.test(segments[1]) ? 1 : -1
   const clientId = clientIdx >= 0 ? segments[clientIdx] : null
 
-  const { data: clientData } = useSWR(clientId ? `/api/clients/${clientId}` : null)
-  if (clientIdx >= 0 && clientData?.name) {
-    names[clientIdx] = clientData.name
+  const { data: clientData, isLoading: clientLoading } = useSWR(
+    clientId ? `/api/clients/${clientId}` : null
+  )
+  if (clientIdx >= 0) {
+    if (clientData?.name) names[clientIdx] = clientData.name
+    else if (clientLoading) loading.add(clientIdx)
   }
 
-  // Resolve process name: segments[2]=processes, segments[3]=uuid
   const processIdx =
     clientId && segments[2] === 'processes' && segments[3] && UUID_RE.test(segments[3]) ? 3 : -1
   const processId = processIdx >= 0 ? segments[processIdx] : null
 
-  const { data: processData } = useSWR(
+  const { data: processData, isLoading: processLoading } = useSWR(
     clientId && processId ? `/api/clients/${clientId}/processes/${processId}` : null
   )
-  if (processIdx >= 0 && processData?.name) {
-    names[processIdx] = processData.name
+  if (processIdx >= 0) {
+    if (processData?.name) names[processIdx] = processData.name
+    else if (processLoading) loading.add(processIdx)
   }
 
-  // Resolve session name: segments[4]=sessions, segments[5]=uuid
   const sessionIdx =
     processId && segments[4] === 'sessions' && segments[5] && UUID_RE.test(segments[5]) ? 5 : -1
   const sessionId = sessionIdx >= 0 ? segments[sessionIdx] : null
 
-  const { data: sessionData } = useSWR(sessionId ? `/api/sessions/${sessionId}` : null)
-  if (sessionIdx >= 0 && sessionData?.title) {
-    names[sessionIdx] = sessionData.title
+  const { data: sessionData, isLoading: sessionLoading } = useSWR(
+    sessionId ? `/api/sessions/${sessionId}` : null
+  )
+  if (sessionIdx >= 0) {
+    if (sessionData?.title) names[sessionIdx] = sessionData.title
+    else if (sessionLoading) loading.add(sessionIdx)
   }
 
-  return names
+  return { names, loading }
 }
 
 export function BreadcrumbNav() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
-  const resolvedNames = useResolvedNames(segments)
+  const { names, loading } = useResolvedNames(segments)
 
   if (segments.length === 0) {
     return (
@@ -83,8 +86,8 @@ export function BreadcrumbNav() {
           const isLast = i === segments.length - 1
           const href = '/' + segments.slice(0, i + 1).join('/')
           const isUuid = UUID_RE.test(segment)
-          const label =
-            resolvedNames[i] ?? (isUuid ? segment.slice(0, 8) + '...' : segment.replace(/-/g, ' '))
+          const isLoading = isUuid && loading.has(i)
+          const label = names[i] ?? (isUuid ? null : segment.replace(/-/g, ' '))
 
           const items: React.ReactNode[] = []
           if (i > 0) {
@@ -92,7 +95,9 @@ export function BreadcrumbNav() {
           }
           items.push(
             <BreadcrumbItem key={href}>
-              {isLast ? (
+              {isLoading ? (
+                <Skeleton className="h-4 w-20" />
+              ) : isLast ? (
                 <BreadcrumbPage className="capitalize">{label}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink href={href} className="capitalize">

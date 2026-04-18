@@ -28,7 +28,7 @@ export function CollapsibleCard({
       <Collapsible open={open} onOpenChange={setOpen}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CollapsibleTrigger className="flex items-center gap-1.5 cursor-pointer hover:text-foreground/80">
+            <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer hover:text-foreground/80">
               <ChevronDown
                 className={`size-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
               />

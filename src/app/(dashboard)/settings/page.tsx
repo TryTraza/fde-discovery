@@ -122,7 +122,7 @@ export default function SettingsPage() {
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2">
           <div className="space-y-2">
             <Label htmlFor="api-key">{hasApiKey ? 'Update API Key' : 'Enter API Key'}</Label>
             <div className="flex gap-2">

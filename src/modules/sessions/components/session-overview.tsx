@@ -270,12 +270,12 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
       </div>
 
       {/* Section Nav — underline tabs */}
-      <div className="flex gap-6 border-b">
+      <div className="flex gap-3 border-b">
         {sections.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveSection(id)}
-            className={`flex items-center gap-2 pb-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 pb-1.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeSection === id
                 ? 'border-foreground text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -324,7 +324,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
               />
 
               {canComplete && (
-                <div className="flex justify-center pt-2 border-t">
+                <div className="flex justify-center pt-1 border-t">
                   <Button onClick={handleMarkCompleted} disabled={isCompleting}>
                     {isCompleting ? 'Updating...' : 'Mark as Completed'}
                   </Button>
@@ -363,7 +363,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
 
           {/* Synthesis button: for non-shadowing, or shadowing with debrief done */}
           {canSynthesize && (session.type !== 'shadowing' || !!session.debriefAnswers) && (
-            <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+            <div className="flex items-center gap-3 p-2 rounded-lg border bg-muted/30">
               <MessageSquare className="size-5 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Ready for synthesis</p>

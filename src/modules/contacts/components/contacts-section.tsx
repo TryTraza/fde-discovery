@@ -65,7 +65,7 @@ export function ContactsSection({ clientId, mutateClient }: ContactsSectionProps
       }
     >
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-5">
           {Array.from({ length: 2 }).map((_, i) => (
             <Skeleton key={i} className="h-14" />
           ))}
@@ -73,11 +73,11 @@ export function ContactsSection({ clientId, mutateClient }: ContactsSectionProps
       ) : contacts.length === 0 ? (
         <p className="text-sm text-muted-foreground">No contacts yet.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-5">
           {contacts.map((contact: Contact) => (
             <div
               key={contact.id}
-              className="flex items-start justify-between rounded-md border p-3"
+              className="flex items-start justify-between rounded-md border p-4"
             >
               <div className="space-y-0.5">
                 <p className="text-sm font-medium">{contact.name}</p>

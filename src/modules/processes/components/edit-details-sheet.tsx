@@ -85,14 +85,14 @@ export function EditDetailsSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-5 px-4 pb-6">
+        <div className="space-y-5 px-6 pb-8">
           <InlineField
             label="Name"
             value={process.name}
             onBlur={(val) => patchField('name', val, process.name)}
           />
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Status</Label>
             <div className="flex items-center gap-2">
               <ProcessStatusBadge status={process.status} />
@@ -123,7 +123,7 @@ export function EditDetailsSheet({
             placeholder="Add department..."
           />
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label variant="field">Description</Label>
             <InlineTextarea
               value={process.description ?? ''}
@@ -133,7 +133,7 @@ export function EditDetailsSheet({
           </div>
 
           {process.processTypeL1 && (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label variant="field">Process Type</Label>
               <p className="text-sm">{process.processTypeL1}</p>
             </div>
@@ -158,7 +158,7 @@ function InlineField({
   const [localValue, setLocalValue] = useState(value)
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <Label variant="field">{label}</Label>
       <Input
         value={localValue}

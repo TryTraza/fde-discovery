@@ -21,7 +21,7 @@ export function ProcessesList({ clientId }: ProcessesListProps) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-16" />
           ))}
@@ -52,7 +52,7 @@ export function ProcessesList({ clientId }: ProcessesListProps) {
       </div>
 
       {error ? (
-        <div className="text-center py-8">
+        <div className="text-center py-4">
           <p className="text-sm text-muted-foreground mb-2">Failed to load processes.</p>
           <Button
             variant="link"
@@ -64,8 +64,8 @@ export function ProcessesList({ clientId }: ProcessesListProps) {
           </Button>
         </div>
       ) : processes.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground mb-4">
+        <div className="text-center py-6 border rounded-lg">
+          <p className="text-muted-foreground mb-2">
             No processes yet. Create one to start mapping.
           </p>
           <CreateProcessDialog clientId={clientId} onCreated={() => mutateProcesses()}>

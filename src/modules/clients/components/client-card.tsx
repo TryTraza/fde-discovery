@@ -22,13 +22,13 @@ export function ClientCard({ client }: ClientCardProps) {
     <Link href={`/clients/${client.id}`}>
       <Card className="h-full transition-colors hover:bg-muted/50 cursor-pointer">
         <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start justify-between gap-1">
             <CardTitle className="text-base">{client.name}</CardTitle>
             <StatusBadge status={client.status} />
           </div>
           <CardDescription>{client.industry}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-1 text-sm text-muted-foreground">
+        <CardContent className="space-y-0.5 text-sm text-muted-foreground">
           {client.hqLocation && (
             <div className="flex items-center gap-1.5">
               <MapPin className="size-3.5" />

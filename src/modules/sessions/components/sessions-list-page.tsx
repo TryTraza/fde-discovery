@@ -25,7 +25,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-16" />
           ))}
@@ -54,7 +54,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
       </div>
 
       {error ? (
-        <div className="text-center py-8">
+        <div className="text-center py-4">
           <p className="text-sm text-muted-foreground mb-2">Failed to load sessions.</p>
           <Button
             variant="link"
@@ -66,8 +66,8 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
           </Button>
         </div>
       ) : sessions.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground mb-4">
+        <div className="text-center py-6 border rounded-lg">
+          <p className="text-muted-foreground mb-2">
             No sessions yet. Create one to start gathering data.
           </p>
           <Button variant="outline" onClick={() => setDialogOpen(true)}>

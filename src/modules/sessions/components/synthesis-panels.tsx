@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,14 +10,23 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 import { sessionsService } from '@/modules/sessions/services/sessions-service'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ApiError } from '@/lib/api-client'
-import { labelVariants } from '@/components/ui/label'
+import { Label, labelVariants } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
 interface SynthesisPanelsProps {
   sessionId: string
   synthesis: SynthesisOutput
   mutateSession: () => void
+  /** Processes this synthesis can be applied to (must be non-empty to apply) */
+  applyTargets: { id: string; name: string }[]
 }
 
 function changeTypeBadge(changeType: string) {
@@ -95,7 +104,13 @@ function confidenceBadge(confidence: string) {
   }
 }
 
-export function SynthesisPanels({ sessionId, synthesis, mutateSession }: SynthesisPanelsProps) {
+export function SynthesisPanels({
+  sessionId,
+  synthesis,
+  mutateSession,
+  applyTargets,
+}: SynthesisPanelsProps) {
+  const [targetProcessId, setTargetProcessId] = useState(applyTargets[0]?.id ?? '')
   const [applySteps, setApplySteps] = useState(true)
   const [applyEdgeCases, setApplyEdgeCases] = useState(true)
   const [applySystems, setApplySystems] = useState(true)
@@ -103,10 +118,22 @@ export function SynthesisPanels({ sessionId, synthesis, mutateSession }: Synthes
   const [isApplying, setIsApplying] = useState(false)
   const [applied, setApplied] = useState(false)
 
+  useEffect(() => {
+    if (applyTargets.length === 0) return
+    if (!applyTargets.some((t) => t.id === targetProcessId)) {
+      setTargetProcessId(applyTargets[0].id)
+    }
+  }, [applyTargets, targetProcessId])
+
   const handleApply = async () => {
+    if (!targetProcessId) {
+      toast.error('Select a process to apply synthesis to')
+      return
+    }
     setIsApplying(true)
     try {
       await sessionsService.applySynthesis(sessionId, {
+        targetProcessId,
         applySteps,
         applyEdgeCases,
         applySystems,
@@ -279,13 +306,40 @@ export function SynthesisPanels({ sessionId, synthesis, mutateSession }: Synthes
         </div>
       </CollapsibleSection>
 
-      {/* Apply Button */}
-      <div className="flex items-center gap-3">
-        <Button onClick={handleApply} disabled={isApplying || applied}>
-          {applied ? 'Changes Applied' : isApplying ? 'Applying...' : 'Apply Selected Changes'}
-        </Button>
-        {applied && <p className="text-sm text-muted-foreground">Process model updated.</p>}
-      </div>
+      {applyTargets.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Link this session to a process to apply synthesis to its model.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {applyTargets.length > 1 && (
+            <div className="space-y-2 max-w-sm">
+              <Label htmlFor="apply-target-process">Apply to process</Label>
+              <Select value={targetProcessId} onValueChange={setTargetProcessId}>
+                <SelectTrigger id="apply-target-process" className="w-full">
+                  <SelectValue placeholder="Select process" />
+                </SelectTrigger>
+                <SelectContent>
+                  {applyTargets.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleApply}
+              disabled={isApplying || applied || !targetProcessId}
+            >
+              {applied ? 'Changes Applied' : isApplying ? 'Applying...' : 'Apply Selected Changes'}
+            </Button>
+            {applied && <p className="text-sm text-muted-foreground">Process model updated.</p>}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -27,7 +27,6 @@ type CaptureMode = 'idle' | 'capturing' | 'post-capture'
 interface ShadowingCapturePanelProps {
   sessionId: string
   clientId: string
-  processId: string
   sessionStatus: SessionStatus
   initialTranscript: string | null
   initialNotes: string | null
@@ -37,7 +36,6 @@ interface ShadowingCapturePanelProps {
 export function ShadowingCapturePanel({
   sessionId,
   clientId,
-  processId,
   sessionStatus,
   initialTranscript,
   initialNotes,

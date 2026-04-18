@@ -20,10 +20,16 @@ const mockDelete = apiClient.delete as ReturnType<typeof vi.fn>
 describe('sessionsService', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('listForProcess GETs /api/sessions with processId', async () => {
+  it('listForClient GETs /api/sessions with clientId', async () => {
     mockGet.mockResolvedValue([])
-    await sessionsService.listForProcess('p1')
-    expect(mockGet).toHaveBeenCalledWith('/api/sessions', { processId: 'p1' })
+    await sessionsService.listForClient('c1')
+    expect(mockGet).toHaveBeenCalledWith('/api/sessions', { clientId: 'c1' })
+  })
+
+  it('listForClient passes processId when filtering', async () => {
+    mockGet.mockResolvedValue([])
+    await sessionsService.listForClient('c1', 'p1')
+    expect(mockGet).toHaveBeenCalledWith('/api/sessions', { clientId: 'c1', processId: 'p1' })
   })
 
   it('getById GETs /api/sessions/:id', async () => {
@@ -59,12 +65,19 @@ describe('sessionsService', () => {
     expect(mockPost).toHaveBeenCalledWith('/api/sessions/s1/synthesize')
   })
 
-  it('applySynthesis POSTs /api/sessions/:id/apply-synthesis with sections', async () => {
+  it('applySynthesis POSTs /api/sessions/:id/apply-synthesis with targetProcessId', async () => {
     mockPost.mockResolvedValue({})
-    await sessionsService.applySynthesis('s1', { steps: true, edges: false })
+    await sessionsService.applySynthesis('s1', {
+      targetProcessId: 'p1',
+      applySteps: true,
+      applyEdgeCases: false,
+    })
     expect(mockPost).toHaveBeenCalledWith('/api/sessions/s1/apply-synthesis', {
-      steps: true,
-      edges: false,
+      targetProcessId: 'p1',
+      applySteps: true,
+      applyEdgeCases: false,
+      applySystems: true,
+      applyQuestions: true,
     })
   })
 

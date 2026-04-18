@@ -12,8 +12,13 @@ vi.mock('@clerk/nextjs/server', () => ({
 vi.mock('@/lib/db/queries/sessions', () => ({
   getSessionById: vi.fn(),
   getSessionWithContacts: vi.fn(),
+  getLinkedProcesses: vi.fn(),
   updateSession: vi.fn(),
   softDeleteSession: vi.fn(),
+}))
+
+vi.mock('@/lib/db/queries/processes', () => ({
+  getProcessById: vi.fn(),
 }))
 
 // --- Imports (after mocks) ---
@@ -22,6 +27,7 @@ import { GET, PATCH, DELETE } from '@/app/api/sessions/[sessionId]/route'
 import {
   getSessionById,
   getSessionWithContacts,
+  getLinkedProcesses,
   updateSession,
   softDeleteSession,
 } from '@/lib/db/queries/sessions'
@@ -65,7 +71,10 @@ const MOCK_SESSION = {
 // --- GET /api/sessions/[sessionId] ---
 
 describe('GET /api/sessions/[sessionId]', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(getLinkedProcesses).mockResolvedValue([])
+  })
 
   it('returns 401 when unauthenticated', async () => {
     setupClerkMocks({ isAuthenticated: false })
@@ -92,7 +101,7 @@ describe('GET /api/sessions/[sessionId]', () => {
     const data = await res.json()
 
     expect(res.status).toBe(200)
-    expect(data).toEqual(MOCK_SESSION)
+    expect(data).toEqual({ ...MOCK_SESSION, linkedProcesses: [] })
   })
 })
 

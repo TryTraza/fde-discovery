@@ -34,9 +34,9 @@ export function CollapsibleCard({
 
   return (
     <>
-      <Card>
+      <Card className="py-3 gap-2">
         <Collapsible open={open} onOpenChange={setOpen}>
-          <CardHeader className={open ? 'pb-3' : ''}>
+          <CardHeader className={open ? 'pb-2' : ''}>
             <div className="flex items-center justify-between">
               <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer hover:text-foreground/80">
                 <ChevronDown
@@ -64,7 +64,7 @@ export function CollapsibleCard({
             </div>
           </CardHeader>
           <CollapsibleContent>
-            <CardContent>{children}</CardContent>
+            <CardContent className="pb-1">{children}</CardContent>
           </CollapsibleContent>
         </Collapsible>
       </Card>

@@ -45,7 +45,6 @@ import type { DebriefAnswers } from '@/lib/db/types'
 
 interface SessionOverviewProps {
   clientId: string
-  processId: string
   sessionId: string
 }
 
@@ -57,7 +56,7 @@ const sections = [
 
 type SectionId = (typeof sections)[number]['id']
 
-export function SessionOverview({ clientId, processId, sessionId }: SessionOverviewProps) {
+export function SessionOverview({ clientId, sessionId }: SessionOverviewProps) {
   const { session, isLoading, error, mutateSession } = useSession(sessionId)
   const { isAdmin } = useRole()
   const router = useRouter()
@@ -140,7 +139,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
     try {
       await sessionsService.delete(sessionId)
       toast.success('Session deleted')
-      router.push(`/clients/${clientId}/processes/${processId}/sessions`)
+      router.push(`/clients/${clientId}/sessions`)
     } catch (error) {
       const message =
         error instanceof ApiError && typeof (error.body as { error?: string })?.error === 'string'
@@ -209,7 +208,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           {error?.status === 404 ? 'Session not found.' : 'Failed to load session.'}
         </p>
         <Link
-          href={`/clients/${clientId}/processes/${processId}/sessions`}
+          href={`/clients/${clientId}/sessions`}
           className={buttonVariants({ variant: 'outline' })}
         >
           <ArrowLeft className="mr-1.5 size-4" />
@@ -226,13 +225,17 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
     | { question: string; answer: string }[]
     | undefined
 
+  const linked = session.linkedProcesses ?? []
+  const effectiveProcessId = session.processId ?? linked[0]?.id ?? null
+  const applyTargets = linked.map((p) => ({ id: p.id, name: p.name }))
+
   return (
     <div className="space-y-6 pt-4 md:pt-6 min-w-0">
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
           <Link
-            href={`/clients/${clientId}/processes/${processId}/sessions`}
+            href={`/clients/${clientId}/sessions`}
             className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
           >
             <ArrowLeft className="size-4" />
@@ -267,6 +270,18 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
             </span>
           )}
         </div>
+        {linked.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">Processes:</span>
+            {linked.map((p) => (
+              <Link key={p.id} href={`/clients/${clientId}/processes/${p.id}`}>
+                <Badge variant="secondary" className="font-normal hover:bg-secondary/80">
+                  {p.name}
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Section Nav — underline tabs */}
@@ -291,7 +306,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
       <div className={activeSection === 'preparation' ? '' : 'hidden'}>
         <PrepBriefPanel
           sessionId={sessionId}
-          processId={processId}
+          processId={effectiveProcessId}
           prepBrief={prepBrief}
           mutateSession={() => mutateSession()}
           interviewAnswers={interviewAnswers}
@@ -306,7 +321,6 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           <ShadowingCapturePanel
             sessionId={sessionId}
             clientId={clientId}
-            processId={processId}
             sessionStatus={status}
             initialTranscript={session.transcriptText}
             initialNotes={session.notes}
@@ -349,11 +363,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
         <div className="space-y-6">
           {/* Shadowing sessions: show debrief panel before synthesis */}
           {session.type === 'shadowing' && canSynthesize && !session.debriefAnswers && (
-            <DebriefPanel
-              sessionId={sessionId}
-              processId={processId}
-              onComplete={() => mutateSession()}
-            />
+            <DebriefPanel sessionId={sessionId} onComplete={() => mutateSession()} />
           )}
 
           {/* Shadowing debrief summary badge */}
@@ -383,6 +393,7 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
                 sessionId={sessionId}
                 synthesis={session.synthesisOutput as SynthesisOutput}
                 mutateSession={() => mutateSession()}
+                applyTargets={applyTargets}
               />
               {isAdmin && <EmailDraftCard sessionId={sessionId} />}
             </>

@@ -64,7 +64,9 @@ export const l2ClientLayer: ContextLayer<L2Options> = {
 
     if (!clientId && params.sessionId) {
       const session = await getSessionById(params.sessionId)
-      if (session?.processId) {
+      if (session?.clientId) {
+        clientId = session.clientId
+      } else if (session?.processId) {
         const process = await getProcessById(session.processId)
         clientId = process?.clientId ?? undefined
       }

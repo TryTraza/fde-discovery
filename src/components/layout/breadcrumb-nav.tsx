@@ -47,8 +47,11 @@ function useResolvedNames(segments: string[]): ResolvedNames {
     else if (processLoading) loading.add(processIdx)
   }
 
-  const sessionIdx =
+  const sessionIdxNew =
+    clientId && segments[2] === 'sessions' && segments[3] && UUID_RE.test(segments[3]) ? 3 : -1
+  const sessionIdxLegacy =
     processId && segments[4] === 'sessions' && segments[5] && UUID_RE.test(segments[5]) ? 5 : -1
+  const sessionIdx = sessionIdxNew >= 0 ? sessionIdxNew : sessionIdxLegacy
   const sessionId = sessionIdx >= 0 ? segments[sessionIdx] : null
 
   const { data: sessionData, isLoading: sessionLoading } = useSWR(

@@ -2,7 +2,7 @@ import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, getPrimaryProcessIdForSession } from '@/lib/db/queries/sessions'
 import { getProcessById } from '@/lib/db/queries/processes'
 import { getClientById } from '@/lib/db/queries/clients'
 import { listContactsByClient } from '@/lib/db/queries/contacts'
@@ -50,7 +50,15 @@ export async function POST(
       )
     }
 
-    const process = await getProcessById(session.processId)
+    const primaryProcessId = await getPrimaryProcessIdForSession(session)
+    if (!primaryProcessId) {
+      return NextResponse.json(
+        { error: 'Link this session to a process before drafting email' },
+        { status: 422 }
+      )
+    }
+
+    const process = await getProcessById(primaryProcessId)
     if (!process) {
       return NextResponse.json({ error: 'Process not found' }, { status: 404 })
     }

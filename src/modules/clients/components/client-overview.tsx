@@ -11,6 +11,7 @@ import { AISummaryCard } from './ai-summary-card'
 import { CompanyProfileCard } from './company-profile-card'
 import { ContactsSection } from '@/modules/contacts/components/contacts-section'
 import { ProcessesSection } from './processes-section'
+import { SessionsListPage } from '@/modules/sessions/components/sessions-list-page'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -106,6 +107,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
         </div>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="sessions">Sessions</TabsTrigger>
           <TabsTrigger value="processes">Processes</TabsTrigger>
         </TabsList>
       </div>
@@ -115,6 +117,10 @@ export function ClientOverview({ clientId }: { clientId: string }) {
         <ContactsSection clientId={clientId} mutateClient={mutateClient} />
         <CompanyProfileCard clientId={clientId} profile={client.profile ?? null} />
         <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
+      </TabsContent>
+
+      <TabsContent value="sessions">
+        <SessionsListPage clientId={clientId} showTitle={false} />
       </TabsContent>
 
       <TabsContent value="processes">

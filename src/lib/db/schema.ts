@@ -8,6 +8,7 @@ import {
   jsonb,
   pgEnum,
   date,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
@@ -123,7 +124,7 @@ export const SNAPSHOT_TRIGGERS = snapshotTriggerEnum.enumValues
 export type SnapshotTrigger = (typeof SNAPSHOT_TRIGGERS)[number]
 
 // ====================================================================
-// TABLES — 11 total
+// TABLES — 12 total
 // ====================================================================
 
 // TABLE 1: clients
@@ -207,9 +208,10 @@ export const processModelSnapshots = pgTable('process_model_snapshots', {
 // TABLE 6: sessions
 export const sessions = pgTable('sessions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  processId: uuid('process_id')
+  clientId: uuid('client_id')
     .notNull()
-    .references(() => processes.id),
+    .references(() => clients.id),
+  processId: uuid('process_id').references(() => processes.id),
   type: sessionTypeEnum('type').notNull(),
   title: text('title').notNull(),
   date: date('date').notNull(),
@@ -243,6 +245,26 @@ export const sessionContacts = pgTable('session_contacts', {
     .references(() => contacts.id),
   roleInSession: text('role_in_session'),
 })
+
+// TABLE 7b: session_process_links (sessions ↔ processes M:M)
+export const sessionProcessLinks = pgTable(
+  'session_process_links',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => sessions.id, { onDelete: 'cascade' }),
+    processId: uuid('process_id')
+      .notNull()
+      .references(() => processes.id),
+  },
+  (table) => [
+    uniqueIndex('session_process_links_session_process_uidx').on(
+      table.sessionId,
+      table.processId
+    ),
+  ]
+)
 
 // TABLE 8: event_logs (shadowing capture events)
 export const eventLogs = pgTable('event_logs', {
@@ -314,6 +336,7 @@ export const researchNotes = pgTable('research_notes', {
 export const clientsRelations = relations(clients, ({ many }) => ({
   contacts: many(contacts),
   processes: many(processes),
+  sessions: many(sessions),
   researchNotes: many(researchNotes),
 }))
 
@@ -326,6 +349,7 @@ export const processesRelations = relations(processes, ({ one, many }) => ({
   client: one(clients, { fields: [processes.clientId], references: [clients.id] }),
   processModel: one(processModels),
   sessions: many(sessions),
+  sessionProcessLinks: many(sessionProcessLinks),
   artifacts: many(artifacts),
   openQuestions: many(openQuestions),
   researchNotes: many(researchNotes),
@@ -345,11 +369,24 @@ export const processModelSnapshotsRelations = relations(processModelSnapshots, (
 }))
 
 export const sessionsRelations = relations(sessions, ({ one, many }) => ({
+  client: one(clients, { fields: [sessions.clientId], references: [clients.id] }),
   process: one(processes, { fields: [sessions.processId], references: [processes.id] }),
   sessionContacts: many(sessionContacts),
+  sessionProcessLinks: many(sessionProcessLinks),
   eventLogs: many(eventLogs),
   artifacts: many(artifacts),
   openQuestions: many(openQuestions),
+}))
+
+export const sessionProcessLinksRelations = relations(sessionProcessLinks, ({ one }) => ({
+  session: one(sessions, {
+    fields: [sessionProcessLinks.sessionId],
+    references: [sessions.id],
+  }),
+  process: one(processes, {
+    fields: [sessionProcessLinks.processId],
+    references: [processes.id],
+  }),
 }))
 
 export const sessionContactsRelations = relations(sessionContacts, ({ one }) => ({
@@ -421,6 +458,9 @@ export type NewSession = typeof sessions.$inferInsert
 
 export type SessionContact = typeof sessionContacts.$inferSelect
 export type NewSessionContact = typeof sessionContacts.$inferInsert
+
+export type SessionProcessLink = typeof sessionProcessLinks.$inferSelect
+export type NewSessionProcessLink = typeof sessionProcessLinks.$inferInsert
 
 export type EventLog = typeof eventLogs.$inferSelect
 export type NewEventLog = typeof eventLogs.$inferInsert

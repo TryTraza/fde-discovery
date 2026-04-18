@@ -51,7 +51,6 @@ export function SessionsFeed({
   return (
     <>
       <div className="space-y-5">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarDays className="size-4 text-muted-foreground" />
@@ -63,7 +62,6 @@ export function SessionsFeed({
           </Button>
         </div>
 
-        {/* Content */}
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
@@ -91,7 +89,7 @@ export function SessionsFeed({
             {sessions.map((session) => (
               <Link
                 key={session.id}
-                href={`/clients/${clientId}/processes/${processId}/sessions/${session.id}`}
+                href={`/clients/${clientId}/sessions/${session.id}`}
                 className="flex items-center gap-3 py-2 px-2 hover:bg-muted/50 rounded-md transition-colors"
               >
                 <span
@@ -112,7 +110,7 @@ export function SessionsFeed({
             ))}
 
             <Link
-              href={`/clients/${clientId}/processes/${processId}/sessions`}
+              href={`/clients/${clientId}/sessions`}
               className={buttonVariants({ size: 'sm', variant: 'ghost', className: 'w-full mt-1' })}
             >
               View All
@@ -121,7 +119,6 @@ export function SessionsFeed({
           </div>
         )}
 
-        {/* Suggested next session */}
         <SuggestedNextSession steps={steps} sessions={sessions} processStatus={processStatus} />
       </div>
 
@@ -129,7 +126,7 @@ export function SessionsFeed({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         clientId={clientId}
-        processId={processId}
+        defaultProcessId={processId}
         onCreated={() => mutateSessions()}
       />
     </>

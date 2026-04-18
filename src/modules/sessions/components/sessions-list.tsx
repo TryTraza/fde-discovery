@@ -17,7 +17,7 @@ interface SessionsListProps {
 }
 
 export function SessionsList({ clientId, processId }: SessionsListProps) {
-  const { sessions, isLoading, error, mutateSessions } = useSessions(processId)
+  const { sessions, isLoading, error, mutateSessions } = useSessions(clientId, processId)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -28,7 +28,7 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
         actions={
           <div className="flex items-center gap-2">
             <Link
-              href={`/clients/${clientId}/processes/${processId}/sessions`}
+              href={`/clients/${clientId}/sessions`}
               className={buttonVariants({ size: 'sm', variant: 'ghost' })}
             >
               View All
@@ -65,16 +65,16 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
           </p>
         ) : (
           <div className="divide-y">
-            {sessions.map((session: any) => (
+            {sessions.map((session: { id: string; title: string; type: string; date: string; status: string }) => (
               <Link
                 key={session.id}
-                href={`/clients/${clientId}/processes/${processId}/sessions/${session.id}`}
+                href={`/clients/${clientId}/sessions/${session.id}`}
                 className="flex items-center justify-between py-2.5 px-1 hover:bg-muted/50 rounded-sm transition-colors -mx-1"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium truncate">{session.title}</span>
-                    <SessionStatusBadge status={session.status} />
+                    <SessionStatusBadge status={session.status as any} />
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
                     <span>{getSessionTypeLabel(session.type)}</span>
@@ -96,7 +96,7 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         clientId={clientId}
-        processId={processId}
+        defaultProcessId={processId}
         onCreated={() => mutateSessions()}
       />
     </>

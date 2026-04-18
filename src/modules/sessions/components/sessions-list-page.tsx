@@ -13,11 +13,17 @@ import { Plus, CalendarDays } from 'lucide-react'
 
 interface SessionsListPageProps {
   clientId: string
-  processId: string
+  /** When set, only sessions linked to this process are listed */
+  processId?: string
+  showTitle?: boolean
 }
 
-export function SessionsListPage({ clientId, processId }: SessionsListPageProps) {
-  const { sessions, isLoading, error, mutateSessions } = useSessions(processId)
+export function SessionsListPage({
+  clientId,
+  processId,
+  showTitle = true,
+}: SessionsListPageProps) {
+  const { sessions, isLoading, error, mutateSessions } = useSessions(clientId, processId ?? null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   if (isLoading) {
@@ -32,8 +38,8 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
 
   return (
     <div className="space-y-6 pt-4 md:pt-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Sessions</h1>
+      <div className={`flex items-center ${showTitle ? 'justify-between' : 'justify-end'}`}>
+        {showTitle ? <h1 className="text-2xl font-bold">Sessions</h1> : null}
         <Button size="sm" onClick={() => setDialogOpen(true)}>
           <Plus className="mr-1.5 size-4" />
           New Session
@@ -62,7 +68,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
           {sessions.map((session: SessionRecord) => (
             <Link
               key={session.id}
-              href={`/clients/${clientId}/processes/${processId}/sessions/${session.id}`}
+              href={`/clients/${clientId}/sessions/${session.id}`}
               className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
             >
               <div className="space-y-1">
@@ -87,7 +93,7 @@ export function SessionsListPage({ clientId, processId }: SessionsListPageProps)
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         clientId={clientId}
-        processId={processId}
+        defaultProcessId={processId}
         onCreated={mutateSessions}
       />
     </div>

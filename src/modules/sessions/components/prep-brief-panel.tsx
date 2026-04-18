@@ -23,7 +23,7 @@ import { ApiError, ApiKeyMissingError } from '@/lib/api-client'
 
 interface PrepBriefPanelProps {
   sessionId: string
-  processId: string
+  processId: string | null
   prepBrief: PrepBrief | null
   mutateSession: () => void
   interviewAnswers?: { question: string; answer: string }[]
@@ -93,8 +93,21 @@ export function PrepBriefPanel({
     setShowInterview(false)
   }
 
+  if (showInterview && !interviewAnswers && !processId) {
+    return (
+      <div className="max-w-lg mx-auto py-8 space-y-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          Link this session to a process to run the prep interview, or skip to continue.
+        </p>
+        <Button type="button" variant="outline" onClick={handleInterviewSkip}>
+          Skip
+        </Button>
+      </div>
+    )
+  }
+
   // Interview step
-  if (showInterview && !interviewAnswers) {
+  if (showInterview && !interviewAnswers && processId) {
     return (
       <div className="max-w-lg mx-auto py-8 space-y-4">
         <div className="text-center space-y-1">

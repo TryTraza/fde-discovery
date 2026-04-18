@@ -42,7 +42,7 @@ export function ProcessOverview({ clientId, processId }: ProcessOverviewProps) {
     isLoading: sessionsLoading,
     error: sessionsError,
     mutateSessions,
-  } = useSessions(processId)
+  } = useSessions(clientId, processId)
   const { isAdmin } = useRole()
   const router = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)

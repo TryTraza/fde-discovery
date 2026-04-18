@@ -4,6 +4,7 @@ vi.mock('@/lib/db/queries/sessions', () => ({
   getSessionById: vi.fn(),
   listSessionContacts: vi.fn(),
   getCompletedSessionsByProcess: vi.fn(),
+  getPrimaryProcessIdForSession: vi.fn(),
 }))
 
 vi.mock('@/lib/db/queries/events', () => ({
@@ -14,12 +15,14 @@ import {
   getSessionById,
   listSessionContacts,
   getCompletedSessionsByProcess,
+  getPrimaryProcessIdForSession,
 } from '@/lib/db/queries/sessions'
 import { getEventsBySessionId } from '@/lib/db/queries/events'
 import { l4SessionLayer } from '@/lib/ai/layers/l4-session'
 
 const fakeSession = {
   id: 'sess-1',
+  clientId: 'client-1',
   processId: 'proc-1',
   type: 'shadowing',
   title: 'Shadowing session 1',
@@ -55,6 +58,7 @@ const fakePriorSessions = [
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getSessionById).mockResolvedValue(fakeSession as any)
+  vi.mocked(getPrimaryProcessIdForSession).mockResolvedValue('proc-1')
   vi.mocked(getEventsBySessionId).mockResolvedValue(fakeEvents as any)
   vi.mocked(listSessionContacts).mockResolvedValue(fakeContacts as any)
   vi.mocked(getCompletedSessionsByProcess).mockResolvedValue(fakePriorSessions as any)

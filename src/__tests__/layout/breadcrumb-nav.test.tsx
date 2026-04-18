@@ -67,15 +67,21 @@ describe('BreadcrumbNav', () => {
     expect(screen.getByText('Purchasing')).toBeInTheDocument()
   })
 
-  it('keeps client AND process names resolved at /clients/[uuid]/processes/[uuid]/sessions', () => {
-    mockPathname.mockReturnValue(`/clients/${CLIENT_UUID}/processes/${PROCESS_UUID}/sessions`)
+  it('keeps client name at /clients/[uuid]/sessions', () => {
+    mockPathname.mockReturnValue(`/clients/${CLIENT_UUID}/sessions`)
     render(<BreadcrumbNav />)
     expect(screen.getByText('Acme Corp')).toBeInTheDocument()
-    expect(screen.getByText('Purchasing')).toBeInTheDocument()
     expect(screen.getByText('sessions')).toBeInTheDocument()
   })
 
-  it('resolves all three names at /clients/[uuid]/processes/[uuid]/sessions/[uuid]', () => {
+  it('resolves session title at /clients/[uuid]/sessions/[uuid]', () => {
+    mockPathname.mockReturnValue(`/clients/${CLIENT_UUID}/sessions/${SESSION_UUID}`)
+    render(<BreadcrumbNav />)
+    expect(screen.getByText('Acme Corp')).toBeInTheDocument()
+    expect(screen.getByText('Kickoff Call')).toBeInTheDocument()
+  })
+
+  it('legacy path still resolves session title at /clients/[uuid]/processes/[uuid]/sessions/[uuid]', () => {
     mockPathname.mockReturnValue(
       `/clients/${CLIENT_UUID}/processes/${PROCESS_UUID}/sessions/${SESSION_UUID}`
     )
@@ -92,27 +98,20 @@ describe('BreadcrumbNav', () => {
     expect(clientLink.closest('a')).toHaveAttribute('href', `/clients/${CLIENT_UUID}`)
   })
 
-  it('process name segment links to process page', () => {
-    mockPathname.mockReturnValue(`/clients/${CLIENT_UUID}/processes/${PROCESS_UUID}/sessions`)
+  it('shows process name on process page (last segment is current page)', () => {
+    mockPathname.mockReturnValue(`/clients/${CLIENT_UUID}/processes/${PROCESS_UUID}`)
     render(<BreadcrumbNav />)
-    const processLink = screen.getByText('Purchasing')
-    expect(processLink.closest('a')).toHaveAttribute(
-      'href',
-      `/clients/${CLIENT_UUID}/processes/${PROCESS_UUID}`
-    )
+    expect(screen.getByText('Purchasing')).toBeInTheDocument()
   })
 })
 
 describe('BreadcrumbNav shares SWR cache with sidebar and page', () => {
   it('breadcrumb and sidebar must be inside SWRProvider', async () => {
-    // This is a structural test: the dashboard layout must wrap both
-    // BreadcrumbNav and AppSidebar inside SWRProvider so they share the
-    // same SWR cache (fetcher + dedup) with page components.
-    const layoutSource = await import('fs').then((fs) =>
-      fs.readFileSync(
-        '/home/albertomartin/code/discovery_tool/src/app/(dashboard)/layout.tsx',
-        'utf-8'
-      )
+    const fs = await import('fs')
+    const path = await import('path')
+    const layoutSource = fs.readFileSync(
+      path.join(process.cwd(), 'src/app/(dashboard)/layout.tsx'),
+      'utf-8'
     )
 
     // SWRProvider must wrap both BreadcrumbNav and the children

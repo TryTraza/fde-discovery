@@ -10,7 +10,8 @@ describe('Session validation schemas derive from schema enums', () => {
   it('createSessionSchema accepts all schema session types', () => {
     for (const type of SESSION_TYPES) {
       const result = createSessionSchema.safeParse({
-        processId: 'a1000000-0000-4000-8000-000000000001',
+        clientId: 'b1000000-0000-4000-8000-000000000001',
+        processIds: ['a1000000-0000-4000-8000-000000000001'],
         type,
         title: 'Test',
         date: '2026-03-15',
@@ -21,7 +22,8 @@ describe('Session validation schemas derive from schema enums', () => {
 
   it('createSessionSchema rejects unknown session types', () => {
     const result = createSessionSchema.safeParse({
-      processId: 'a1000000-0000-4000-8000-000000000001',
+      clientId: 'b1000000-0000-4000-8000-000000000001',
+      processIds: [],
       type: 'fake_type',
       title: 'Test',
       date: '2026-03-15',

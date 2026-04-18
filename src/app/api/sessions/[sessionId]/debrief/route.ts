@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, requireUserId, handleAPIError } from '@/lib/auth/utils'
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, getPrimaryProcessIdForSession } from '@/lib/db/queries/sessions'
 import { getEventsBySessionId, getDebriefEvents } from '@/lib/db/queries/events'
 import { db } from '@/lib/db'
 import { sessions, eventLogs, openQuestions } from '@/lib/db/schema'
@@ -51,6 +51,14 @@ export async function POST(
       return NextResponse.json(
         { error: 'Debrief has already been completed for this session' },
         { status: 400 }
+      )
+    }
+
+    const primaryProcessId = await getPrimaryProcessIdForSession(session)
+    if (!primaryProcessId) {
+      return NextResponse.json(
+        { error: 'Link this session to at least one process before completing debrief' },
+        { status: 422 }
       )
     }
 
@@ -110,7 +118,7 @@ export async function POST(
           const [created] = await tx
             .insert(openQuestions)
             .values({
-              processId: session.processId,
+              processId: primaryProcessId,
               sessionId: sessionId,
               text,
               priority: item.priority!,

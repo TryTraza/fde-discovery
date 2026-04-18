@@ -23,6 +23,7 @@ vi.mock('@/lib/ai/get-ai-config', () => ({
 
 vi.mock('@/lib/db/queries/sessions', () => ({
   getSessionById: vi.fn(),
+  getPrimaryProcessIdForSession: vi.fn(),
 }))
 
 vi.mock('@/lib/db/queries/processes', () => ({
@@ -40,7 +41,7 @@ vi.mock('@/lib/db/queries/contacts', () => ({
 // --- Imports ---
 
 import { POST } from '@/app/api/sessions/[sessionId]/email-draft/route'
-import { getSessionById } from '@/lib/db/queries/sessions'
+import { getSessionById, getPrimaryProcessIdForSession } from '@/lib/db/queries/sessions'
 import { getProcessById } from '@/lib/db/queries/processes'
 import { getClientById } from '@/lib/db/queries/clients'
 import { listContactsByClient } from '@/lib/db/queries/contacts'
@@ -94,6 +95,7 @@ describe('POST /api/sessions/[sessionId]/email-draft', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockDraftEmail.mockResolvedValue('Dear team, following up on our session...')
+    vi.mocked(getPrimaryProcessIdForSession).mockResolvedValue('p1')
     vi.mocked(getAIConfig).mockResolvedValue({
       model: { modelId: 'claude-sonnet-4-6' },
       anthropic: {},

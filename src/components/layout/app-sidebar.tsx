@@ -29,27 +29,43 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar'
 
-
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const secondaryNavItems = [{ href: '/settings', label: 'Settings', icon: Settings }]
 
-/** Parse the pathname to extract client/process/session context */
 function useRouteContext(pathname: string) {
   const segments = pathname.split('/').filter(Boolean)
 
   const clientId =
     segments[0] === 'clients' && segments[1] && UUID_RE.test(segments[1]) ? segments[1] : null
 
-  const processId =
-    clientId && segments[2] === 'processes' && segments[3] && UUID_RE.test(segments[3])
+  const sessionIdFromClientPath =
+    clientId &&
+    segments[2] === 'sessions' &&
+    segments[3] &&
+    UUID_RE.test(segments[3]) &&
+    segments.length <= 4
       ? segments[3]
       : null
 
-  const sessionId =
-    processId && segments[4] === 'sessions' && segments[5] && UUID_RE.test(segments[5])
+  const processId =
+    clientId &&
+    segments[2] === 'processes' &&
+    segments[3] &&
+    UUID_RE.test(segments[3]) &&
+    !sessionIdFromClientPath
+      ? segments[3]
+      : null
+
+  const sessionIdFromProcessPath =
+    processId &&
+    segments[4] === 'sessions' &&
+    segments[5] &&
+    UUID_RE.test(segments[5])
       ? segments[5]
       : null
+
+  const sessionId = sessionIdFromClientPath ?? sessionIdFromProcessPath ?? null
 
   return { clientId, processId, sessionId }
 }
@@ -83,7 +99,6 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {/* Main nav — always visible */}
         <SidebarGroup>
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -102,7 +117,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Settings context */}
         {pathname.startsWith('/settings') && (
           <>
             <SidebarSeparator />
@@ -126,7 +140,6 @@ export function AppSidebar() {
           </>
         )}
 
-        {/* Client context — visible at both client and process levels */}
         {clientId && (
           <>
             <SidebarSeparator />
@@ -154,8 +167,24 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      render={<Link href={`/clients/${clientId}/sessions`} />}
+                      isActive={
+                        pathname === `/clients/${clientId}/sessions` ||
+                        pathname.startsWith(`/clients/${clientId}/sessions/`)
+                      }
+                      tooltip="Sessions"
+                    >
+                      <FileText />
+                      <span>Sessions</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       render={<Link href={`/clients/${clientId}/processes`} />}
-                      isActive={pathname === `/clients/${clientId}/processes`}
+                      isActive={
+                        pathname === `/clients/${clientId}/processes` ||
+                        (!!processId && pathname.startsWith(`/clients/${clientId}/processes/`))
+                      }
                       tooltip="Processes"
                     >
                       <FolderKanban />
@@ -168,7 +197,6 @@ export function AppSidebar() {
           </>
         )}
 
-        {/* Process context */}
         {processId && clientId && (
           <>
             <SidebarSeparator />
@@ -197,26 +225,13 @@ export function AppSidebar() {
                       <span>Overview</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={
-                        <Link href={`/clients/${clientId}/processes/${processId}/sessions`} />
-                      }
-                      isActive={pathname === `/clients/${clientId}/processes/${processId}/sessions`}
-                      tooltip="Sessions"
-                    >
-                      <FileText />
-                      <span>Sessions</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </>
         )}
 
-        {/* Session context */}
-        {sessionId && processId && clientId && (
+        {sessionId && clientId && (
           <>
             <SidebarSeparator />
             <SidebarGroup>
@@ -227,9 +242,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      render={
-                        <Link href={`/clients/${clientId}/processes/${processId}/sessions`} />
-                      }
+                      render={<Link href={`/clients/${clientId}/sessions`} />}
                       tooltip="All Sessions"
                     >
                       <ArrowLeft />
@@ -238,15 +251,8 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      render={
-                        <Link
-                          href={`/clients/${clientId}/processes/${processId}/sessions/${sessionId}`}
-                        />
-                      }
-                      isActive={
-                        pathname ===
-                        `/clients/${clientId}/processes/${processId}/sessions/${sessionId}`
-                      }
+                      render={<Link href={`/clients/${clientId}/sessions/${sessionId}`} />}
+                      isActive={pathname === `/clients/${clientId}/sessions/${sessionId}`}
                       tooltip="Overview"
                     >
                       <LayoutDashboard />

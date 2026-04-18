@@ -4,9 +4,11 @@ import { updateSessionSchema } from '@/lib/validations/session'
 import {
   getSessionById,
   getSessionWithContacts,
+  getLinkedProcesses,
   updateSession,
   softDeleteSession,
 } from '@/lib/db/queries/sessions'
+import { getProcessById } from '@/lib/db/queries/processes'
 import { parseJSON } from '@/lib/api/utils'
 
 export async function GET(
@@ -22,7 +24,12 @@ export async function GET(
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    return NextResponse.json(session)
+    let linkedProcesses = await getLinkedProcesses(sessionId)
+    if (linkedProcesses.length === 0 && session.processId) {
+      const p = await getProcessById(session.processId)
+      if (p) linkedProcesses = [p]
+    }
+    return NextResponse.json({ ...session, linkedProcesses })
   } catch (error) {
     return handleAPIError(error)
   }

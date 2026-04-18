@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import * as schema from '@/lib/db/schema'
 
 describe('Database Schema — Tables', () => {
-  it('exports all 11 tables', () => {
+  it('exports all 12 tables', () => {
     const tables = [
       'clients',
       'contacts',
@@ -11,6 +11,7 @@ describe('Database Schema — Tables', () => {
       'processModelSnapshots',
       'sessions',
       'sessionContacts',
+      'sessionProcessLinks',
       'eventLogs',
       'artifacts',
       'openQuestions',
@@ -106,6 +107,8 @@ describe('Database Schema — Column Verification', () => {
 
   it('sessions table has transcriptText AND notes', () => {
     const cols = Object.keys(schema.sessions)
+    expect(cols).toContain('clientId')
+    expect(cols).toContain('processId')
     expect(cols).toContain('transcriptText')
     expect(cols).toContain('notes')
   })
@@ -180,8 +183,9 @@ describe('Enum values', () => {
     expect(schema.clientStatusEnum.enumValues).toEqual([
       'prospecting',
       'active_poc',
-      'demo_ready',
-      'closed',
+      'contracted',
+      'expanding',
+      'inactive',
     ])
   })
 

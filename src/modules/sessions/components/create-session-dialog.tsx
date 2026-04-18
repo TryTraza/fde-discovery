@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useContacts } from '@/modules/contacts/hooks/use-contacts'
+import { useProcesses } from '@/modules/processes/hooks/use-processes'
 import { getSessionTypeLabel } from '@/lib/utils/session-labels'
 import { sessionsService } from '@/modules/sessions/services/sessions-service'
 import { ApiError } from '@/lib/api-client'
@@ -26,7 +27,8 @@ interface CreateSessionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   clientId: string
-  processId: string
+  /** Pre-select when creating from a process context */
+  defaultProcessId?: string
   onCreated: () => void
 }
 
@@ -34,11 +36,12 @@ export function CreateSessionDialog({
   open,
   onOpenChange,
   clientId,
-  processId,
+  defaultProcessId,
   onCreated,
 }: CreateSessionDialogProps) {
   const router = useRouter()
   const { contacts } = useContacts(clientId)
+  const { processes } = useProcesses(clientId)
 
   const [step, setStep] = useState<'type' | 'details'>('type')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -47,8 +50,8 @@ export function CreateSessionDialog({
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([])
+  const [selectedProcessIds, setSelectedProcessIds] = useState<string[]>([])
 
-  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
       setStep('type')
@@ -56,9 +59,10 @@ export function CreateSessionDialog({
       setTitle('')
       setDate(new Date().toISOString().split('T')[0])
       setSelectedContactIds([])
+      setSelectedProcessIds(defaultProcessId ? [defaultProcessId] : [])
       setIsSubmitting(false)
     }
-  }, [open])
+  }, [open, defaultProcessId])
 
   const handleTypeSelect = (type: string) => {
     setSessionType(type)
@@ -69,6 +73,12 @@ export function CreateSessionDialog({
   const toggleContact = (contactId: string) => {
     setSelectedContactIds((prev) =>
       prev.includes(contactId) ? prev.filter((id) => id !== contactId) : [...prev, contactId]
+    )
+  }
+
+  const toggleProcess = (processId: string) => {
+    setSelectedProcessIds((prev) =>
+      prev.includes(processId) ? prev.filter((id) => id !== processId) : [...prev, processId]
     )
   }
 
@@ -84,7 +94,8 @@ export function CreateSessionDialog({
     setIsSubmitting(true)
     try {
       const body: Record<string, unknown> = {
-        processId,
+        clientId,
+        processIds: selectedProcessIds,
         type: sessionType,
         title: title.trim(),
         date,
@@ -95,17 +106,15 @@ export function CreateSessionDialog({
         body.interviewAnswers = { questions: interviewAnswers }
       }
 
-      const newSession = await sessionsService.create(
-        body as Parameters<typeof sessionsService.create>[0]
-      )
+      const newSession = await sessionsService.create(body)
       onOpenChange(false)
       onCreated()
       toast.success('Session created')
-      router.push(`/clients/${clientId}/processes/${processId}/sessions/${newSession.id}`)
+      router.push(`/clients/${clientId}/sessions/${newSession.id}`)
     } catch (error) {
       if (error instanceof ApiError) {
-        const body = error.body as { error?: string } | null
-        toast.error(typeof body?.error === 'string' ? body.error : 'Failed to create session')
+        const errBody = error.body as { error?: string } | null
+        toast.error(typeof errBody?.error === 'string' ? errBody.error : 'Failed to create session')
       } else {
         toast.error('Network error. Please try again.')
       }
@@ -155,11 +164,39 @@ export function CreateSessionDialog({
               />
             </div>
 
+            {processes.length > 0 && (
+              <div className="space-y-2">
+                <Label>Processes (optional)</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {processes.map((proc: { id: string; name: string }) => {
+                    const selected = selectedProcessIds.includes(proc.id)
+                    return (
+                      <button
+                        key={proc.id}
+                        type="button"
+                        onClick={() => toggleProcess(proc.id)}
+                        className="inline-flex"
+                      >
+                        <Badge variant={selected ? 'default' : 'outline'}>
+                          {proc.name}
+                          {selected && <X className="ml-1 size-3" />}
+                        </Badge>
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Link to one or more processes for prep context and synthesis. You can skip for
+                  client-only sessions.
+                </p>
+              </div>
+            )}
+
             {contacts.length > 0 && (
               <div className="space-y-2">
                 <Label>Contacts</Label>
                 <div className="flex flex-wrap gap-1.5">
-                  {contacts.map((contact: any) => {
+                  {contacts.map((contact: { id: string; name: string }) => {
                     const selected = selectedContactIds.includes(contact.id)
                     return (
                       <button

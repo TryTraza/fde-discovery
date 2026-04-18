@@ -6,7 +6,7 @@ import { useResearchContext } from '@/modules/research/hooks/use-research-contex
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash2, Loader2, ArrowUp } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { useState, useRef, useEffect, useMemo } from 'react'
 
@@ -117,12 +117,12 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
           </div>
 
           <form onSubmit={handleSubmitMessage} className="border-t p-3">
-            <div className="flex gap-2">
+            <div className="relative">
               <Textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask a research question..."
-                className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+                className="min-h-[44px] max-h-[120px] resize-none pr-12 py-3"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()
@@ -132,12 +132,16 @@ export function ResearchPanel({ open, onOpenChange }: ResearchPanelProps) {
               />
               <Button
                 type="submit"
-                size="sm"
+                size="icon"
+                className="absolute bottom-2 right-2 h-7 w-7 rounded-full"
                 disabled={!inputValue.trim() || status === 'streaming'}
               >
-                Send
+                <ArrowUp className="h-3.5 w-3.5" />
               </Button>
             </div>
+            <p className="text-[11px] text-muted-foreground mt-1.5 text-center">
+              Enter to send · Shift+Enter for new line
+            </p>
           </form>
         </div>
       </SheetContent>

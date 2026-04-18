@@ -33,7 +33,7 @@ export function ProcessesList({ clientId, mutateRef }: ProcessesListProps) {
     return (
       <div className="text-center py-4">
         <p className="text-sm text-muted-foreground mb-2">Failed to load processes.</p>
-        <Button variant="link" size="sm" onClick={mutateProcesses} className="h-auto p-0 underline">
+        <Button variant="link" size="sm" onClick={() => mutateProcesses()} className="h-auto p-0 underline">
           Retry
         </Button>
       </div>

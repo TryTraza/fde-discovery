@@ -13,7 +13,7 @@ const createClientSchema = z.object({
   website: z.string().url().optional().or(z.literal('')),
   hqLocation: z.string().optional(),
   notes: z.string().optional(),
-  status: z.enum(['prospecting', 'active_poc', 'demo_ready', 'closed']).optional(),
+  status: z.enum(CLIENT_STATUSES).optional(),
 })
 
 export async function GET(request: Request) {

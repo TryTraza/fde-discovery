@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireUserId, requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { getClientWithRelations, updateClient, softDeleteClient } from '@/lib/db/queries/clients'
 import { parseJSON } from '@/lib/api/utils'
+import { CLIENT_STATUSES } from '@/lib/db/schema'
 
 const updateClientSchema = z
   .object({
@@ -11,7 +12,7 @@ const updateClientSchema = z
     website: z.string().url().optional().or(z.literal('')),
     hqLocation: z.string().optional(),
     notes: z.string().optional(),
-    status: z.enum(['prospecting', 'active_poc', 'demo_ready', 'closed']).optional(),
+    status: z.enum(CLIENT_STATUSES).optional(),
   })
   .partial()
 

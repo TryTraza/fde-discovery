@@ -26,9 +26,10 @@ interface ClientDetailCardProps {
 
 const STATUS_OPTIONS = [
   { value: 'prospecting', label: 'Prospecting' },
-  { value: 'active_poc', label: 'Active POC' },
-  { value: 'demo_ready', label: 'Demo Ready' },
-  { value: 'closed', label: 'Closed' },
+  { value: 'active_poc',  label: 'Active POC' },
+  { value: 'contracted',  label: 'Contracted' },
+  { value: 'expanding',   label: 'Expanding' },
+  { value: 'inactive',    label: 'Inactive' },
 ]
 
 export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetailCardProps) {

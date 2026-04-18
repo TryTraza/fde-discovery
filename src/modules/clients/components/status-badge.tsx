@@ -8,9 +8,10 @@ const STATUS_CONFIG: Record<
   { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }
 > = {
   prospecting: { label: 'Prospecting', variant: 'secondary' },
-  active_poc: { label: 'Active POC', variant: 'default' },
-  demo_ready: { label: 'Demo Ready', variant: 'outline' },
-  closed: { label: 'Closed', variant: 'destructive' },
+  active_poc:  { label: 'Active POC',  variant: 'default' },
+  contracted:  { label: 'Contracted',  variant: 'outline' },
+  expanding:   { label: 'Expanding',   variant: 'default' },
+  inactive:    { label: 'Inactive',    variant: 'destructive' },
 }
 
 export function StatusBadge({ status }: { status: string }) {

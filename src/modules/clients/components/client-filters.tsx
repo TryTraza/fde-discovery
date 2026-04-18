@@ -20,9 +20,10 @@ interface ClientFiltersProps {
 
 const STATUS_LABELS: Record<string, string> = {
   prospecting: 'Prospecting',
-  active_poc: 'Active POC',
-  demo_ready: 'Demo Ready',
-  closed: 'Closed',
+  active_poc:  'Active POC',
+  contracted:  'Contracted',
+  expanding:   'Expanding',
+  inactive:    'Inactive',
 }
 
 const STATUS_OPTIONS = [

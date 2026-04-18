@@ -34,8 +34,9 @@ import type {
 export const clientStatusEnum = pgEnum('client_status', [
   'prospecting',
   'active_poc',
-  'demo_ready',
-  'closed',
+  'contracted',
+  'expanding',
+  'inactive',
 ])
 
 export const processStatusEnum = pgEnum('process_status', [

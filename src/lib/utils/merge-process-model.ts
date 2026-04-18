@@ -1,5 +1,11 @@
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 
+// NOTE: merge-created steps use snake_case field names (next_steps, branch_condition,
+// related_edge_cases) from an early implementation. The ProcessStep type in lib/db/types.ts
+// uses camelCase. These are the same JSONB columns — resolving the divergence requires a
+// data migration. Until then, these merge functions operate on `any[]` to avoid masking
+// the mismatch.
+
 export function mergeSteps(current: any[], synthesisSteps: SynthesisOutput['steps']): any[] {
   const result = [...current]
 

@@ -81,7 +81,7 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
           onBlur={(val) => patchField('name', val, process.name)}
         />
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-muted-foreground">Status</Label>
+          <Label variant="field">Status</Label>
           <div className="flex items-center gap-2">
             <ProcessStatusBadge status={process.status} />
             {allowedTransitions.length > 0 ? (
@@ -110,7 +110,7 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
           placeholder="Add department..."
         />
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-muted-foreground">Description</Label>
+          <Label variant="field">Description</Label>
           <InlineTextarea
             value={process.description ?? ''}
             onBlur={(val) => patchField('description', val, process.description ?? '')}
@@ -119,7 +119,7 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
         </div>
         {process.processTypeL1 && (
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">Process Type</Label>
+            <Label variant="field">Process Type</Label>
             <p className="text-sm">{process.processTypeL1}</p>
           </div>
         )}
@@ -143,13 +143,12 @@ function InlineField({
 
   return (
     <div className="space-y-1">
-      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      <Label variant="field">{label}</Label>
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={() => onBlur(localValue)}
         placeholder={placeholder}
-        className="h-8"
       />
     </div>
   )

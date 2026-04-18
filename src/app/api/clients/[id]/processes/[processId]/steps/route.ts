@@ -32,7 +32,7 @@ export async function PATCH(
     const normalizedSteps = parsed.data.steps.map((step, index) => ({
       ...step,
       order: index + 1,
-    }))
+    })) as import('@/lib/db/types').ProcessStep[]
 
     const updated = await updateProcessModel(processId, { steps: normalizedSteps })
     if (!updated) {

@@ -11,6 +11,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 import { sessionsService } from '@/modules/sessions/services/sessions-service'
 import { ApiError } from '@/lib/api-client'
+import { labelVariants } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 interface SynthesisPanelsProps {
   sessionId: string
@@ -241,9 +243,9 @@ export function SynthesisPanels({ sessionId, synthesis, mutateSession }: Synthes
               </p>
               {sys.gaps && <p className="text-xs text-amber-600 mt-0.5">Gap: {sys.gaps}</p>}
               {sys.detailNotes && (
-                <div className="mt-2">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Detail Notes</p>
-                  <div className="text-xs bg-muted p-2 rounded font-mono whitespace-pre-wrap">
+                <div className="mt-2 space-y-1">
+                  <div className={cn(labelVariants({ variant: 'field' }))}>Detail Notes</div>
+                  <div className="text-xs bg-muted p-2 rounded-lg font-mono whitespace-pre-wrap">
                     {sys.detailNotes}
                   </div>
                 </div>

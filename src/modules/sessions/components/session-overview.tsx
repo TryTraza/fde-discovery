@@ -357,12 +357,12 @@ export function SessionOverview({ clientId, processId, sessionId }: SessionOverv
           )}
 
           {/* Shadowing debrief summary badge */}
-          {session.type === 'shadowing' && session.debriefAnswers && (
+          {session.type === 'shadowing' && !!session.debriefAnswers && (
             <DebriefSummaryBadge answers={session.debriefAnswers as DebriefAnswers} />
           )}
 
           {/* Synthesis button: for non-shadowing, or shadowing with debrief done */}
-          {canSynthesize && (session.type !== 'shadowing' || session.debriefAnswers) && (
+          {canSynthesize && (session.type !== 'shadowing' || !!session.debriefAnswers) && (
             <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
               <MessageSquare className="size-5 text-muted-foreground" />
               <div className="flex-1">

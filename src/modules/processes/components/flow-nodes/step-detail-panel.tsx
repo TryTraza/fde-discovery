@@ -5,7 +5,7 @@ import { ChevronUp, ChevronDown, Trash2, Plus, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Label, labelVariants } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -118,31 +118,30 @@ export function StepDetailPanel({
 
         <div className="space-y-4 px-4 pb-6">
           {/* Name */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Name</Label>
+          <div className="space-y-1">
+            <Label variant="field">Name</Label>
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
-              className="h-9 text-sm"
               placeholder="Step name"
             />
           </div>
 
           {/* Description */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Description</Label>
+          <div className="space-y-1">
+            <Label variant="field">Description</Label>
             <Textarea
               value={step.description}
               onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
-              className="text-sm min-h-[60px] resize-none"
+              className="resize-none"
               placeholder="Step description"
               rows={3}
             />
           </div>
 
           {/* Confidence */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Confidence</Label>
+          <div className="space-y-1">
+            <Label variant="field">Confidence</Label>
             <Select
               value={step.confidence}
               onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
@@ -164,8 +163,8 @@ export function StepDetailPanel({
           </div>
 
           {/* Systems */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Systems</Label>
+          <div className="space-y-1">
+            <Label variant="field">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
                 <span
@@ -196,7 +195,7 @@ export function StepDetailPanel({
                   value={newSystem}
                   onChange={(e) => setNewSystem(e.target.value)}
                   placeholder="+ system"
-                  className="h-6 w-24 text-xs px-2"
+                  className="h-7 w-24 text-xs px-2"
                 />
                 {newSystem.trim() && (
                   <Button type="submit" variant="ghost" size="icon-xs">
@@ -208,12 +207,12 @@ export function StepDetailPanel({
           </div>
 
           {/* Notes */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
+          <div className="space-y-1">
+            <Label variant="field">Notes</Label>
             <Textarea
               value={step.notes}
               onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
-              className="text-sm min-h-[60px] resize-none"
+              className="resize-none"
               placeholder="Notes about this step"
               rows={3}
             />
@@ -221,8 +220,8 @@ export function StepDetailPanel({
 
           {/* Edge cases (read-only) */}
           {step.edgeCases.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
+            <div className="space-y-1">
+              <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (
                   <li key={i}>
@@ -235,7 +234,7 @@ export function StepDetailPanel({
 
           {/* Gap warning */}
           {isMissing && (
-            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-md px-3 py-2">
+            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-lg px-3 py-2">
               This step has a gap — consider scheduling a shadowing session to observe it.
             </p>
           )}

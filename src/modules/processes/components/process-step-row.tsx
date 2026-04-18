@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { labelVariants } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
@@ -155,22 +156,21 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
         >
           {/* Name input */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">Name</Label>
+            <Label variant="field">Name</Label>
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
-              className="h-8 text-sm"
               placeholder="Step name"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">Description</Label>
+            <Label variant="field">Description</Label>
             <Textarea
               value={step.description}
               onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
-              className="text-sm min-h-[36px] resize-none"
+              className="resize-none"
               placeholder="Step description"
               rows={2}
             />
@@ -178,7 +178,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Confidence */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">Confidence</Label>
+            <Label variant="field">Confidence</Label>
             <Select
               value={step.confidence}
               onValueChange={(val) => onUpdate(step.id, 'confidence', val)}
@@ -198,7 +198,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Systems */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">Systems</Label>
+            <Label variant="field">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
                 <span
@@ -229,7 +229,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
                   value={newSystem}
                   onChange={(e) => setNewSystem(e.target.value)}
                   placeholder="+ system"
-                  className="h-6 w-24 text-xs px-2"
+                  className="h-7 w-24 text-xs px-2"
                 />
                 {newSystem.trim() && (
                   <Button type="submit" variant="ghost" size="icon-xs">
@@ -242,11 +242,11 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
 
           {/* Notes */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
+            <Label variant="field">Notes</Label>
             <Textarea
               value={step.notes}
               onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
-              className="text-sm min-h-[36px] resize-none"
+              className="resize-none"
               placeholder="Notes about this step"
               rows={2}
             />
@@ -255,7 +255,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
           {/* Edge cases */}
           {step.edgeCases.length > 0 && (
             <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
+              <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (
                   <li key={i}>

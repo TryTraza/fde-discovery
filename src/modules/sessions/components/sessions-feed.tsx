@@ -9,6 +9,7 @@ import { getSessionTypeLabel } from '@/lib/utils/session-labels'
 import { CreateSessionDialog } from '@/modules/sessions/components/create-session-dialog'
 import { SuggestedNextSession } from './suggested-next-session'
 import type { ProcessStepParsed } from '@/lib/validations/process'
+import type { SessionRecord } from '@/modules/sessions/services/sessions-service'
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   completed: 'bg-emerald-500',
@@ -27,9 +28,9 @@ const STATUS_LABELS: Record<string, string> = {
 interface SessionsFeedProps {
   clientId: string
   processId: string
-  sessions: any[]
+  sessions: SessionRecord[]
   isLoading: boolean
-  error: any
+  error: Error | null
   mutateSessions: () => void
   steps: ProcessStepParsed[]
   processStatus: string
@@ -87,7 +88,7 @@ export function SessionsFeed({
           </p>
         ) : (
           <div className="space-y-1">
-            {sessions.map((session: any) => (
+            {sessions.map((session) => (
               <Link
                 key={session.id}
                 href={`/clients/${clientId}/processes/${processId}/sessions/${session.id}`}

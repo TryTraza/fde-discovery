@@ -1,6 +1,6 @@
 import { eq, and, isNull, ilike, inArray, desc } from 'drizzle-orm'
 import { db } from '../index'
-import { clients, contacts, processes, type NewClient } from '../schema'
+import { clients, contacts, processes, type NewClient, type ClientStatus } from '../schema'
 
 const notDeleted = isNull(clients.deletedAt)
 
@@ -11,12 +11,12 @@ export async function createClient(data: NewClient) {
 
 export async function listClients(filters?: {
   search?: string
-  status?: string[]
+  status?: ClientStatus[]
   industry?: string[]
 }) {
   const conditions = [notDeleted]
   if (filters?.search) conditions.push(ilike(clients.name, `%${filters.search}%`))
-  if (filters?.status?.length) conditions.push(inArray(clients.status, filters.status as any))
+  if (filters?.status?.length) conditions.push(inArray(clients.status, filters.status))
   if (filters?.industry?.length) conditions.push(inArray(clients.industry, filters.industry))
 
   return db

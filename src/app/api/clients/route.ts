@@ -5,6 +5,7 @@ import { listClients, createClient } from '@/lib/db/queries/clients'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
 import { triggerCompanyResearchViaBuilder } from '@/lib/ai/trigger-research'
 import { parseJSON } from '@/lib/api/utils'
+import { CLIENT_STATUSES, type ClientStatus } from '@/lib/db/schema'
 
 const createClientSchema = z.object({
   name: z.string().min(1),
@@ -19,11 +20,14 @@ export async function GET(request: Request) {
   try {
     await requireUserId()
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
+    const statusParam = searchParams.get('status')
     const industry = searchParams.get('industry')
+    const validStatus = statusParam && (CLIENT_STATUSES as readonly string[]).includes(statusParam)
+      ? [statusParam as ClientStatus]
+      : undefined
     const filters = {
       search: searchParams.get('search') || undefined,
-      status: status ? [status] : undefined,
+      status: validStatus,
       industry: industry ? [industry] : undefined,
     }
     const clients = await listClients(filters)

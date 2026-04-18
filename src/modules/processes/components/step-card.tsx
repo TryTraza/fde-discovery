@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { labelVariants } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import type { ProcessStepParsed } from '@/lib/validations/process'
 
 const confidenceColors = {
@@ -86,7 +88,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
             <Input
               value={step.name}
               onChange={(e) => onUpdate(step.id, 'name', e.target.value)}
-              className="h-8 font-medium text-sm"
+              className="font-medium"
               placeholder="Step name"
             />
             <Select
@@ -109,9 +111,9 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
           <Textarea
             value={step.description}
             onChange={(e) => onUpdate(step.id, 'description', e.target.value)}
-            className="text-sm min-h-[36px] resize-none"
+            className="resize-none"
             placeholder="Step description"
-            rows={1}
+            rows={2}
           />
 
           {/* Systems — always visible, editable */}
@@ -145,7 +147,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
                 value={newSystem}
                 onChange={(e) => setNewSystem(e.target.value)}
                 placeholder="+ system"
-                className="h-6 w-24 text-xs px-2"
+                className="h-7 w-24 text-xs px-2"
               />
               {newSystem.trim() && (
                 <Button type="submit" variant="ghost" size="icon-xs">
@@ -171,19 +173,19 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
 
           {expanded && (
             <div className="mt-2 pt-2 border-t space-y-2">
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
+              <div className="space-y-1">
+                <Label variant="field">Notes</Label>
                 <Textarea
                   value={step.notes}
                   onChange={(e) => onUpdate(step.id, 'notes', e.target.value)}
-                  className="text-sm min-h-[36px] resize-none mt-1"
+                  className="resize-none"
                   placeholder="Notes about this step"
                   rows={2}
                 />
               </div>
               {step.edgeCases.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground">Edge Cases</span>
+                <div className="space-y-1">
+                  <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
                   <ul className="text-sm list-disc list-inside">
                     {step.edgeCases.map((ec: any, i: number) => (
                       <li key={i}>

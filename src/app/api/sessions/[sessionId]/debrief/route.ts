@@ -93,6 +93,8 @@ export async function POST(
       })),
     ]
 
+    // db.transaction() used directly — the tx context must thread through every
+    // Drizzle statement for atomicity; query-layer functions don't accept tx.
     await db.transaction(async (tx) => {
       for (let i = 0; i < processedItems.length; i++) {
         const item = processedItems[i]

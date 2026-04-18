@@ -9,6 +9,8 @@ import {
   type SnapshotTrigger,
   type NewProcess,
 } from '../schema'
+import type { ProcessStep, EdgeCase, SystemEntry } from '../types'
+import type { ProcessGraph } from '@/lib/ai/contracts'
 
 const notDeleted = isNull(processes.deletedAt)
 
@@ -93,18 +95,18 @@ export async function getProcessModel(processId: string) {
 
 export async function updateProcessModel(
   processId: string,
-  data: { steps?: any; edgeCases?: any; systems?: any; graph?: any }
+  data: { steps?: ProcessStep[]; edgeCases?: EdgeCase[]; systems?: SystemEntry[]; graph?: ProcessGraph | null }
 ) {
   // Auto-derive graph when caller only passes legacy fields, so graph stays in
   // sync until legacy columns are dropped. Explicit `graph` in data wins.
-  let nextData = data
+  let nextData: typeof data & { graph?: ProcessGraph | null } = data
   if (data.graph === undefined && (data.steps || data.edgeCases || data.systems)) {
     const current = await getProcessModel(processId)
     if (current) {
       const merged = {
-        steps: (data.steps ?? current.steps ?? []) as any[],
-        edgeCases: (data.edgeCases ?? current.edgeCases ?? []) as any[],
-        systems: (data.systems ?? current.systems ?? []) as any[],
+        steps: (data.steps ?? (current.steps as ProcessStep[]) ?? []),
+        edgeCases: (data.edgeCases ?? (current.edgeCases as EdgeCase[]) ?? []),
+        systems: (data.systems ?? (current.systems as SystemEntry[]) ?? []),
       }
       try {
         const { buildGraphFromLegacyModel } = await import('@/lib/ai/graph/build-graph')
@@ -142,7 +144,7 @@ export async function createSnapshot(data: {
   processModelId: string
   trigger: SnapshotTrigger
   sessionId?: string
-  state: any
+  state: unknown
 }) {
   const [snapshot] = await db.insert(processModelSnapshots).values(data).returning()
   return snapshot

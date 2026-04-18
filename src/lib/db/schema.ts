@@ -17,6 +17,15 @@ import type {
   ProcessHypothesis,
   ResearchNoteResult,
 } from '@/lib/ai/contracts'
+import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
+import type {
+  InterviewAnswers,
+  PrepBrief,
+  DebriefAnswers,
+  ShadowingConfig,
+  ValidationConfig,
+  DemoConfig,
+} from '@/lib/db/types'
 
 // ====================================================================
 // ENUMS — 9 total
@@ -206,17 +215,17 @@ export const sessions = pgTable('sessions', {
   status: sessionStatusEnum('status').default('planned').notNull(),
   durationMinutes: integer('duration_minutes'),
   createdBy: text('created_by'),
-  interviewAnswers: jsonb('interview_answers'), // InterviewAnswers
-  prepBrief: jsonb('prep_brief'), // PrepBrief
-  questionsAsked: jsonb('questions_asked'), // boolean[]
-  transcriptText: text('transcript_text'), // Pasted from Granola or recording tool
-  notes: text('notes'), // User's own notes/observations
+  interviewAnswers: jsonb('interview_answers').$type<InterviewAnswers>(),
+  prepBrief: jsonb('prep_brief'),
+  questionsAsked: jsonb('questions_asked').$type<boolean[]>(),
+  transcriptText: text('transcript_text'),
+  notes: text('notes'),
   aiSummary: text('ai_summary'),
-  synthesisOutput: jsonb('synthesis_output'),
-  debriefAnswers: jsonb('debrief_answers'), // DebriefAnswers
-  shadowingConfig: jsonb('shadowing_config'), // ShadowingConfig
-  validationConfig: jsonb('validation_config'), // ValidationConfig
-  demoConfig: jsonb('demo_config'), // DemoConfig
+  synthesisOutput: jsonb('synthesis_output').$type<SynthesisOutput>(),
+  debriefAnswers: jsonb('debrief_answers').$type<DebriefAnswers>(),
+  shadowingConfig: jsonb('shadowing_config').$type<ShadowingConfig>(),
+  validationConfig: jsonb('validation_config').$type<ValidationConfig>(),
+  demoConfig: jsonb('demo_config').$type<DemoConfig>(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),

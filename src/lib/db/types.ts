@@ -9,11 +9,13 @@ export interface ProcessStep {
   description: string // One sentence
   confidence: 'confirmed' | 'inferred' | 'missing'
   sourceSessionId?: string // Which session confirmed/created this
-  systems: string[] // ["Email", "Excel"]
+  // Can be legacy string names ("Excel") or normalized objects. Use parseProcessSteps() to normalize.
+  systems: Array<string | { name: string; confirmed: boolean; detailNotes: string }>
   nextSteps: string[] // ["step_002"] — multiple = branch
   branchCondition?: string | null // "Price present?" — only if nextSteps.length > 1
   relatedEdgeCases: string[] // ["edge_001"]
   notes: string // Free text
+  edgeCases?: unknown[] // Legacy field — prefer relatedEdgeCases
 }
 
 export interface EdgeCase {

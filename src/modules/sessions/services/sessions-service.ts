@@ -1,7 +1,10 @@
 import { apiClient } from '@/lib/api-client'
+import type { Session } from '@/lib/db/schema'
+import type { Contact } from '@/lib/db/schema'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type SessionRecord = any
+// The GET /api/sessions/:id route calls getSessionWithContacts, which joins contacts.
+// The list route returns plain Session rows.
+export type SessionRecord = Session & { contacts?: Contact[] }
 
 // Loose shape — the route handler validates via Zod, and the legacy dialog
 // sends `type` (not `sessionType`) plus arbitrary date / contactIds fields.

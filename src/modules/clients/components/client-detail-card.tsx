@@ -81,7 +81,7 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
           onBlur={(val) => patchField('hqLocation', val, client.hqLocation ?? '')}
         />
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-muted-foreground">Status</Label>
+          <Label variant="field">Status</Label>
           <div className="flex items-center gap-2">
             <StatusBadge status={client.status} />
             <Select
@@ -104,7 +104,7 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
           </div>
         </div>
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
+          <Label variant="field">Notes</Label>
           <InlineTextarea
             value={client.notes ?? ''}
             onBlur={(val) => patchField('notes', val, client.notes ?? '')}
@@ -128,12 +128,11 @@ function InlineField({
 
   return (
     <div className="space-y-1">
-      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      <Label variant="field">{label}</Label>
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={() => onBlur(localValue)}
-        className="h-8"
       />
     </div>
   )

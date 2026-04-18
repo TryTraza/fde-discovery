@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, clerkClient } from '@clerk/nextjs/server'
-import { handleAPIError } from '@/lib/auth/utils'
+import { clerkClient } from '@clerk/nextjs/server'
+import { requireUserId, handleAPIError } from '@/lib/auth/utils'
 import { z } from 'zod'
 
 export async function GET() {
   try {
-    const { isAuthenticated, userId } = await auth()
-    if (!isAuthenticated || !userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = await requireUserId()
 
     const client = await clerkClient()
     const user = await client.users.getUser(userId)
@@ -28,10 +25,7 @@ const patchSettingsSchema = z.object({
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { isAuthenticated, userId } = await auth()
-    if (!isAuthenticated || !userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = await requireUserId()
 
     const body = await req.json()
     const parsed = patchSettingsSchema.safeParse(body)

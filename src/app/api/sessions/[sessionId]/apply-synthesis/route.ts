@@ -40,6 +40,8 @@ export async function POST(
     const process = await getProcessWithModel(session.processId)
     if (!process) return NextResponse.json({ error: 'Process not found' }, { status: 404 })
 
+    // db.transaction() used directly — the tx context must thread through every
+    // Drizzle statement for atomicity; query-layer functions don't accept tx.
     const result = await db.transaction(async (tx) => {
       let currentModel = process.processModel
 

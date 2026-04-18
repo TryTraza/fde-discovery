@@ -81,7 +81,7 @@ export const l4SessionLayer: ContextLayer<L4Options> = {
     // Pre-render debrief section
     let debriefSection = ''
     if (includeDebrief && session.debriefAnswers) {
-      const answers = session.debriefAnswers as Record<string, unknown>
+      const answers = session.debriefAnswers as unknown as Record<string, unknown>
       debriefSection = '## Debrief Answers\n' + JSON.stringify(answers, null, 2)
     }
 

@@ -4,12 +4,14 @@ import { useState, useDeferredValue } from 'react'
 import { useClients } from '@/modules/clients/hooks/use-clients'
 import { ClientCard } from './client-card'
 import { ClientFilters } from './client-filters'
-import { CreateClientDialog } from './create-client-dialog'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plus } from 'lucide-react'
 
-export function ClientList() {
+interface ClientListProps {
+  onMutate?: (mutate: () => void) => void
+  mutateRef?: React.MutableRefObject<() => void>
+}
+
+export function ClientList({ mutateRef }: ClientListProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const deferredSearch = useDeferredValue(search)
@@ -19,16 +21,10 @@ export function ClientList() {
     status: statusFilter !== 'all' ? statusFilter : undefined,
   })
 
+  if (mutateRef) mutateRef.current = mutateClients
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <CreateClientDialog onCreated={mutateClients}>
-          <Button size="sm">
-            <Plus className="mr-1.5 size-4" />
-            New Client
-          </Button>
-        </CreateClientDialog>
-      </div>
       <ClientFilters
         searchValue={search}
         onSearchChange={setSearch}

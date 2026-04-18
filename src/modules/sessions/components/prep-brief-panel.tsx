@@ -123,7 +123,7 @@ export function PrepBriefPanel({
       <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
         {isLoading ? (
           <>
-            <RefreshCw className="size-8 text-muted-foreground animate-spin" />
+            <RefreshCw className="size-8 text-muted-foreground/50 animate-spin" />
             <div>
               <p className="font-medium">Generating your prep brief...</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -233,7 +233,7 @@ export function PrepBriefPanel({
               disabled={isLoading}
               className="shrink-0"
             >
-              <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`size-3.5 text-muted-foreground/50 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
 

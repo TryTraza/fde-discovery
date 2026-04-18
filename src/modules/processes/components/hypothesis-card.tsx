@@ -102,7 +102,7 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
       onClick={handleRegenerate}
       disabled={isPolling}
     >
-      <RefreshCw className="size-3.5 mr-1" />
+      <RefreshCw className="size-3.5 mr-1 text-muted-foreground/50" />
       {process.hypothesisText ? 'Regenerate' : 'Generate'}
     </Button>
   )
@@ -146,7 +146,7 @@ export function HypothesisCard({ process, clientId, mutateProcess }: HypothesisC
               onClick={handleRegenerate}
               disabled={isPolling}
             >
-              <RefreshCw className="size-3 mr-1" />
+              <RefreshCw className="size-3 mr-1 text-muted-foreground/50" />
               Regenerate
             </Button>
             {process.processTypeL1 && process.processTypeL1 !== 'unknown' && (

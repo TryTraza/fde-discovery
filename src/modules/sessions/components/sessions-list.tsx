@@ -24,6 +24,7 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
     <>
       <CollapsibleCard
         title="Sessions"
+        icon={CalendarDays}
         actions={
           <div className="flex items-center gap-2">
             <Link

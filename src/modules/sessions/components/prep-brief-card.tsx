@@ -13,6 +13,7 @@ import {
   Target,
   AlertTriangle,
   Lightbulb,
+  ClipboardList,
 } from 'lucide-react'
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
 import { sessionsService } from '@/modules/sessions/services/sessions-service'
@@ -50,10 +51,11 @@ export function PrepBriefCard({ sessionId, prepBrief, mutateSession }: PrepBrief
   return (
     <CollapsibleCard
       title="Prep Brief"
+      icon={ClipboardList}
       actions={
         prepBrief ? (
           <Button variant="ghost" size="icon-sm" onClick={handleGenerate} disabled={isLoading}>
-            <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`size-3.5 text-muted-foreground/50 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         ) : undefined
       }

@@ -7,16 +7,15 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/component
 
 interface CollapsibleCardProps {
   title: React.ReactNode
-  /** Elements rendered to the right of the title (buttons, badges) */
+  icon?: React.ElementType
   actions?: React.ReactNode
-  /** Content shown when expanded */
   children: React.ReactNode
-  /** Default open state */
   defaultOpen?: boolean
 }
 
 export function CollapsibleCard({
   title,
+  icon: Icon,
   actions,
   children,
   defaultOpen = true,
@@ -32,7 +31,10 @@ export function CollapsibleCard({
               <ChevronDown
                 className={`size-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
               />
-              <CardTitle className="text-base">{title}</CardTitle>
+              <CardTitle className="text-base flex items-center gap-1.5">
+                {Icon && <Icon className="size-4 text-muted-foreground" />}
+                {title}
+              </CardTitle>
             </CollapsibleTrigger>
             {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>

@@ -75,16 +75,13 @@ export function ClientOverview({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{client.name}</h1>
-        </div>
+        <h1 className="text-2xl font-bold">{client.name}</h1>
         {isAdmin && (
           <>
-            <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 size-3.5" />
-              Delete
+            <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="size-4" />
             </Button>
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
               <DialogContent>
@@ -106,6 +103,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
           </>
         )}
       </div>
+
       <Tabs defaultValue="overview" className="space-y-2">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>

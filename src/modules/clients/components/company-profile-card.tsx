@@ -18,12 +18,8 @@ export function CompanyProfileCard({ clientId, profile }: CompanyProfileCardProp
 
   return (
     <CollapsibleCard
-      title={
-        <span className="flex items-center gap-1.5">
-          <Building2 className="size-4" />
-          Company profile
-        </span>
-      }
+      title="Company profile"
+      icon={Building2}
       actions={
         <Button
           variant="outline"
@@ -31,7 +27,7 @@ export function CompanyProfileCard({ clientId, profile }: CompanyProfileCardProp
           onClick={refreshProfile}
           disabled={isRefreshing}
         >
-          <RefreshCw className={`mr-1 size-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`mr-1 size-3.5 text-muted-foreground/50 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Refreshing…' : profile ? 'Refresh' : 'Generate'}
         </Button>
       }

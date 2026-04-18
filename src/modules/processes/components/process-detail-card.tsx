@@ -6,6 +6,7 @@ import { ProcessStatusBadge } from './process-status-badge'
 import { VALID_TRANSITIONS, type ProcessStatus } from '@/lib/validations/process'
 import { processesService } from '@/modules/processes/services/processes-service'
 import { ApiError } from '@/lib/api-client'
+import { SlidersHorizontal } from 'lucide-react'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -70,9 +71,8 @@ export function ProcessDetailCard({ process, clientId, mutateProcess }: ProcessD
   return (
     <CollapsibleCard
       title="Details"
-      actions={
-        saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined
-      }
+      icon={SlidersHorizontal}
+      actions={saving ? <span className="text-xs text-muted-foreground">Saving...</span> : undefined}
     >
       <div className="space-y-1">
         <InlineField

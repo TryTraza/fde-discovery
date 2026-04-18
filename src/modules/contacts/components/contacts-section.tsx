@@ -7,7 +7,7 @@ import { ContactFormDialog } from './contact-form-dialog'
 import { CollapsibleCard } from '@/components/shared/collapsible-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Mail, Phone, Trash2, Pencil } from 'lucide-react'
+import { Plus, Mail, Phone, Trash2, Pencil, Users } from 'lucide-react'
 import { contactsService, type Contact } from '@/modules/contacts/services/contacts-service'
 import { ApiError } from '@/lib/api-client'
 
@@ -45,6 +45,7 @@ export function ContactsSection({ clientId, mutateClient }: ContactsSectionProps
 
   return (
     <CollapsibleCard
+      icon={Users}
       title={
         <>
           Contacts

@@ -95,7 +95,7 @@ export function ArtifactsPanel({ clientId, processId, isAdmin }: ArtifactsPanelP
               value={uploadStage}
               onValueChange={(v: string | null) => v && setUploadStage(v as ArtifactStage)}
             >
-              <SelectTrigger className="h-8 w-[120px] text-xs">
+              <SelectTrigger className="h-9 w-[120px] text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -80,7 +80,7 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
           value={client.hqLocation ?? ''}
           onBlur={(val) => patchField('hqLocation', val, client.hqLocation ?? '')}
         />
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label variant="field">Status</Label>
           <div className="flex items-center gap-2">
             <StatusBadge status={client.status} />
@@ -103,7 +103,7 @@ export function ClientDetailCard({ client, clientId, mutateClient }: ClientDetai
             </Select>
           </div>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label variant="field">Notes</Label>
           <InlineTextarea
             value={client.notes ?? ''}
@@ -127,7 +127,7 @@ function InlineField({
   const [localValue, setLocalValue] = useState(value)
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <Label variant="field">{label}</Label>
       <Input
         value={localValue}

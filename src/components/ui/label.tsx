@@ -11,7 +11,7 @@ const labelVariants = cva(
     variants: {
       variant: {
         default: 'text-sm font-medium',
-        field: 'text-xs font-medium text-muted-foreground',
+        field: 'text-sm font-medium text-muted-foreground',
       },
     },
     defaultVariants: {

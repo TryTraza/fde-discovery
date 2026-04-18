@@ -39,12 +39,12 @@ export function ClientFilters({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search clients..."
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-8"
+          className="pl-9"
         />
       </div>
       <Select value={statusValue} onValueChange={(val) => onStatusChange(val ?? 'all')}>

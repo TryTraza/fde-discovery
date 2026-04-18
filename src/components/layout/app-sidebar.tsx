@@ -8,7 +8,6 @@ import {
   Users,
   Settings,
   Compass,
-  LifeBuoy,
   ArrowLeft,
   LayoutDashboard,
   FolderKanban,
@@ -33,10 +32,7 @@ import {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-const secondaryNavItems = [
-  { href: '/settings', label: 'Settings', icon: Settings },
-  { href: 'https://docs.anthropic.com', label: 'Support', icon: LifeBuoy, external: true },
-]
+const secondaryNavItems = [{ href: '/settings', label: 'Settings', icon: Settings }]
 
 /** Parse the pathname to extract client/process/session context */
 function useRouteContext(pathname: string) {

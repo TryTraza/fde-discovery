@@ -243,7 +243,7 @@ export function SynthesisPanels({ sessionId, synthesis, mutateSession }: Synthes
               </p>
               {sys.gaps && <p className="text-xs text-amber-600 mt-0.5">Gap: {sys.gaps}</p>}
               {sys.detailNotes && (
-                <div className="mt-2 space-y-1">
+                <div className="mt-2 space-y-2">
                   <div className={cn(labelVariants({ variant: 'field' }))}>Detail Notes</div>
                   <div className="text-xs bg-muted p-2 rounded-lg font-mono whitespace-pre-wrap">
                     {sys.detailNotes}

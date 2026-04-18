@@ -118,7 +118,7 @@ export function StepDetailPanel({
 
         <div className="space-y-4 px-4 pb-6">
           {/* Name */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label variant="field">Name</Label>
             <Input
               value={step.name}
@@ -128,7 +128,7 @@ export function StepDetailPanel({
           </div>
 
           {/* Description */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label variant="field">Description</Label>
             <Textarea
               value={step.description}
@@ -140,7 +140,7 @@ export function StepDetailPanel({
           </div>
 
           {/* Confidence */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label variant="field">Confidence</Label>
             <Select
               value={step.confidence}
@@ -163,7 +163,7 @@ export function StepDetailPanel({
           </div>
 
           {/* Systems */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label variant="field">Systems</Label>
             <div className="flex flex-wrap items-center gap-1.5">
               {step.systems.map((system) => (
@@ -207,7 +207,7 @@ export function StepDetailPanel({
           </div>
 
           {/* Notes */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label variant="field">Notes</Label>
             <Textarea
               value={step.notes}
@@ -220,7 +220,7 @@ export function StepDetailPanel({
 
           {/* Edge cases (read-only) */}
           {step.edgeCases.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {step.edgeCases.map((ec: any, i: number) => (

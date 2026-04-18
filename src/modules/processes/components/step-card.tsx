@@ -173,7 +173,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
 
           {expanded && (
             <div className="mt-2 pt-2 border-t space-y-2">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label variant="field">Notes</Label>
                 <Textarea
                   value={step.notes}
@@ -184,7 +184,7 @@ export function StepCard({ step, index, onUpdate, onDelete }: StepCardProps) {
                 />
               </div>
               {step.edgeCases.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className={cn(labelVariants({ variant: 'field' }))}>Edge Cases</div>
                   <ul className="text-sm list-disc list-inside">
                     {step.edgeCases.map((ec: any, i: number) => (

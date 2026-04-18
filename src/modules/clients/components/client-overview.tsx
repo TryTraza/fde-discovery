@@ -75,7 +75,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">{client.name}</h1>
@@ -106,7 +106,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
           </>
         )}
       </div>
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs defaultValue="overview" className="space-y-2">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="intelligence">Intelligence</TabsTrigger>

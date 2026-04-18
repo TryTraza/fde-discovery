@@ -42,9 +42,9 @@ export function SessionsList({ clientId, processId }: SessionsListProps) {
       >
         {isLoading ? (
           <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
           </div>
         ) : error ? (
           <div className="text-sm text-muted-foreground">

@@ -229,7 +229,7 @@ export function ProcessStepRow({ step, index, onUpdate, onDelete }: ProcessStepR
                   value={newSystem}
                   onChange={(e) => setNewSystem(e.target.value)}
                   placeholder="+ system"
-                  className="h-8 w-28 text-xs px-3"
+                  className="h-7 w-28 text-xs px-3"
                 />
                 {newSystem.trim() && (
                   <Button type="submit" variant="ghost" size="icon-xs">

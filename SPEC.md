@@ -10,7 +10,7 @@
 
 ```
 Phase:          7 — Research Panel + Polish (COMPLETE)
-Last Completed: Step 7.6 — Polish (error boundaries, not-found pages, mobile audit)
+Last Completed: Session model refactor — client-level sessions + session_process_links M:M; URLs /clients/[clientId]/sessions/[sessionId]
 Next Step:      Step 5.9 — iPad test (all buttons 64px+) / Production deploy
 Blocker:        None
 ```
@@ -57,6 +57,7 @@ Blocker:        None
 - [x] 3.6 — System badges with detailNotes tooltip
 
 ### Phase 4 — Session Lifecycle (Non-Shadowing)
+- [x] 4.0a — Client-level sessions: `sessions.clientId` required, `processId` nullable, `session_process_links` junction; apply-synthesis uses `targetProcessId`; debrief requires a linked process
 - [x] 4.0 — Schema audit: added title, durationMinutes, createdBy columns; synthesis_done status; query functions
 - [x] 4.1 — Session CRUD API routes (GET list, POST create, GET detail, PATCH, DELETE) + validation schemas
 - [x] 4.2 — SWR hooks (useSessions, useSession) + sessions list in process view
@@ -102,6 +103,7 @@ Blocker:        None
 | No server Anthropic key | Each user stores own key in Clerk privateMetadata | 2026-03-08 |
 | Per-feature model selection | 5 features, defaults in get-ai-config.ts | 2026-03-08 |
 | Neon + Vercel Blob | Migrated DB to Neon (DATABASE_URL direct, DATABASE_POOLED_URL pooled) and artifact storage to Vercel Blob; downloads proxied through `/artifacts/[id]/download` to preserve access control | 2026-04-15 |
+| Sessions own client | `sessions.clientId` NOT NULL; optional links to processes via `session_process_links`; legacy `sessions.processId` nullable; UI at `/clients/[clientId]/sessions/...` | 2026-04-18 |
 | Session has transcript + notes | Two separate fields, both feed synthesis | 2026-03-08 |
 | SystemEntry.detailNotes | Free-text for column/sheet/mapping capture, aggregated in synthesis | 2026-03-08 |
 | prepare: false | Required for Neon pooler (PgBouncer Transaction mode) | 2026-04-15 |

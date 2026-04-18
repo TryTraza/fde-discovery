@@ -315,7 +315,10 @@ export function SynthesisPanels({
           {applyTargets.length > 1 && (
             <div className="space-y-2 max-w-sm">
               <Label htmlFor="apply-target-process">Apply to process</Label>
-              <Select value={targetProcessId} onValueChange={setTargetProcessId}>
+              <Select
+                value={targetProcessId}
+                onValueChange={(v) => setTargetProcessId(v ?? '')}
+              >
                 <SelectTrigger id="apply-target-process" className="w-full">
                   <SelectValue placeholder="Select process" />
                 </SelectTrigger>

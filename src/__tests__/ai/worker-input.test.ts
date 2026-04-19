@@ -1,6 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import {
   WORKER_INPUT_SCHEMA_VERSION,
+  type ClientResearchInput,
   type EmailDraftInput,
   type FeatureSlug,
   type ProcessHypothesisInput,
@@ -23,7 +24,7 @@ describe('WorkerInput', () => {
       'process-hypothesis': true,
       'prep-brief': true,
       'capture-suggestions': true,
-      'refresh-company-profile': true,
+      'client-research': true,
       'session-synthesis': true,
       'shadowing-synthesis': true,
       'research-chat': true,

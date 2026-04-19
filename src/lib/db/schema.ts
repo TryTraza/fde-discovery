@@ -9,14 +9,17 @@ import {
   pgEnum,
   date,
   uniqueIndex,
+  check,
 } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import type {
-  CompanyProfile,
+  KeyStakeholder,
   ProcessGraph,
   ProcessHypothesis,
+  ProductOrService,
   ResearchNoteResult,
+  ResearchSource,
 } from '@/lib/ai/contracts'
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 import type {
@@ -136,8 +139,6 @@ export const clients = pgTable('clients', {
   hqLocation: text('hq_location'),
   notes: text('notes'),
   status: clientStatusEnum('status').default('prospecting').notNull(),
-  aiSummary: text('ai_summary'),
-  profile: jsonb('profile').$type<CompanyProfile>(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -329,15 +330,50 @@ export const researchNotes = pgTable('research_notes', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
+// TABLE 12: client_research (1:1 with clients)
+export const clientResearch = pgTable(
+  'client_research',
+  {
+    clientId: uuid('client_id')
+      .primaryKey()
+      .references(() => clients.id, { onDelete: 'cascade' }),
+    companyOverview: text('company_overview'),
+    sizeFinancials: text('size_financials'),
+    customersMarkets: text('customers_markets'),
+    painPoints: text('pain_points'),
+    recentNews: text('recent_news'),
+    fitScore: integer('fit_score'),
+    fitScoreRationale: text('fit_score_rationale'),
+    areasOfExpertise: jsonb('areas_of_expertise').$type<string[]>().default([]).notNull(),
+    productsAndServices: jsonb('products_and_services')
+      .$type<ProductOrService[]>()
+      .default([])
+      .notNull(),
+    keyStakeholders: jsonb('key_stakeholders').$type<KeyStakeholder[]>().default([]).notNull(),
+    techStack: jsonb('tech_stack').$type<string[]>().default([]).notNull(),
+    researchSources: jsonb('research_sources').$type<ResearchSource[]>().default([]).notNull(),
+    researchedAt: timestamp('researched_at', { withTimezone: true }),
+    schemaVersion: integer('schema_version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [check('fit_score_range', sql`${table.fitScore} BETWEEN 1 AND 10`)]
+)
+
 // ====================================================================
 // RELATIONS — for Drizzle relational queries (db.query.*)
 // ====================================================================
 
-export const clientsRelations = relations(clients, ({ many }) => ({
+export const clientsRelations = relations(clients, ({ one, many }) => ({
   contacts: many(contacts),
   processes: many(processes),
   sessions: many(sessions),
   researchNotes: many(researchNotes),
+  research: one(clientResearch),
+}))
+
+export const clientResearchRelations = relations(clientResearch, ({ one }) => ({
+  client: one(clients, { fields: [clientResearch.clientId], references: [clients.id] }),
 }))
 
 export const contactsRelations = relations(contacts, ({ one, many }) => ({
@@ -437,6 +473,9 @@ export const insertOpenQuestionSchema = createInsertSchema(openQuestions)
 
 export const insertResearchNoteSchema = createInsertSchema(researchNotes)
 
+export const insertClientResearchSchema = createInsertSchema(clientResearch)
+export const selectClientResearchSchema = createSelectSchema(clientResearch)
+
 // ====================================================================
 // TYPESCRIPT TYPES — inferred from Drizzle schema
 // ====================================================================
@@ -476,4 +515,7 @@ export type NewResearchNote = typeof researchNotes.$inferInsert
 
 export type ProcessModelSnapshot = typeof processModelSnapshots.$inferSelect
 export type NewProcessModelSnapshot = typeof processModelSnapshots.$inferInsert
+
+export type ClientResearch = typeof clientResearch.$inferSelect
+export type NewClientResearch = typeof clientResearch.$inferInsert
 

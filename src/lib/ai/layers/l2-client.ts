@@ -1,7 +1,8 @@
 import { getClientById } from '@/lib/db/queries/clients'
+import { getResearchByClientId } from '@/lib/db/queries/client-research'
 import { getProcessById } from '@/lib/db/queries/processes'
 import { getSessionById } from '@/lib/db/queries/sessions'
-import type { CompanyProfile } from '@/lib/ai/contracts'
+import type { ClientResearch } from '@/lib/db/schema'
 import {
   EMPTY_LAYER_RESULT,
   type ContextLayer,
@@ -10,27 +11,35 @@ import {
   type L2Options,
 } from './types'
 
-function formatCompanyProfile(profile: CompanyProfile | null | undefined): string {
-  if (!profile) return ''
-  const lines: string[] = ['### Company Profile']
-  lines.push(profile.description)
-  if (profile.size?.stage || profile.size?.employees !== undefined) {
-    const bits: string[] = []
-    if (profile.size?.stage) bits.push(`stage: ${profile.size.stage}`)
-    if (profile.size?.employees !== undefined) bits.push(`${profile.size.employees} employees`)
-    lines.push(`- Size: ${bits.join(', ')}`)
+function formatResearch(research: ClientResearch | null): string {
+  if (!research) return ''
+  const lines: string[] = ['### AI Research']
+  if (research.companyOverview) lines.push(research.companyOverview)
+  if (research.fitScore !== null && research.fitScore !== undefined) {
+    const rationale = research.fitScoreRationale ? ` — ${research.fitScoreRationale}` : ''
+    lines.push(`- **Fit:** ${research.fitScore}/10${rationale}`)
   }
-  if (profile.areasOfExpertise.length > 0) {
-    lines.push(`- Expertise: ${profile.areasOfExpertise.join(', ')}`)
+  if (research.sizeFinancials) lines.push(`- **Size & financials:** ${research.sizeFinancials}`)
+  if (research.customersMarkets) lines.push(`- **Customers & markets:** ${research.customersMarkets}`)
+  if (research.painPoints) lines.push(`- **Pain points:** ${research.painPoints}`)
+  if (research.recentNews) lines.push(`- **Recent news:** ${research.recentNews}`)
+  if (research.areasOfExpertise.length > 0) {
+    lines.push(`- **Areas of expertise:** ${research.areasOfExpertise.join(', ')}`)
   }
-  if (profile.productsAndServices.length > 0) {
-    lines.push('- Products & services:')
-    for (const p of profile.productsAndServices) {
+  if (research.productsAndServices.length > 0) {
+    lines.push('- **Products & services:**')
+    for (const p of research.productsAndServices) {
       lines.push(`  - ${p.name}: ${p.description}`)
     }
   }
-  if (profile.techStack && profile.techStack.length > 0) {
-    lines.push(`- Tech stack: ${profile.techStack.join(', ')}`)
+  if (research.keyStakeholders.length > 0) {
+    lines.push('- **Key stakeholders:**')
+    for (const s of research.keyStakeholders) {
+      lines.push(`  - ${s.name} (${s.role})`)
+    }
+  }
+  if (research.techStack.length > 0) {
+    lines.push(`- **Tech stack:** ${research.techStack.join(', ')}`)
   }
   return lines.join('\n')
 }
@@ -83,25 +92,27 @@ export const l2ClientLayer: ContextLayer<L2Options> = {
       clientWebsite: client.website ?? '',
     }
 
+    let research: ClientResearch | null = null
+
     if (fields === 'full') {
+      research = await getResearchByClientId(clientId)
+      const researchBlock = formatResearch(research)
       const lines = [
         `## Client: ${client.name}`,
         `- Industry: ${client.industry}`,
         client.website ? `- Website: ${client.website}` : null,
         client.hqLocation ? `- HQ: ${client.hqLocation}` : null,
         client.status ? `- Status: ${client.status}` : null,
-        client.aiSummary ? `\n### AI Summary\n${client.aiSummary}` : null,
+        researchBlock ? `\n${researchBlock}` : null,
         client.notes ? `\n### Notes\n${client.notes}` : null,
       ].filter(Boolean)
 
       vars.clientSection = lines.join('\n')
       vars.clientStatus = client.status ?? ''
-      vars.clientAiSummary = client.aiSummary ?? ''
       vars.clientNotes = client.notes ?? ''
       vars.clientHqLocation = client.hqLocation ?? ''
-      vars.clientProfileSection = formatCompanyProfile(client.profile)
     }
 
-    return { data: { client }, templateVars: vars }
+    return { data: { client, research }, templateVars: vars }
   },
 }

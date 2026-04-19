@@ -45,20 +45,6 @@ Suggest 3-5 next steps.`,
     ],
   },
   {
-    name: 'company-research',
-    type: 'chat',
-    prompt: [
-      {
-        role: 'system',
-        content: `You are a business research analyst. Provide a concise company overview.`,
-      },
-      {
-        role: 'user',
-        content: `Research the company "{{clientName}}" in the {{clientIndustry}} industry. {{clientWebsite}} Provide a brief summary covering: what they do, their size/scale, key products or services, and any notable recent news.`,
-      },
-    ],
-  },
-  {
     name: 'process-hypothesis',
     type: 'chat',
     prompt: [

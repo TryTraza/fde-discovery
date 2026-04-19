@@ -18,6 +18,7 @@ const mockGenerateObject = vi.fn()
 vi.mock('ai', () => ({
   generateText: (...args: unknown[]) => mockGenerateText(...args),
   generateObject: (...args: unknown[]) => mockGenerateObject(...args),
+  stepCountIs: (n: number) => ({ __stepCount: n }),
 }))
 
 const mockBuildAIInput = vi.fn()
@@ -30,7 +31,7 @@ import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
 import { prepBriefSchema } from '@/lib/ai/schemas/prep-brief'
 import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
 import { synthesisOutputSchema } from '@/lib/ai/schemas/synthesis'
-import { companyProfileSchema, processHypothesisSchema } from '@/lib/ai/contracts'
+import { clientResearchSchema, processHypothesisSchema } from '@/lib/ai/contracts'
 
 const FAKE_MODEL = { modelId: 'fake-model' } as any
 
@@ -165,28 +166,45 @@ describe('gateway parity — capture-suggestions', () => {
   })
 })
 
-describe('gateway parity — refresh-company-profile', () => {
-  it('LocalAIGateway.refreshCompanyProfile returns a contract-valid CompanyProfile', async () => {
+describe('gateway parity — client-research', () => {
+  it('LocalAIGateway.researchClient returns a contract-valid ClientResearchPayload', async () => {
+    mockGenerateText.mockResolvedValue({
+      text: 'Acme is a widget manufacturer.',
+      steps: [
+        {
+          content: [
+            {
+              type: 'tool-result',
+              output: [
+                { url: 'https://acme.example.com', title: 'Acme Home' },
+              ],
+            },
+          ],
+        },
+      ],
+    })
     mockGenerateObject.mockResolvedValue({
       object: {
-        description: 'Acme makes widgets.',
-        industry: 'Manufacturing',
+        companyOverview: 'Acme makes widgets.',
+        fitScore: 7,
         areasOfExpertise: ['widgets'],
-        productsAndServices: [{ name: 'Widget Pro', description: 'Pro widgets' }],
-        sources: [],
+        productsAndServices: ['Widget Pro — Pro widgets'],
+        keyStakeholders: [],
+        techStack: [],
       },
     })
 
-    const out = await localAIGateway.refreshCompanyProfile({
+    const out = await localAIGateway.researchClient({
       clientName: 'Acme',
       clientIndustry: 'Manufacturing',
       clientWebsite: null,
       model: FAKE_MODEL,
+      anthropic: { tools: { webSearch_20250305: () => ({}) } },
     })
 
-    expect(companyProfileSchema.safeParse(out).success).toBe(true)
+    expect(clientResearchSchema.safeParse(out).success).toBe(true)
     expect(out.schemaVersion).toBe(1)
-    expect(typeof out.lastRefreshedAt).toBe('string')
+    expect(typeof out.researchedAt).toBe('string')
   })
 })
 
@@ -204,6 +222,16 @@ describe('gateway parity — TrazaAIGateway stub', () => {
         openQuestions: [],
         language: 'en',
         model: FAKE_MODEL,
+      })
+    ).rejects.toBeInstanceOf(NotImplementedError)
+
+    await expect(
+      trazaAIGateway.researchClient({
+        clientName: 'Acme',
+        clientIndustry: 'Manufacturing',
+        clientWebsite: null,
+        model: FAKE_MODEL,
+        anthropic: { tools: { webSearch_20250305: () => ({}) } },
       })
     ).rejects.toBeInstanceOf(NotImplementedError)
   })

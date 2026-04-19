@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 // Mock DB modules to avoid env var requirements on import
 vi.mock('@/lib/db/queries/clients', () => ({ getClientById: vi.fn() }))
+vi.mock('@/lib/db/queries/client-research', () => ({ getResearchByClientId: vi.fn() }))
 vi.mock('@/lib/db/queries/processes', () => ({
   getProcessById: vi.fn(),
   getProcessWithModel: vi.fn(),

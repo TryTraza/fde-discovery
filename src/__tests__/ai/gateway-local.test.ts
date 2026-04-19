@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockGenerateText = vi.fn()
 const mockGenerateObject = vi.fn()
+const mockStepCountIs = vi.fn((n: number) => ({ __stepCount: n }))
 vi.mock('ai', () => ({
   generateText: (...args: unknown[]) => mockGenerateText(...args),
   generateObject: (...args: unknown[]) => mockGenerateObject(...args),
+  stepCountIs: (...args: unknown[]) => mockStepCountIs(...(args as [number])),
 }))
 
 // generateInterviewQuestion calls buildAIInput which reaches into DB code.
@@ -276,6 +278,129 @@ describe('LocalAIGateway.generatePrepBrief', () => {
   it('returns the AI-produced brief', async () => {
     const out = await localAIGateway.generatePrepBrief({ sessionId: 's1', model: FAKE_MODEL })
     expect(out).toEqual(MOCK_BRIEF)
+  })
+})
+
+describe('LocalAIGateway.researchClient', () => {
+  const INPUT = {
+    clientName: 'Acme',
+    clientIndustry: 'Manufacturing',
+    clientWebsite: 'https://acme.example.com',
+    model: FAKE_MODEL,
+    anthropic: { tools: { webSearch_20250305: () => ({ __tool: 'web_search' }) } },
+  }
+
+  const DISCOVERY_TEXT = 'Acme is a mid-size widget maker.'
+
+  const DISCOVERY_STEPS_WITH_SOURCES = [
+    {
+      content: [
+        {
+          type: 'tool-result',
+          output: [
+            { url: 'https://acme.example.com', title: 'Acme Home' },
+            { url: 'https://news.example.com/acme', title: 'News piece' },
+          ],
+        },
+      ],
+    },
+    {
+      content: [
+        {
+          type: 'tool-result',
+          output: [
+            // duplicate of the first URL — should be deduped
+            { url: 'https://acme.example.com', title: 'Acme Home again' },
+            { url: 'https://blog.example.com/acme', title: 'Blog piece' },
+          ],
+        },
+        { type: 'text', text: 'some narration' },
+      ],
+    },
+  ]
+
+  const EXTRACTION_OBJECT = {
+    companyOverview: 'Acme makes widgets.',
+    fitScore: 8,
+    fitScoreRationale: 'Clear manual bottlenecks.',
+    areasOfExpertise: ['widgets'],
+    productsAndServices: ['Widget Pro — Industrial widgets'],
+    keyStakeholders: [],
+    techStack: ['SAP'],
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGenerateText.mockResolvedValue({
+      text: DISCOVERY_TEXT,
+      steps: DISCOVERY_STEPS_WITH_SOURCES,
+    })
+    mockGenerateObject.mockResolvedValue({ object: EXTRACTION_OBJECT })
+  })
+
+  it('calls generateText with the discovery system prompt, web-search tool, and stepCountIs(2)', async () => {
+    await localAIGateway.researchClient(INPUT)
+    const call = mockGenerateText.mock.calls[0][0]
+    expect(call.system).toContain('senior business research analyst')
+    expect(call.tools.web_search).toBeDefined()
+    expect(call.stopWhen).toEqual({ __stepCount: 2 })
+    expect(mockStepCountIs).toHaveBeenCalledWith(2)
+  })
+
+  it('renders the discovery template with name/industry/website', async () => {
+    await localAIGateway.researchClient(INPUT)
+    const call = mockGenerateText.mock.calls[0][0]
+    expect(call.prompt).toContain('## Company')
+    expect(call.prompt).toContain('Acme')
+    expect(call.prompt).toContain('Manufacturing')
+    expect(call.prompt).toContain('https://acme.example.com')
+  })
+
+  it('calls generateObject with the extraction system prompt and generated schema', async () => {
+    await localAIGateway.researchClient(INPUT)
+    const call = mockGenerateObject.mock.calls[0][0]
+    expect(call.system).toContain('strict structured payload')
+    expect(call.prompt).toContain('## Research material')
+    expect(call.prompt).toContain(DISCOVERY_TEXT)
+  })
+
+  it('dedupes sources extracted from the discovery step content by URL', async () => {
+    const out = await localAIGateway.researchClient(INPUT)
+    const urls = out.researchSources.map((s) => s.url)
+    expect(urls).toEqual([
+      'https://acme.example.com',
+      'https://news.example.com/acme',
+      'https://blog.example.com/acme',
+    ])
+  })
+
+  it('stamps every source with the same researchedAt snapshot', async () => {
+    const out = await localAIGateway.researchClient(INPUT)
+    const stamps = new Set(out.researchSources.map((s) => s.retrievedAt))
+    expect(stamps.size).toBe(1)
+    // And matches researchedAt itself
+    expect(Array.from(stamps)[0]).toBe(out.researchedAt)
+  })
+
+  it('caps the discovery prose at 8000 chars before feeding extraction', async () => {
+    const longText = 'x'.repeat(10000)
+    mockGenerateText.mockResolvedValueOnce({ text: longText, steps: [] })
+    await localAIGateway.researchClient(INPUT)
+    const extractionCall = mockGenerateObject.mock.calls[0][0]
+    // The prose appears inside the template body; its substring length
+    // must be bounded by 8000. Extract the `## Research material` block.
+    const match = /## Research material\n([\s\S]*?)(?=\n\n##|$)/.exec(extractionCall.prompt)
+    expect(match).not.toBeNull()
+    expect(match![1].length).toBeLessThanOrEqual(8000)
+  })
+
+  it('returns a clientResearchSchema-valid payload with schemaVersion 1', async () => {
+    const out = await localAIGateway.researchClient(INPUT)
+    expect(out.schemaVersion).toBe(1)
+    expect(out.companyOverview).toBe('Acme makes widgets.')
+    expect(out.fitScore).toBe(8)
+    expect(typeof out.researchedAt).toBe('string')
+    expect(() => new Date(out.researchedAt).toISOString()).not.toThrow()
   })
 })
 

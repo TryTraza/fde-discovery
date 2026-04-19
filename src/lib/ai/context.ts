@@ -7,6 +7,7 @@ import {
 } from '@/lib/db/queries/sessions'
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 import { getClientById } from '@/lib/db/queries/clients'
+import { getResearchByClientId } from '@/lib/db/queries/client-research'
 import { getEventsBySessionId } from '@/lib/db/queries/events'
 import type { DebriefAnswers } from '@/lib/db/types'
 
@@ -17,7 +18,7 @@ export interface SessionContext {
     industry: string
     website: string | null
     status: string
-    aiSummary: string | null
+    companyOverview: string | null
     notes: string | null
   }
   process: {
@@ -82,9 +83,10 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
   const primaryProcessId = await getPrimaryProcessIdForSession(session)
   const process = primaryProcessId ? await getProcessWithModel(primaryProcessId) : null
 
-  const [contacts, completedSessions] = await Promise.all([
+  const [contacts, completedSessions, research] = await Promise.all([
     listSessionContacts(sessionId),
     primaryProcessId ? getCompletedSessionsByProcess(primaryProcessId) : Promise.resolve([]),
+    getResearchByClientId(client.id),
   ])
 
   const pm = process?.processModel ?? null
@@ -113,7 +115,7 @@ export async function buildSessionContext(sessionId: string): Promise<SessionCon
       industry: client.industry,
       website: client.website,
       status: client.status,
-      aiSummary: client.aiSummary,
+      companyOverview: research?.companyOverview ?? null,
       notes: client.notes,
     },
     process: {

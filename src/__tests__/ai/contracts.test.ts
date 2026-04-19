@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  companyProfileSchema,
   CONTRACT_SCHEMA_VERSION,
   processGraphSchema,
   processHypothesisSchema,
@@ -8,7 +7,6 @@ import {
   synthesisOutputSchema,
 } from '@/lib/ai/contracts'
 import {
-  validCompanyProfile,
   validProcessGraph,
   validProcessHypothesis,
   validResearchNoteResult,
@@ -102,28 +100,6 @@ describe('processHypothesisSchema', () => {
     expect(parsed.inputs).toEqual([])
     expect(parsed.outputs).toEqual([])
     expect(parsed.openQuestions).toEqual([])
-  })
-})
-
-describe('companyProfileSchema', () => {
-  it('accepts a valid fixture', () => {
-    expect(companyProfileSchema.safeParse(validCompanyProfile).success).toBe(true)
-  })
-
-  it('rejects a malformed source url', () => {
-    const parsed = companyProfileSchema.safeParse({
-      ...validCompanyProfile,
-      sources: [{ title: 'x', url: 'not-a-url' }],
-    })
-    expect(parsed.success).toBe(false)
-  })
-
-  it('rejects an unknown company stage', () => {
-    const parsed = companyProfileSchema.safeParse({
-      ...validCompanyProfile,
-      size: { stage: 'unicorn' },
-    })
-    expect(parsed.success).toBe(false)
   })
 })
 

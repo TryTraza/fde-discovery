@@ -57,6 +57,13 @@
       "when": 1776329076314,
       "tag": "0007_drop_ai_agents_skills",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776533030154,
+      "tag": "0008_client_research",
+      "breakpoints": true
     }
   ]
 }

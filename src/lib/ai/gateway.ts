@@ -18,7 +18,7 @@
  */
 
 import type { LanguageModel } from 'ai'
-import type { CompanyProfile, ProcessHypothesis } from '@/lib/ai/contracts'
+import type { ClientResearchPayload, ProcessHypothesis } from '@/lib/ai/contracts'
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 
@@ -80,10 +80,15 @@ export interface CaptureSuggestion {
   rationale: string
 }
 
-export interface RefreshCompanyProfileGatewayInput extends WithModel {
+export interface ResearchClientGatewayInput extends WithModel {
   clientName: string
-  clientIndustry: string
+  clientIndustry: string | null
   clientWebsite: string | null
+  /** Anthropic SDK tool factory. The local gateway invokes
+   * `anthropic.tools.webSearch_20250305()` to enable web search during
+   * discovery. Passed through the input so `getAIConfig` stays the
+   * single auth boundary. */
+  anthropic: { tools: { webSearch_20250305: () => unknown } }
 }
 
 export interface SessionSynthesisGatewayInput extends WithModel {
@@ -104,7 +109,7 @@ export interface AIGateway {
   generateCaptureSuggestions(
     input: CaptureSuggestionsGatewayInput
   ): Promise<CaptureSuggestion[]>
-  refreshCompanyProfile(input: RefreshCompanyProfileGatewayInput): Promise<CompanyProfile>
+  researchClient(input: ResearchClientGatewayInput): Promise<ClientResearchPayload>
   synthesizeSession(input: SessionSynthesisGatewayInput): Promise<SynthesisOutput>
   synthesizeShadowing(input: ShadowingSynthesisGatewayInput): Promise<SynthesisOutput>
 }

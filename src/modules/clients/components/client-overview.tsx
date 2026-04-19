@@ -7,8 +7,7 @@ import { useRole } from '@/lib/hooks/use-role'
 import { toast } from 'sonner'
 import { useClient } from '@/modules/clients/hooks/use-clients'
 import { ClientDetailCard } from './client-detail-card'
-import { AISummaryCard } from './ai-summary-card'
-import { CompanyProfileCard } from './company-profile-card'
+import { ClientResearchCard } from './client-research-card'
 import { ContactsSection } from '@/modules/contacts/components/contacts-section'
 import { ProcessesSection } from './processes-section'
 import { SessionsListPage } from '@/modules/sessions/components/sessions-list-page'
@@ -115,8 +114,7 @@ export function ClientOverview({ clientId }: { clientId: string }) {
       <TabsContent value="overview" className="space-y-6">
         <ClientDetailCard client={client} clientId={clientId} mutateClient={mutateClient} />
         <ContactsSection clientId={clientId} mutateClient={mutateClient} />
-        <CompanyProfileCard clientId={clientId} profile={client.profile ?? null} />
-        <AISummaryCard client={client} clientId={clientId} mutateClient={mutateClient} />
+        <ClientResearchCard clientId={clientId} />
       </TabsContent>
 
       <TabsContent value="sessions">

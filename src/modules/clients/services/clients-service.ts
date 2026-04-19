@@ -1,5 +1,4 @@
 import { apiClient } from '@/lib/api-client'
-import type { CompanyProfile } from '@/lib/ai/contracts'
 import type {
   Client,
   ClientCreateInput,
@@ -28,14 +27,6 @@ class ClientsService {
 
   async delete(id: string): Promise<void> {
     await apiClient.delete(`${this.basePath}/${id}`)
-  }
-
-  async generateResearch(id: string): Promise<unknown> {
-    return apiClient.post(`${this.basePath}/${id}/research`)
-  }
-
-  async refreshProfile(id: string): Promise<CompanyProfile> {
-    return apiClient.post<CompanyProfile>(`${this.basePath}/${id}/refresh-profile`)
   }
 }
 

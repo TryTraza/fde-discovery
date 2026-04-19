@@ -1,5 +1,10 @@
-export type { Client, NewClient, ClientStatus } from '@/lib/db/schema'
-export type { CompanyProfile } from '@/lib/ai/contracts'
+export type { Client, ClientResearch, NewClient, ClientStatus } from '@/lib/db/schema'
+export type {
+  ClientResearchPayload,
+  KeyStakeholder,
+  ProductOrService,
+  ResearchSource,
+} from '@/lib/ai/contracts'
 export { CLIENT_STATUSES } from '@/lib/db/schema'
 
 export interface ClientFilters {
@@ -18,5 +23,4 @@ export interface ClientCreateInput {
 
 export type ClientUpdateInput = Partial<ClientCreateInput> & {
   status?: string
-  aiSummary?: string
 }

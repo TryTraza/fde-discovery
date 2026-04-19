@@ -1,0 +1,27 @@
+name: Apply Neon migrations
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'src/lib/db/migrations/**'
+      - 'drizzle.config.ts'
+      - '.github/workflows/migrate.yml'
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL: ${{ github.ref == 'refs/heads/main' && secrets.NEON_PROD_DATABASE_URL || secrets.NEON_DEV_DATABASE_URL }}
+        run: npm run db:migrate

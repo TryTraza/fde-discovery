@@ -12,6 +12,7 @@ export const CLIENT_KEYS = {
   },
   detail: (id: string) => `${BASE}/${id}`,
   contacts: (id: string) => `${BASE}/${id}/contacts`,
+  research: (id: string) => `${BASE}/${id}/research`,
 }
 
 const isClientsKey = (key: unknown): key is string =>

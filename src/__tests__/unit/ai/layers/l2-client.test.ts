@@ -4,6 +4,10 @@ vi.mock('@/lib/db/queries/clients', () => ({
   getClientById: vi.fn(),
 }))
 
+vi.mock('@/lib/db/queries/client-research', () => ({
+  getResearchByClientId: vi.fn(),
+}))
+
 vi.mock('@/lib/db/queries/processes', () => ({
   getProcessById: vi.fn(),
 }))
@@ -13,6 +17,7 @@ vi.mock('@/lib/db/queries/sessions', () => ({
 }))
 
 import { getClientById } from '@/lib/db/queries/clients'
+import { getResearchByClientId } from '@/lib/db/queries/client-research'
 import { getProcessById } from '@/lib/db/queries/processes'
 import { getSessionById } from '@/lib/db/queries/sessions'
 import { l2ClientLayer } from '@/lib/ai/layers/l2-client'
@@ -23,7 +28,6 @@ const fakeClient = {
   industry: 'Manufacturing',
   website: 'https://acme.com',
   status: 'active_poc',
-  aiSummary: 'A manufacturing company.',
   notes: 'Key client.',
   hqLocation: 'New York',
 }
@@ -31,6 +35,7 @@ const fakeClient = {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getClientById).mockResolvedValue(fakeClient as any)
+  vi.mocked(getResearchByClientId).mockResolvedValue(null)
   vi.mocked(getProcessById).mockResolvedValue({ clientId: 'client-1' } as any)
   vi.mocked(getSessionById).mockResolvedValue({ processId: 'proc-1' } as any)
 })
@@ -86,32 +91,88 @@ describe('L2 Client Layer', () => {
     expect(result.data).toEqual({})
   })
 
-  it('renders a clientProfileSection when client.profile is populated', async () => {
-    vi.mocked(getClientById).mockResolvedValue({
-      ...fakeClient,
-      profile: {
-        schemaVersion: 1,
-        description: 'Acme builds widgets.',
-        industry: 'Manufacturing',
-        size: { stage: 'growth', employees: 500 },
+  describe('AI Research block', () => {
+    it('renders a ### AI Research block when research row exists', async () => {
+      vi.mocked(getResearchByClientId).mockResolvedValue({
+        clientId: 'client-1',
+        companyOverview: 'Acme builds widgets.',
+        sizeFinancials: '500 employees, growth-stage.',
+        customersMarkets: 'Enterprise buyers in EMEA.',
+        painPoints: 'Manual procurement flows.',
+        recentNews: 'Raised Series C in early 2026.',
+        fitScore: 9,
+        fitScoreRationale: 'Clear bottlenecks and appetite for change.',
         areasOfExpertise: ['widget engineering'],
         productsAndServices: [{ name: 'Widget Pro', description: 'Pro widgets' }],
-        sources: [],
-        lastRefreshedAt: '2026-04-16T10:00:00.000Z',
-      },
-    } as any)
+        keyStakeholders: [{ name: 'Jane Doe', role: 'COO' }],
+        techStack: ['SAP S/4HANA'],
+        researchSources: [],
+        researchedAt: new Date(),
+        schemaVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any)
 
-    const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
-    expect(result.templateVars.clientProfileSection).toContain('Company Profile')
-    expect(result.templateVars.clientProfileSection).toContain('Acme builds widgets.')
-    expect(result.templateVars.clientProfileSection).toContain('stage: growth')
-    expect(result.templateVars.clientProfileSection).toContain('500 employees')
-    expect(result.templateVars.clientProfileSection).toContain('Widget Pro')
-  })
+      const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
+      expect(result.templateVars.clientSection).toContain('### AI Research')
+      expect(result.templateVars.clientSection).toContain('Acme builds widgets.')
+      expect(result.templateVars.clientSection).toMatch(/Fit:\*{0,2} 9\/10/)
+      expect(result.templateVars.clientSection).toContain('Clear bottlenecks')
+      expect(result.templateVars.clientSection).toContain('500 employees')
+      expect(result.templateVars.clientSection).toContain('Widget Pro')
+      expect(result.templateVars.clientSection).toContain('Jane Doe')
+      expect(result.templateVars.clientSection).toContain('SAP S/4HANA')
+    })
 
-  it('returns empty string for clientProfileSection when profile is null', async () => {
-    vi.mocked(getClientById).mockResolvedValue({ ...fakeClient, profile: null } as any)
-    const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
-    expect(result.templateVars.clientProfileSection).toBe('')
+    it('omits the ### AI Research block when no research row exists', async () => {
+      vi.mocked(getResearchByClientId).mockResolvedValue(null)
+      const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
+      expect(result.templateVars.clientSection).not.toContain('### AI Research')
+    })
+
+    it('omits the Fit line when fitScore is null', async () => {
+      vi.mocked(getResearchByClientId).mockResolvedValue({
+        clientId: 'client-1',
+        companyOverview: 'A company.',
+        sizeFinancials: null,
+        customersMarkets: null,
+        painPoints: null,
+        recentNews: null,
+        fitScore: null,
+        fitScoreRationale: null,
+        areasOfExpertise: [],
+        productsAndServices: [],
+        keyStakeholders: [],
+        techStack: [],
+        researchSources: [],
+        researchedAt: new Date(),
+        schemaVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any)
+      const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
+      expect(result.templateVars.clientSection).toContain('### AI Research')
+      expect(result.templateVars.clientSection).not.toMatch(/Fit:\*{0,2} /)
+    })
+
+    it('passes the research row in data for callers that want structured access', async () => {
+      const row = {
+        clientId: 'client-1',
+        companyOverview: 'Overview.',
+        fitScore: 5,
+        areasOfExpertise: [],
+        productsAndServices: [],
+        keyStakeholders: [],
+        techStack: [],
+        researchSources: [],
+        researchedAt: new Date(),
+        schemaVersion: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      vi.mocked(getResearchByClientId).mockResolvedValue(row as any)
+      const result = await l2ClientLayer.resolve({ clientId: 'client-1' })
+      expect((result.data as any).research).toEqual(row)
+    })
   })
 })

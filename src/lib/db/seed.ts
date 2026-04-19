@@ -1,4 +1,6 @@
-import 'dotenv/config'
+import { config } from 'dotenv'
+config({ path: '.env.local' })
+config()
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from './schema'
@@ -20,11 +22,26 @@ async function seed() {
       hqLocation: 'Madrid, Spain',
       status: 'active_poc',
       notes: 'Venture Vanguard arm. Procurement department.',
-      aiSummary:
-        'Omatapalo is a Spanish construction company with a procurement department that handles supplier quote intake, RFQ generation, and purchase order creation.',
     })
     .returning()
   console.log(`  Created client: ${client1.name}`)
+
+  await db.insert(schema.clientResearch).values({
+    clientId: client1.id,
+    companyOverview:
+      'Omatapalo is a Spanish construction company with a procurement department that handles supplier quote intake, RFQ generation, and purchase order creation.',
+    fitScore: 8,
+    fitScoreRationale:
+      'Heavy manual procurement workflows and clear pain points make this a strong POC candidate.',
+    areasOfExpertise: ['Construction', 'Procurement'],
+    productsAndServices: [],
+    keyStakeholders: [],
+    techStack: ['Outlook', 'Excel', 'ERP'],
+    researchSources: [],
+    researchedAt: new Date(),
+    schemaVersion: 1,
+  })
+  console.log('  Seeded client research for Omatapalo')
 
   // Client 1 contacts
   await db.insert(schema.contacts).values([

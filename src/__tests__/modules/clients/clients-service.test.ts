@@ -76,11 +76,4 @@ describe('clientsService', () => {
     })
   })
 
-  describe('generateResearch', () => {
-    it('POSTs to /api/clients/:id/research', async () => {
-      mockPost.mockResolvedValue({})
-      await clientsService.generateResearch('abc')
-      expect(mockPost).toHaveBeenCalledWith('/api/clients/abc/research')
-    })
-  })
 })

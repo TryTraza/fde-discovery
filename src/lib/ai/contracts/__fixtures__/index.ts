@@ -1,4 +1,4 @@
-import type { CompanyProfile } from '../company-profile'
+import type { ClientResearchPayload, GeneratedClientResearch } from '../client-research'
 import type { ProcessGraph } from '../process-graph'
 import type { ProcessHypothesis } from '../process-hypothesis'
 import type { ResearchNoteResult } from '../research-note-result'
@@ -74,23 +74,45 @@ export const validProcessHypothesis: ProcessHypothesis = {
   generatedAt: '2026-04-15T10:00:00.000Z',
 }
 
-export const validCompanyProfile: CompanyProfile = {
-  schemaVersion: 1,
-  description: 'Acme Corp designs and manufactures widgets for enterprise buyers.',
-  industry: 'Manufacturing',
-  size: { employees: 500, stage: 'growth' },
+export const validGeneratedClientResearch: GeneratedClientResearch = {
+  companyOverview: 'Acme Corp designs and manufactures widgets for enterprise buyers.',
+  sizeFinancials: '500 employees, ~$120M ARR, growth-stage.',
+  customersMarkets: 'Enterprise manufacturing buyers across EMEA.',
+  painPoints: 'Manual PO approvals and fragmented supply-chain visibility.',
+  recentNews: 'Raised a Series C in early 2026 focused on US expansion.',
+  fitScore: 8,
+  fitScoreRationale: 'Strong process-modernisation appetite with clear manual bottlenecks.',
   areasOfExpertise: ['Widget engineering', 'Supply chain'],
+  productsAndServices: ['Widget Pro — Industrial-grade widget platform'],
+  keyStakeholders: ['Jane Doe | COO | https://www.linkedin.com/in/janedoe'],
+  techStack: ['SAP S/4HANA', 'Salesforce'],
+}
+
+export const validClientResearch: ClientResearchPayload = {
+  companyOverview: validGeneratedClientResearch.companyOverview,
+  sizeFinancials: validGeneratedClientResearch.sizeFinancials,
+  customersMarkets: validGeneratedClientResearch.customersMarkets,
+  painPoints: validGeneratedClientResearch.painPoints,
+  recentNews: validGeneratedClientResearch.recentNews,
+  fitScore: validGeneratedClientResearch.fitScore,
+  fitScoreRationale: validGeneratedClientResearch.fitScoreRationale,
+  areasOfExpertise: validGeneratedClientResearch.areasOfExpertise ?? [],
   productsAndServices: [
     { name: 'Widget Pro', description: 'Industrial-grade widget platform' },
   ],
-  sources: [
+  keyStakeholders: [
+    { name: 'Jane Doe', role: 'COO', linkedinUrl: 'https://www.linkedin.com/in/janedoe' },
+  ],
+  techStack: validGeneratedClientResearch.techStack ?? [],
+  schemaVersion: 1,
+  researchSources: [
     {
       title: 'Acme homepage',
       url: 'https://acme.example.com',
       retrievedAt: '2026-04-15T10:00:00.000Z',
     },
   ],
-  lastRefreshedAt: '2026-04-15T10:00:00.000Z',
+  researchedAt: '2026-04-15T10:00:00.000Z',
 }
 
 export const validResearchNoteResult: ResearchNoteResult = {

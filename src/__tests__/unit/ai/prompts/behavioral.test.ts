@@ -59,31 +59,6 @@ describe('capture-suggestions prompt', () => {
   })
 })
 
-// ── company-research ──
-
-describe('company-research prompt', () => {
-  const vars = {
-    clientName: 'Acme Corp',
-    clientIndustry: 'Manufacturing',
-    clientWebsite: 'Their website is https://acme.com.',
-  }
-
-  it('includes company name and industry', () => {
-    const result = compileTestPrompt('company-research', vars)
-    expect(result.userPrompt).toContain('Acme Corp')
-    expect(result.userPrompt).toContain('Manufacturing')
-  })
-
-  it('includes website context when provided', () => {
-    const result = compileTestPrompt('company-research', vars)
-    expect(result.userPrompt).toContain('https://acme.com')
-  })
-
-  it('leaves no unresolved markers', () => {
-    assertNoUnresolvedMarkers(compileTestPrompt('company-research', vars))
-  })
-})
-
 // ── process-hypothesis ──
 
 describe('process-hypothesis prompt', () => {
@@ -289,8 +264,8 @@ describe('research-chat prompt', () => {
 // ── All prompts: completeness check ──
 
 describe('All prompts fixture completeness', () => {
-  it('has exactly 9 prompts defined', () => {
-    expect(PROMPTS).toHaveLength(9)
+  it('has exactly 8 prompts defined', () => {
+    expect(PROMPTS).toHaveLength(8)
   })
 
   it('all prompts have unique names', () => {

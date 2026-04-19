@@ -15,7 +15,7 @@
  *   - params: feature-specific parameters (IDs, flags)
  */
 
-import type { CompanyProfile, ProcessGraph, ProcessHypothesis } from './index'
+import type { ClientResearchPayload, ProcessGraph, ProcessHypothesis } from './index'
 
 export const WORKER_INPUT_SCHEMA_VERSION = 1 as const
 
@@ -25,7 +25,7 @@ export type FeatureSlug =
   | 'process-hypothesis'
   | 'prep-brief'
   | 'capture-suggestions'
-  | 'refresh-company-profile'
+  | 'client-research'
   | 'session-synthesis'
   | 'shadowing-synthesis'
   | 'research-chat'
@@ -46,7 +46,7 @@ export interface ClientContext {
   clientId: string
   clientName: string
   clientIndustry: string
-  profile: CompanyProfile | null
+  research: ClientResearchPayload | null
 }
 
 export interface ProcessContext {
@@ -101,8 +101,8 @@ export type CaptureSuggestionsInput = BaseWorkerInput<
   { sessionId: string; recentEvents: Array<{ type: string; label: string }> }
 >
 
-export type RefreshCompanyProfileInput = BaseWorkerInput<
-  'refresh-company-profile',
+export type ClientResearchInput = BaseWorkerInput<
+  'client-research',
   { client: ClientContext },
   { clientId: string }
 >
@@ -131,7 +131,7 @@ export type WorkerInput =
   | ProcessHypothesisInput
   | PrepBriefInput
   | CaptureSuggestionsInput
-  | RefreshCompanyProfileInput
+  | ClientResearchInput
   | SessionSynthesisInput
   | ShadowingSynthesisInput
   | ResearchChatInput

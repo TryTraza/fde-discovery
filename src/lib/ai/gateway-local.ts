@@ -11,13 +11,16 @@
  * a feature lives in its feature file + template.
  */
 
-import { generateObject, generateText } from 'ai'
+import { generateObject, generateText, stepCountIs } from 'ai'
 import { emailDraftFeature } from '@/lib/ai/features/email-draft'
 import { sessionInterviewFeature } from '@/lib/ai/features/session-interview'
 import { processHypothesisFeature } from '@/lib/ai/features/process-hypothesis'
 import { prepBriefFeature } from '@/lib/ai/features/prep-brief'
 import { captureSuggestionsFeature } from '@/lib/ai/features/capture-suggestions'
-import { refreshCompanyProfileFeature } from '@/lib/ai/features/refresh-company-profile'
+import {
+  CLIENT_RESEARCH_DISCOVERY_PROMPT,
+  clientResearchFeature,
+} from '@/lib/ai/features/client-research'
 import { sessionSynthesisFeature } from '@/lib/ai/features/session-synthesis'
 import { shadowingSynthesisFeature } from '@/lib/ai/features/shadowing-synthesis'
 import { renderEmailDraftTemplate } from '@/lib/ai/templates/email-draft'
@@ -25,7 +28,10 @@ import { renderSessionInterviewTemplate } from '@/lib/ai/templates/session-inter
 import { renderProcessHypothesisTemplate } from '@/lib/ai/templates/process-hypothesis'
 import { renderPrepBriefTemplate } from '@/lib/ai/templates/prep-brief'
 import { renderCaptureSuggestionsTemplate } from '@/lib/ai/templates/capture-suggestions'
-import { renderRefreshCompanyProfileTemplate } from '@/lib/ai/templates/refresh-company-profile'
+import {
+  renderClientResearchDiscoveryTemplate,
+  renderClientResearchExtractionTemplate,
+} from '@/lib/ai/templates/client-research'
 import { renderSessionSynthesisTemplate } from '@/lib/ai/templates/session-synthesis'
 import { renderShadowingSynthesisTemplate } from '@/lib/ai/templates/shadowing-synthesis'
 import { interviewQuestionSchema } from '@/lib/ai/schemas/interview'
@@ -34,15 +40,11 @@ import { prepBriefSchema, type PrepBrief } from '@/lib/ai/schemas/prep-brief'
 import { suggestionsSchema } from '@/lib/ai/schemas/suggestions'
 import { synthesisOutputSchema, type SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 import {
-  companyProfileSchema,
-  companyNewsSchema,
-  companySizeSchema,
-  keyStakeholderSchema,
-  productOrServiceSchema,
-  researchSourceSchema,
-  type CompanyProfile,
+  clientResearchSchema,
+  generatedClientResearchSchema,
+  type ClientResearchPayload,
+  type ResearchSource,
 } from '@/lib/ai/contracts'
-import { z } from 'zod'
 import { buildAIInput } from '@/lib/ai/input-builder'
 import { composeStructuredHypothesis } from '@/lib/ai/hypothesis/compose'
 import type {
@@ -54,26 +56,47 @@ import type {
   PrepBriefGatewayInput,
   ProcessHypothesisGatewayInput,
   ProcessHypothesisGatewayResult,
-  RefreshCompanyProfileGatewayInput,
+  ResearchClientGatewayInput,
   SessionInterviewGatewayInput,
   SessionSynthesisGatewayInput,
   ShadowingSynthesisGatewayInput,
 } from './gateway'
 
-// Schema handed to generateObject — lacks schemaVersion / lastRefreshedAt
-// because those are server-composed. Full contract validation runs at
-// the end via companyProfileSchema.parse().
-const generatedProfileSchema = z.object({
-  description: z.string().min(1),
-  industry: z.string().min(1),
-  size: companySizeSchema.optional(),
-  areasOfExpertise: z.array(z.string()).default([]),
-  productsAndServices: z.array(productOrServiceSchema),
-  keyStakeholders: z.array(keyStakeholderSchema).optional(),
-  techStack: z.array(z.string()).optional(),
-  recentNews: z.array(companyNewsSchema).optional(),
-  sources: z.array(researchSourceSchema).default([]),
-})
+const MAX_RESEARCH_PROSE_CHARS = 8000
+const MAX_RESEARCH_SOURCES = 8
+
+function extractWebSearchSources(
+  steps: unknown,
+  retrievedAt: string
+): ResearchSource[] {
+  if (!Array.isArray(steps)) return []
+  const seen = new Map<string, ResearchSource>()
+  for (const step of steps) {
+    const content = (step as { content?: unknown })?.content
+    if (!Array.isArray(content)) continue
+    for (const part of content) {
+      if (!part || typeof part !== 'object') continue
+      const typed = part as { type?: string; output?: unknown }
+      if (typed.type !== 'tool-result') continue
+      if (!Array.isArray(typed.output)) continue
+      for (const entry of typed.output) {
+        if (!entry || typeof entry !== 'object') continue
+        const { url, title } = entry as { url?: unknown; title?: unknown }
+        if (typeof url !== 'string' || !url) continue
+        if (seen.has(url)) continue
+        seen.set(url, {
+          url,
+          title: typeof title === 'string' && title.length > 0 ? title : url,
+          retrievedAt,
+        })
+      }
+    }
+  }
+  // Cap the final list. Web search often emits 20+ dedupable sources
+  // across a couple of queries; we only need the first handful as a
+  // reader-trail. The tail just bloats the UI and the JSONB column.
+  return Array.from(seen.values()).slice(0, MAX_RESEARCH_SOURCES)
+}
 
 function languageInstruction(language: 'en' | 'es'): string {
   return language === 'es'
@@ -243,30 +266,101 @@ class LocalAIGatewayImpl implements AIGateway {
     return parsed.suggestions ?? []
   }
 
-  async refreshCompanyProfile(input: RefreshCompanyProfileGatewayInput): Promise<CompanyProfile> {
-    const feature = refreshCompanyProfileFeature
+  async researchClient(input: ResearchClientGatewayInput): Promise<ClientResearchPayload> {
+    const feature = clientResearchFeature
     if (!feature.systemPrompt) {
       throw new Error(`[gateway-local] ${feature.slug}: systemPrompt missing`)
     }
 
-    const userPrompt = renderRefreshCompanyProfileTemplate({
+    // Step 1 — web-search discovery via generateText.
+    const discoveryPrompt = renderClientResearchDiscoveryTemplate({
       name: input.clientName,
       industry: input.clientIndustry,
       website: input.clientWebsite,
     })
 
-    const { object } = await generateObject({
+    const discovery = await generateText({
       model: input.model,
-      system: feature.systemPrompt,
-      prompt: userPrompt,
-      schema: generatedProfileSchema,
+      system: CLIENT_RESEARCH_DISCOVERY_PROMPT,
+      prompt: discoveryPrompt,
+      // max_uses caps the number of web_search tool invocations the
+      // model can make in a single step. Without it, the model can
+      // issue 5+ searches, each returning ~500-2000 token snippets
+      // that all feed back into step 1b as input — easily blowing
+      // past Anthropic's 30k input-tokens/min rate limit.
+      tools: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- AI SDK v6 tool types
+        web_search: input.anthropic.tools.webSearch_20250305({ maxUses: 2 }) as any,
+      },
+      stopWhen: stepCountIs(2),
       maxOutputTokens: feature.maxOutputTokens,
     })
 
-    return companyProfileSchema.parse({
-      schemaVersion: 1,
+    // Step 2 — extract + dedupe sources before extraction. All sources
+    // share a single retrievedAt stamp; the final researchedAt matches
+    // the snapshot so consumers can correlate the two.
+    const retrievedAt = new Date().toISOString()
+    const sources = extractWebSearchSources(discovery.steps, retrievedAt)
+    const proseCapped = (discovery.text ?? '').slice(0, MAX_RESEARCH_PROSE_CHARS)
+
+    const extractionPrompt = renderClientResearchExtractionTemplate({
+      name: input.clientName,
+      industry: input.clientIndustry,
+      website: input.clientWebsite,
+      researchProse: proseCapped,
+      sources,
+    })
+
+    const { object } = await generateObject({
+      model: input.model,
+      system: feature.systemPrompt,
+      prompt: extractionPrompt,
+      schema: generatedClientResearchSchema,
+      maxOutputTokens: feature.maxOutputTokens,
+    })
+
+    // The lean schema intentionally can't express int/min/max/nested objects
+    // (Anthropic's structured-output compiler rejects anything complex), so
+    // we reshape and validate here before handing to clientResearchSchema.
+
+    // fitScore: round + clamp to [1,10].
+    let fitScore: number | undefined
+    if (typeof object.fitScore === 'number' && Number.isFinite(object.fitScore)) {
+      const rounded = Math.round(object.fitScore)
+      if (rounded >= 1 && rounded <= 10) fitScore = rounded
+    }
+
+    // productsAndServices: "<name> — <description>" → {name, description}.
+    const productsAndServices = (object.productsAndServices ?? [])
+      .map((raw) => {
+        const [name, ...rest] = raw.split(/—|–|\s-\s/)
+        const description = rest.join(' ').trim()
+        const trimmedName = name?.trim() ?? ''
+        if (!trimmedName || !description) return null
+        return { name: trimmedName, description }
+      })
+      .filter((p): p is { name: string; description: string } => p !== null)
+
+    // keyStakeholders: "<name> | <role> | <linkedinUrl>" → structured row.
+    // linkedinUrl is optional; drop it if it isn't a plausible http(s) URL.
+    const keyStakeholders = (object.keyStakeholders ?? [])
+      .map((raw) => {
+        const parts = raw.split('|').map((p) => p.trim()).filter(Boolean)
+        const [name, role, linkedinUrl] = parts
+        if (!name || !role) return null
+        const linkedinOk = linkedinUrl && /^https?:\/\//.test(linkedinUrl)
+        return linkedinOk ? { name, role, linkedinUrl } : { name, role }
+      })
+      .filter((s): s is { name: string; role: string; linkedinUrl?: string } => s !== null)
+
+    return clientResearchSchema.parse({
       ...object,
-      lastRefreshedAt: new Date().toISOString(),
+      fitScore,
+      productsAndServices,
+      keyStakeholders,
+      schemaVersion: 1,
+      researchSources: sources,
+      researchedAt: retrievedAt,
     })
   }
 

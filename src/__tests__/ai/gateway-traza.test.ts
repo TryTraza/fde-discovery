@@ -35,11 +35,12 @@ describe('TrazaAIGateway (stub)', () => {
     ).rejects.toBeInstanceOf(NotImplementedError)
 
     await expect(
-      trazaAIGateway.refreshCompanyProfile({
+      trazaAIGateway.researchClient({
         clientName: 'Acme',
         clientIndustry: 'Manufacturing',
         clientWebsite: null,
         model: FAKE_MODEL,
+        anthropic: { tools: { webSearch_20250305: () => ({}) } },
       })
     ).rejects.toBeInstanceOf(NotImplementedError)
 

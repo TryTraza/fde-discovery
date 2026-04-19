@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import * as schema from '@/lib/db/schema'
 
 describe('Database Schema — Tables', () => {
-  it('exports all 12 tables', () => {
+  it('exports all 13 tables', () => {
     const tables = [
       'clients',
       'contacts',
@@ -16,6 +16,7 @@ describe('Database Schema — Tables', () => {
       'artifacts',
       'openQuestions',
       'researchNotes',
+      'clientResearch',
     ]
     for (const t of tables) {
       expect((schema as any)[t]).toBeDefined()
@@ -53,12 +54,17 @@ describe('Database Schema — Column Verification', () => {
       'hqLocation',
       'notes',
       'status',
-      'aiSummary',
       'createdAt',
       'updatedAt',
       'deletedAt',
     ]
     for (const c of expected) expect(cols).toContain(c)
+  })
+
+  it('clients table no longer has aiSummary or profile columns', () => {
+    const cols = Object.keys(schema.clients)
+    expect(cols).not.toContain('aiSummary')
+    expect(cols).not.toContain('profile')
   })
 
   it('contacts table has all columns', () => {

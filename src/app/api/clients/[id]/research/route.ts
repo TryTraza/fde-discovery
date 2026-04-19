@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin, handleAPIError } from '@/lib/auth/utils'
+import { requireAdmin, requireUserId, handleAPIError } from '@/lib/auth/utils'
 import { getClientById } from '@/lib/db/queries/clients'
+import {
+  getResearchByClientId,
+  upsertClientResearch,
+} from '@/lib/db/queries/client-research'
 import { getAIConfig } from '@/lib/ai/get-ai-config'
-import { triggerCompanyResearchViaBuilder } from '@/lib/ai/trigger-research'
+import { getAIGateway } from '@/lib/ai/gateway-factory'
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -13,11 +17,27 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    // Resolve model NOW while auth context is available
     const { model, anthropic } = await getAIConfig('research')
-    triggerCompanyResearchViaBuilder(id, client, model, anthropic)
+    const payload = await getAIGateway('client-research').researchClient({
+      clientName: client.name,
+      clientIndustry: client.industry,
+      clientWebsite: client.website ?? null,
+      model,
+      anthropic,
+    })
+    const persisted = await upsertClientResearch(id, payload)
+    return NextResponse.json(persisted)
+  } catch (error) {
+    return handleAPIError(error)
+  }
+}
 
-    return NextResponse.json({ message: 'Research started' })
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireUserId()
+    const { id } = await params
+    const research = await getResearchByClientId(id)
+    return NextResponse.json(research)
   } catch (error) {
     return handleAPIError(error)
   }

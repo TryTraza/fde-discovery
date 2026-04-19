@@ -15,17 +15,9 @@ vi.mock('@/lib/db/queries/clients', () => ({
   updateClient: vi.fn(),
 }))
 
+const mockGetAIConfig = vi.fn()
 vi.mock('@/lib/ai/get-ai-config', () => ({
-  getAIConfig: vi.fn().mockResolvedValue({
-    model: 'mock-model',
-    modelId: 'claude-sonnet-4-6',
-    anthropic: {},
-  }),
-}))
-
-const mockExecuteAI = vi.fn()
-vi.mock('@/lib/ai/builder', () => ({
-  executeAI: (...args: unknown[]) => mockExecuteAI(...args),
+  getAIConfig: (...args: unknown[]) => mockGetAIConfig(...args),
 }))
 
 // --- Imports (after mocks) ---
@@ -100,7 +92,6 @@ describe('GET /api/clients', () => {
 describe('POST /api/clients', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockExecuteAI.mockResolvedValue({ text: '', meta: {} })
   })
 
   it('returns 401 when unauthenticated', async () => {
@@ -158,7 +149,7 @@ describe('POST /api/clients', () => {
     expect(data).toEqual(newClient)
   })
 
-  it('triggers executeAI fire-and-forget after creation', async () => {
+  it('does not trigger any background AI research on create', async () => {
     setupClerkMocks({ isAuthenticated: true, publicMetadata: { role: 'admin' } })
     const newClient = {
       id: 'c-new',
@@ -176,8 +167,9 @@ describe('POST /api/clients', () => {
     const res = await POST(req)
 
     expect(res.status).toBe(201)
-    // Fire-and-forget: the route calls getAIConfig then executeAI asynchronously
-    // We just verify the response was returned successfully
+    // The create handler must not resolve an API config — research is
+    // driven explicitly from the ClientResearchCard button, not on create.
+    expect(mockGetAIConfig).not.toHaveBeenCalled()
   })
 
   it('returns 400 for malformed JSON body', async () => {

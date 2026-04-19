@@ -15,6 +15,10 @@ vi.mock('@/lib/db/queries/clients', () => ({
   getClientById: vi.fn(),
 }))
 
+vi.mock('@/lib/db/queries/client-research', () => ({
+  getResearchByClientId: vi.fn(),
+}))
+
 vi.mock('@/lib/db/queries/events', () => ({
   getEventsBySessionId: vi.fn().mockResolvedValue([]),
 }))
@@ -28,6 +32,7 @@ import {
 } from '@/lib/db/queries/sessions'
 import { getProcessWithModel } from '@/lib/db/queries/processes'
 import { getClientById } from '@/lib/db/queries/clients'
+import { getResearchByClientId } from '@/lib/db/queries/client-research'
 
 const fakeClient = {
   id: 'c1',
@@ -35,8 +40,22 @@ const fakeClient = {
   industry: 'Manufacturing',
   website: 'https://acme.com',
   status: 'active_poc',
-  aiSummary: 'Acme is a large manufacturer.',
   notes: 'Good relationship with VP of Ops.',
+}
+
+const fakeResearch = {
+  clientId: 'c1',
+  companyOverview: 'Acme is a large manufacturer.',
+  fitScore: 7,
+  areasOfExpertise: [],
+  productsAndServices: [],
+  keyStakeholders: [],
+  techStack: [],
+  researchSources: [],
+  researchedAt: new Date(),
+  schemaVersion: 1,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 }
 
 const fakeProcess = {
@@ -91,12 +110,14 @@ describe('buildSessionContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getPrimaryProcessIdForSession).mockResolvedValue('p1')
+    vi.mocked(getResearchByClientId).mockResolvedValue(null)
   })
 
   it('returns full L1+L2+L3 context chain', async () => {
     vi.mocked(getSessionById).mockResolvedValue(fakeSession as any)
     vi.mocked(getProcessWithModel).mockResolvedValue(fakeProcess as any)
     vi.mocked(getClientById).mockResolvedValue(fakeClient as any)
+    vi.mocked(getResearchByClientId).mockResolvedValue(fakeResearch as any)
     vi.mocked(listSessionContacts).mockResolvedValue(fakeContacts as any)
     vi.mocked(getCompletedSessionsByProcess).mockResolvedValue([fakePriorSession as any])
 
@@ -106,7 +127,7 @@ describe('buildSessionContext', () => {
     expect(ctx.client.name).toBe('Acme Corp')
     expect(ctx.client.industry).toBe('Manufacturing')
     expect(ctx.client.website).toBe('https://acme.com')
-    expect(ctx.client.aiSummary).toBe('Acme is a large manufacturer.')
+    expect(ctx.client.companyOverview).toBe('Acme is a large manufacturer.')
 
     // L2: Process
     expect(ctx.process.name).toBe('Purchasing')

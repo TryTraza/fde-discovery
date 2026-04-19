@@ -1,7 +1,7 @@
 import { getSessionTypeLabel } from '@/lib/utils/session-labels'
 
 export function buildInterviewPrompt(params: {
-  client: { name: string; industry: string; website: string | null; aiSummary: string | null }
+  client: { name: string; industry: string; website: string | null; companyOverview: string | null }
   processContext: {
     name: string
     description: string | null
@@ -37,7 +37,7 @@ export function buildInterviewPrompt(params: {
 Company: ${client.name}
 Industry: ${client.industry}
 ${client.website ? `Website: ${client.website}` : ''}
-${client.aiSummary ? `Company research: ${client.aiSummary}` : ''}
+${client.companyOverview ? `Company research: ${client.companyOverview}` : ''}
 
 Process: ${processContext.name}
 ${processContext.description ? `Description: ${processContext.description}` : ''}

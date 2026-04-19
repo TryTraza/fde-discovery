@@ -15,6 +15,10 @@ describe('CLIENT_KEYS factories', () => {
   it('contacts() builds /api/clients/:id/contacts', () => {
     expect(CLIENT_KEYS.contacts('abc')).toBe('/api/clients/abc/contacts')
   })
+
+  it('research() builds /api/clients/:id/research', () => {
+    expect(CLIENT_KEYS.research('abc')).toBe('/api/clients/abc/research')
+  })
 })
 
 describe('CLIENT_MATCH predicates', () => {

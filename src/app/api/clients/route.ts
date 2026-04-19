@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireUserId, requireAdmin, handleAPIError } from '@/lib/auth/utils'
 import { listClients, createClient } from '@/lib/db/queries/clients'
-import { getAIConfig } from '@/lib/ai/get-ai-config'
-import { triggerCompanyResearchViaBuilder } from '@/lib/ai/trigger-research'
 import { parseJSON } from '@/lib/api/utils'
 import { CLIENT_STATUSES, type ClientStatus } from '@/lib/db/schema'
 
@@ -22,9 +20,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const statusParam = searchParams.get('status')
     const industry = searchParams.get('industry')
-    const validStatus = statusParam && (CLIENT_STATUSES as readonly string[]).includes(statusParam)
-      ? [statusParam as ClientStatus]
-      : undefined
+    const validStatus =
+      statusParam && (CLIENT_STATUSES as readonly string[]).includes(statusParam)
+        ? [statusParam as ClientStatus]
+        : undefined
     const filters = {
       search: searchParams.get('search') || undefined,
       status: validStatus,
@@ -51,14 +50,6 @@ export async function POST(request: Request) {
       )
     }
     const client = await createClient(parsed.data)
-
-    // Resolve model NOW while auth context is available
-    getAIConfig('research')
-      .then(({ model, anthropic }) => {
-        triggerCompanyResearchViaBuilder(client.id, client, model, anthropic)
-      })
-      .catch(() => {}) // NO_API_KEY is fine — research is optional
-
     return NextResponse.json(client, { status: 201 })
   } catch (error) {
     return handleAPIError(error)

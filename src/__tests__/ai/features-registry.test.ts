@@ -3,11 +3,10 @@ import { FEATURES, getFeatureConfig, listFeatureSlugs } from '@/lib/ai/features/
 
 const EXPECTED_SLUGS = [
   'capture-suggestions',
-  'company-research',
+  'client-research',
   'email-draft',
   'prep-brief',
   'process-hypothesis',
-  'refresh-company-profile',
   'research-chat',
   'session-interview',
   'session-synthesis',

@@ -27,12 +27,12 @@ import type {
   PrepBriefGatewayInput,
   ProcessHypothesisGatewayInput,
   ProcessHypothesisGatewayResult,
-  RefreshCompanyProfileGatewayInput,
+  ResearchClientGatewayInput,
   SessionInterviewGatewayInput,
   SessionSynthesisGatewayInput,
   ShadowingSynthesisGatewayInput,
 } from './gateway'
-import type { CompanyProfile } from '@/lib/ai/contracts'
+import type { ClientResearchPayload } from '@/lib/ai/contracts'
 import type { PrepBrief } from '@/lib/ai/schemas/prep-brief'
 import type { SynthesisOutput } from '@/lib/ai/schemas/synthesis'
 
@@ -65,8 +65,8 @@ class TrazaAIGatewayImpl implements AIGateway {
   ): Promise<CaptureSuggestion[]> {
     throw new NotImplementedError('generateCaptureSuggestions')
   }
-  async refreshCompanyProfile(_: RefreshCompanyProfileGatewayInput): Promise<CompanyProfile> {
-    throw new NotImplementedError('refreshCompanyProfile')
+  async researchClient(_: ResearchClientGatewayInput): Promise<ClientResearchPayload> {
+    throw new NotImplementedError('researchClient')
   }
   async synthesizeSession(_: SessionSynthesisGatewayInput): Promise<SynthesisOutput> {
     throw new NotImplementedError('synthesizeSession')

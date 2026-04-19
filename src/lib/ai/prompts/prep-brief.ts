@@ -36,7 +36,7 @@ export function buildPrepBriefPrompt(ctx: SessionContext): string {
 Company: ${ctx.client.name}
 Industry: ${ctx.client.industry}
 ${ctx.client.website ? `Website: ${ctx.client.website}` : ''}
-${ctx.client.aiSummary ? `Company research: ${ctx.client.aiSummary}` : ''}
+${ctx.client.companyOverview ? `Company research: ${ctx.client.companyOverview}` : ''}
 
 Process: ${ctx.process.name}
 ${ctx.process.description ? `Description: ${ctx.process.description}` : ''}

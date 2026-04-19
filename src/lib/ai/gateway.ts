@@ -85,10 +85,21 @@ export interface ResearchClientGatewayInput extends WithModel {
   clientIndustry: string | null
   clientWebsite: string | null
   /** Anthropic SDK tool factory. The local gateway invokes
-   * `anthropic.tools.webSearch_20250305()` to enable web search during
-   * discovery. Passed through the input so `getAIConfig` stays the
-   * single auth boundary. */
-  anthropic: { tools: { webSearch_20250305: () => unknown } }
+   * `anthropic.tools.webSearch_20250305({...})` to enable web search
+   * during discovery. Options like `maxUses` cap how many searches the
+   * model can issue per step — essential for staying inside Anthropic's
+   * per-minute input-token rate limit. Passed through the input so
+   * `getAIConfig` stays the single auth boundary. */
+  anthropic: {
+    tools: {
+      webSearch_20250305: (args?: {
+        maxUses?: number
+        allowedDomains?: string[]
+        blockedDomains?: string[]
+        userLocation?: { type: 'approximate'; city?: string; region?: string; country?: string }
+      }) => unknown
+    }
+  }
 }
 
 export interface SessionSynthesisGatewayInput extends WithModel {

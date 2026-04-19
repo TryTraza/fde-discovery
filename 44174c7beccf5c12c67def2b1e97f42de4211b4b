@@ -1,0 +1,23 @@
+.github/workflows/migrate.yml
+  9df10bdf1d7beb60 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "44174c7beccf5c12c67def2b1e97f42de4211b4b",
+  "prompts": {
+    "9df10bdf1d7beb60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3be43bcc-4a66-48c2-b56c-f0fc3f45b71f",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Alberto Martin",
+      "messages": [],
+      "total_additions": 27,
+      "total_deletions": 0,
+      "accepted_lines": 27,
+      "overriden_lines": 0
+    }
+  }
+}
